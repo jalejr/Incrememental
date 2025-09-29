@@ -1,0 +1,95 @@
+[gd_scene load_steps=10 format=3 uid="uid://dn3qkyl5xdal6"]
+
+[ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://main.gd" id="1_0xm2m"]
+[ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://rts_camera/rts_camera.tscn" id="3_h2yge"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_0xm2m"]
+sky_material = SubResource("ProceduralSkyMaterial_ig7tw")
+
+[sub_resource type="Environment" id="Environment_h2yge"]
+background_mode = 2
+sky = SubResource("Sky_0xm2m")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0xm2m"]
+albedo_texture = ExtResource("1_ig7tw")
+uv1_scale = Vector3(6, 6, 6)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_h2yge"]
+size = Vector2(256, 256)
+
+[sub_resource type="PrismMesh" id="PrismMesh_h2yge"]
+size = Vector3(2, 1, 2)
+
+[node name="Main" type="Node"]
+script = ExtResource("1_0xm2m")
+
+[node name="World" type="Node3D" parent="."]
+metadata/_edit_lock_ = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="World"]
+environment = SubResource("Environment_h2yge")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="World"]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, -96.97221, 127.69307, 0)
+shadow_enabled = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="World"]
+material_override = SubResource("StandardMaterial3D_0xm2m")
+mesh = SubResource("PlaneMesh_h2yge")
+
+[node name="RtsCamera" parent="World" instance=ExtResource("3_h2yge")]
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.8660254, 0, -0.5, 0, 1, 0, 0.5, 0, 0.8660254, 0, 0.5, -26.546276)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.9659258, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.9659258, 6.072158, 0.5, -26.546276)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.258819, 0, -0.9659258, 0, 1, 0, 0.9659258, 0, 0.258819, 0.88924694, 0.5, -19.948547)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D5" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.86602545, 0, -0.5, 0, 1, 0, 0.5, 0, 0.86602545, 5.182911, 0.5, -15.654884)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D6" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.9659258, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.9659258, -22.106903, 0.5, -23.118832)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D7" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.5, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.5, -17.81324, 0.5, -27.412497)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D8" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.86602545, 0, -0.5, 0, 1, 0, 0.5, 0, 0.86602545, -16.812813, 0.5, -19.082325)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D9" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.9659258, 0, 0.25881907, 0, 1, 0, -0.25881907, 0, 0.9659258, -10.740656, 0.5, -19.082327)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D10" type="MeshInstance3D" parent="World"]
+transform = Transform3D(-2.9802322e-08, 0, -1.0000001, 0, 1, 0, 1.0000001, 0, -2.9802322e-08, 17.305542, 0.5, -10.348639)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D11" type="MeshInstance3D" parent="World"]
+transform = Transform3D(0.7071068, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.7071068, 20.341623, 0.5, -5.0899963)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D12" type="MeshInstance3D" parent="World"]
+transform = Transform3D(-0.70710677, 0, -0.7071068, 0, 1, 0, 0.7071068, 0, -0.70710677, 12.0363655, 0.5, -6.279665)
+mesh = SubResource("PrismMesh_h2yge")
+
+[node name="MeshInstance3D13" type="MeshInstance3D" parent="World"]
+transform = Transform3D(2.9802322e-08, 0, -1, 0, 1, 0, 1, 0, 2.9802322e-08, 10.464777, 0.5, -0.41441154)
+mesh = SubResource("PrismMesh_h2yge")
