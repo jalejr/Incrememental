@@ -1,7 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=13 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://compositor/scripts/edge_detection_compositor.gd" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://rts_camera/rts_camera.tscn" id="3_h2yge"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
@@ -16,6 +17,19 @@ background_mode = 2
 sky = SubResource("Sky_0xm2m")
 tonemap_mode = 2
 glow_enabled = true
+
+[sub_resource type="CompositorEffect" id="CompositorEffect_1bvp3"]
+resource_local_to_scene = false
+resource_name = ""
+enabled = true
+effect_callback_type = 4
+needs_motion_vectors = false
+needs_normal_roughness = true
+script = ExtResource("2_1bvp3")
+metadata/_custom_type_script = "uid://wlibnqq7ntfj"
+
+[sub_resource type="Compositor" id="Compositor_lquwl"]
+compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_1bvp3")])
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0xm2m"]
 albedo_texture = ExtResource("1_ig7tw")
@@ -33,63 +47,92 @@ script = ExtResource("1_0xm2m")
 [node name="World" type="Node3D" parent="."]
 metadata/_edit_lock_ = true
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="World"]
-environment = SubResource("Environment_h2yge")
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+texture_filter = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+stretch_shrink = 5
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="World"]
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(230, 129)
+render_target_update_mode = 4
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewportContainer/SubViewport"]
+environment = SubResource("Environment_h2yge")
+compositor = SubResource("Compositor_lquwl")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, -96.97221, 127.69307, 0)
 shadow_enabled = true
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 material_override = SubResource("StandardMaterial3D_0xm2m")
 mesh = SubResource("PlaneMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="RtsCamera" parent="World" instance=ExtResource("3_h2yge")]
+[node name="RtsCamera" parent="SubViewportContainer/SubViewport" instance=ExtResource("3_h2yge")]
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.8660254, 0, -0.5, 0, 1, 0, 0.5, 0, 0.8660254, 0, 0.5, -26.546276)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D3" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.9659258, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.9659258, 6.072158, 0.5, -26.546276)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D4" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.258819, 0, -0.9659258, 0, 1, 0, 0.9659258, 0, 0.258819, 0.88924694, 0.5, -19.948547)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D5" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D5" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.86602545, 0, -0.5, 0, 1, 0, 0.5, 0, 0.86602545, 5.182911, 0.5, -15.654884)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D6" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D6" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.9659258, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.9659258, -22.106903, 0.5, -23.118832)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D7" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D7" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.5, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.5, -17.81324, 0.5, -27.412497)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D8" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D8" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.86602545, 0, -0.5, 0, 1, 0, 0.5, 0, 0.86602545, -16.812813, 0.5, -19.082325)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D9" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D9" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.9659258, 0, 0.25881907, 0, 1, 0, -0.25881907, 0, 0.9659258, -10.740656, 0.5, -19.082327)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D10" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D10" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(-2.9802322e-08, 0, -1.0000001, 0, 1, 0, 1.0000001, 0, -2.9802322e-08, 17.305542, 0.5, -10.348639)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D11" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D11" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.7071068, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.7071068, 20.341623, 0.5, -5.0899963)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D12" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D12" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(-0.70710677, 0, -0.7071068, 0, 1, 0, 0.7071068, 0, -0.70710677, 12.0363655, 0.5, -6.279665)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
 
-[node name="MeshInstance3D13" type="MeshInstance3D" parent="World"]
+[node name="MeshInstance3D13" type="MeshInstance3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(2.9802322e-08, 0, -1, 0, 1, 0, 1, 0, 2.9802322e-08, 10.464777, 0.5, -0.41441154)
 mesh = SubResource("PrismMesh_h2yge")
+skeleton = NodePath("../../../World")
