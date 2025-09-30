@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://cs0djqyjiehg"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_q75vc"]
+
+[sub_resource type="PrismMesh" id="PrismMesh_q75vc"]
+size = Vector3(0.5, 0.5, 0.2)
+
+[node name="Scavenger" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_q75vc")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 0.4, -0.793)
+mesh = SubResource("PrismMesh_q75vc")

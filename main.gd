@@ -9,7 +9,21 @@ extends Node
 
 
 func _ready() -> void:
-	pass
+	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+
+
+func _unhandled_input(_event: InputEvent) -> void:
+	if (Input.is_action_just_released("enter") or 
+			Input.is_action_just_released("left_click")):
+		get_viewport().set_input_as_handled()
+		Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+	
+	if Input.is_action_just_released("escape"):
+		get_viewport().set_input_as_handled()
+		if Input.get_mouse_mode() == Input.MOUSE_MODE_CONFINED:
+			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+		else:
+			get_tree().quit()
 
 
 func _process(_delta: float) -> void:
