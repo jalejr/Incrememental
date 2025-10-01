@@ -1,24 +1,19 @@
 extends Node
+class_name SpatialGridManager
 ## enums
 ## consts
 ## exports
 @export var grid_cell_size: float = 5.0
-@export var updated_units_per_frame: int = 100
 ## public vars
 var spatial_grid: Dictionary = {}
 var registered_units: Array[UnitGridData] = []
 var update_index: int = 0
 ## private vars
 ## onready vars
+
 ## built-in override methods
-
-
 func _ready() -> void:
 	print("SpatialGridManager initialized")
-
-
-func _process(_delta: float) -> void:
-	_update_grid()
 
 
 ## public methods
@@ -117,8 +112,7 @@ func get_grid_stats() -> Dictionary:
 	return {
 		"total_units": registered_units.size(),
 		"occupied_cells": spatial_grid.size(),
-		"cell_size": grid_cell_size,
-		"updates_per_frame": updated_units_per_frame
+		"cell_size": grid_cell_size
 	}
 
 func print_stats():
@@ -130,23 +124,6 @@ func print_stats():
 
 
 ## private methods
-func _update_grid():
-	if registered_units.is_empty():
-		return
-	
-	for i in range(updated_units_per_frame):
-		var index = (update_index + i) % registered_units.size()
-		var unit_data = registered_units[index]
-		
-		# Could optimize this with direct class instead of checking for method
-		if unit_data.manager and unit_data.manager.has_method("get_unit_position"):
-			var fresh_position = unit_data.manager.get_unit_position(unit_data.manager_index)
-			if fresh_position != Vector3.ZERO:  # Valid position
-				update_unit_position(unit_data, fresh_position)
-	
-	update_index = (update_index + updated_units_per_frame) % max(registered_units.size(), 1)
-	
-	
 func _add_to_grid(unit_data: UnitGridData):
 	if not spatial_grid.has(unit_data.grid_cell):
 		spatial_grid[unit_data.grid_cell] = []
