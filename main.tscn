@@ -1,8 +1,7 @@
-[gd_scene load_steps=20 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=19 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://compositor/scripts/edge_detection_compositor.gd" id="2_1bvp3"]
-[ext_resource type="Script" uid="uid://b66e3yeftst0b" path="res://test.gd" id="2_5vw27"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://rts_camera/rts_camera.tscn" id="3_h2yge"]
 [ext_resource type="PackedScene" uid="uid://dyua7qihkpsby" path="res://resources/gold.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" uid="uid://cs0djqyjiehg" path="res://units/scavenger.tscn" id="6_7mycd"]
@@ -60,7 +59,6 @@ script = ExtResource("1_0xm2m")
 metadata/_edit_lock_ = true
 
 [node name="Node3D" type="Node3D" parent="."]
-script = ExtResource("2_5vw27")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="Node3D"]
 texture_filter = 1
