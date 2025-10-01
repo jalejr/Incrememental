@@ -6,6 +6,9 @@ const CAMERA_PAN_MARGIN: float = 5.0 # pixels
 @export var camera_pan_speed: float = 10.0
 @export var camera_rotate_speed: float = 1.0
 @export var camera_zoom_speed: float = 4.0
+@export var camera_pan_lerp_speed: float = 10.0
+@export var camera_rotate_lerp_speed: float = 10.0
+@export var camera_zoom_lerp_speed: float = 10.0
 ## public vars
 ## private vars
 var _camera_pan_direction: Vector3 = Vector3.ZERO
@@ -93,6 +96,6 @@ func _apply_velocity(delta: float) -> void:
 	if rotate_velocity != Vector3.ZERO:
 		global_rotation.y += rotate_velocity.y
 	
-	_camera_pan_direction = lerp(_camera_pan_direction, Vector3.ZERO, 10 * delta)
-	_camera_zoom_direction = lerp(_camera_zoom_direction, Vector3.ZERO, 10 * delta)
-	_camera_rotate_direction = lerp(_camera_rotate_direction, Vector3.ZERO, 10 * delta)
+	_camera_pan_direction = lerp(_camera_pan_direction, Vector3.ZERO, camera_pan_lerp_speed * delta)
+	_camera_zoom_direction = lerp(_camera_zoom_direction, Vector3.ZERO, camera_zoom_lerp_speed * delta)
+	_camera_rotate_direction = lerp(_camera_rotate_direction, Vector3.ZERO, camera_rotate_lerp_speed * delta)
