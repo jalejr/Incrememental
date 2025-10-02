@@ -78,6 +78,10 @@ func _exit_tree():
 
 ## public methods
 func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Node = null) -> BaseUnitData:
+	if units.size() >= multimesh.instance_count:
+		push_error("Cannot spawn more units! Max capacity: ", multimesh.instance_count)
+		return null
+	
 	var unit: BaseUnitData = BaseUnitData.new()
 	unit.position = position
 	unit.visual_position = position
@@ -100,7 +104,7 @@ func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Nod
 	
 	units.append(unit)
 	
-	multimesh.instance_count = units.size()
+	multimesh.visible_instance_count = units.size()
 	_update_unit_visuals(unit, index)
 	
 	return unit
@@ -167,6 +171,8 @@ func _setup_multimesh():
 	multimesh.mesh = unit_mesh
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.use_custom_data = true
+	multimesh.instance_count = 3000
+	multimesh.visible_instance_count = 0
 	
 	multimesh_instance = MultiMeshInstance3D.new()
 	multimesh_instance.multimesh = multimesh
