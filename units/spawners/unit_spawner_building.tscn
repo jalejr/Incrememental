@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://5k3hagwi4mhh"]
+
+[ext_resource type="Script" uid="uid://bdv8jw7nidhfq" path="res://units/spawners/unit_spawner_building.gd" id="1_ht01f"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ukg2"]
+albedo_color = Color(1, 0, 1, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_6ukg2"]
+
+[node name="UnitSpawnerBuilding" type="Node3D" node_paths=PackedStringArray("spawn_points")]
+script = ExtResource("1_ht01f")
+max_units = 50
+spawn_interval = 1.0
+spawn_points = [NodePath("FrontSpawn"), NodePath("LeftSpawn"), NodePath("RightSpawn")]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+material_override = SubResource("StandardMaterial3D_6ukg2")
+mesh = SubResource("CylinderMesh_6ukg2")
+
+[node name="FrontSpawn" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.5)
+
+[node name="LeftSpawn" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 0)
+
+[node name="RightSpawn" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 0)

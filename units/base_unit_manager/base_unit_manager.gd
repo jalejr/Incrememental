@@ -1,5 +1,7 @@
 extends Node
 class_name BaseUnitManager
+
+signal unit_died(unit: BaseUnitData, building: Node)
 ## enums
 ## consts
 ## exports
@@ -26,6 +28,14 @@ var update_index: int = 0
 ## onready vars
 ## methods to override
 func update_unit_logic(unit: BaseUnitData, delta: float):
+	if unit.nav_path.is_empty() or unit.path_index >= unit.nav_path.size():
+	# Unit is idle, give it a new patrol point
+		var patrol_point = unit.spawn_building.global_position + Vector3(
+			randf_range(-20, 20),  # Also made this smaller
+			0,
+			randf_range(-20, 20)
+		)
+		_set_unit_path(unit, patrol_point)
 	if not unit.nav_path.is_empty():
 		move_along_path(unit, delta)
 
@@ -59,7 +69,6 @@ func _physics_process(_delta: float) -> void:
 
 
 func _exit_tree():
-	# Clean up all units
 	for unit in units:
 		if unit.grid_data:
 			grid_manager.unregister_unit(unit.grid_data)
@@ -77,7 +86,7 @@ func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Nod
 	if custom_stats:
 		unit.stats = custom_stats.duplicate_stats()
 	else:
-		unit.stats = _get_default_stats()
+		unit.stats = get_default_stats()
 	
 	unit.health = unit.stats.max_health
 	
@@ -102,11 +111,14 @@ func destroy_unit(index: int):
 		return
 	
 	var unit = units[index]
+	var building: Node = unit.spawn_building
 	
 	grid_manager.unregister_unit(unit.grid_data)
 	
 	if unit.agent_rid.is_valid():
 		NavigationServer3D.free_rid(unit.agent_rid)
+	
+	unit_died.emit(unit, building)
 	
 	units.remove_at(index)
 	multimesh.instance_count = units.size()
@@ -140,6 +152,15 @@ func damage_unit(index: int, damage: float, source_position: Vector3 = Vector3.Z
 	return false
 
 
+func get_default_stats() -> UnitStats:
+	var stats: UnitStats = UnitStats.new()
+	stats.move_speed = default_move_speed
+	stats.max_health = default_health
+	stats.attack_damage = default_attack_damage
+	stats.attack_range = default_attack_range
+	return stats
+
+
 ## private methods
 func _setup_multimesh():
 	multimesh = MultiMesh.new()
@@ -155,15 +176,6 @@ func _setup_multimesh():
 func _setup_navigation() -> void:
 	if navigation_region:
 		nav_map = navigation_region.get_navigation_map()
-
-
-func _get_default_stats() -> UnitStats:
-	var stats: UnitStats = UnitStats.new()
-	stats.move_speed = default_move_speed
-	stats.max_health = default_health
-	stats.attack_damage = default_attack_damage
-	stats.attack_range = default_attack_range
-	return stats
 
 
 func _update_logic(delta: float):
