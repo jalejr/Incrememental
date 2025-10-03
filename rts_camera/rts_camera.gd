@@ -1,16 +1,21 @@
 extends Node3D
 ## enums
 ## consts
-const CAMERA_PAN_MARGIN: float = 5.0 # pixels
+const CAMERA_PAN_MARGIN: float = 5.0
+const ZOOM_BUFFER: float = 25.0
+const SPRING_DEAD_ZONE: float = 0.5
+const SPRING_STRENGTH: float = 55.0
 ## exports
 @export var camera_pan_speed: float = 10.0
 @export var camera_rotate_speed: float = 1.0
 @export var camera_zoom_speed: float = 4.0
 @export var camera_pan_lerp_speed: float = 10.0
+@export var camera_pan_remapped_range: Vector2 = Vector2(0.4, 1.0)
 @export var camera_rotate_lerp_speed: float = 10.0
 @export var camera_zoom_lerp_speed: float = 10.0
 @export var camera_zoom_range: Vector2 = Vector2(50.0, 200.0)
 @export var max_camera_zoom_velocity: float = 10
+
 ## public vars
 ## private vars
 var _camera_pan_direction: Vector3 = Vector3.ZERO
@@ -33,7 +38,6 @@ func _process(delta: float) -> void:
 	get_camera_pan_mouse_direction()
 	get_camera_pan_keyboard_direction()
 	get_camera_rotate_direction()
-	_apply_corrective_input()
 	_apply_velocity(delta)
 
 
@@ -89,36 +93,50 @@ func _setup_camera(camera: Camera3D) -> void:
 	camera.translate_object_local(Vector3(0.0,0.0,100.0))
 
 
-func _apply_corrective_input() -> void:
-	print(camera_3d.position)
-	#var target_position
-	#target_position = clamp(camera_3d.position.z, camera_zoom_range.x, camera_zoom_range.y)
-	#camera_3d.position.z = lerp(camera_3d.position.z, target_position, camera_zoom_lerp_speed * get_process_delta_time())
+func _correct_camera_zoom(delta: float) -> void:
+	var current_z = camera_3d.position.z
+	var min_limit = camera_zoom_range.x - SPRING_DEAD_ZONE
+	var max_limit = camera_zoom_range.y + SPRING_DEAD_ZONE
+	
+	var spring_correction = 0.0
+	if current_z < min_limit:
+		spring_correction = (min_limit - current_z) * SPRING_STRENGTH * delta
+	elif current_z > max_limit:
+		spring_correction = (max_limit - current_z) * SPRING_STRENGTH * delta
+	
+	if spring_correction != 0.0:
+		camera_3d.translate_object_local(Vector3(0, 0, spring_correction))
+
+	var hard_correction = 0.0
+	if current_z < camera_zoom_range.x - ZOOM_BUFFER:
+		hard_correction = (camera_zoom_range.x - ZOOM_BUFFER) - current_z
+	elif current_z > camera_zoom_range.y + ZOOM_BUFFER:
+		hard_correction = (camera_zoom_range.y + ZOOM_BUFFER) - current_z
+	
+	if hard_correction != 0.0:
+		camera_3d.translate_object_local(Vector3(0, 0, hard_correction))
 
 
 func _apply_velocity(delta: float) -> void:
 	var pan_velocity: Vector3 = get_camera_pan_velocity() * delta
 	var zoom_velocity: Vector3 = get_camera_zoom_velocity() * delta
 	var rotate_velocity: Vector3 = get_camera_rotate_velocity() * delta
+	var remapped_pan_modifier: float = remap(
+		camera_3d.position.z,
+		camera_zoom_range.x, camera_zoom_range.y,
+		camera_pan_remapped_range.x, camera_pan_remapped_range.y
+	)
 	
 	if pan_velocity != Vector3.ZERO:
-		translate_object_local(pan_velocity)
+		translate_object_local(pan_velocity * remapped_pan_modifier)
 		
 	if zoom_velocity != Vector3.ZERO:
-		var future_z = camera_3d.position.z + zoom_velocity.z * cos(camera_3d.rotation.x)
-		
-		# If it would exceed bounds, scale down the velocity
-		if future_z < camera_zoom_range.x:
-			var allowed_delta = camera_zoom_range.x - camera_3d.position.z
-			zoom_velocity.z = allowed_delta / cos(camera_3d.rotation.x)
-		elif future_z > camera_zoom_range.y:
-			var allowed_delta = camera_zoom_range.y - camera_3d.position.z
-			zoom_velocity.z = allowed_delta / cos(camera_3d.rotation.x)
-		
 		camera_3d.translate_object_local(zoom_velocity)
 	
 	if rotate_velocity != Vector3.ZERO:
 		global_rotation.y += rotate_velocity.y
+	
+	_correct_camera_zoom(delta)
 	
 	_camera_pan_direction = lerp(_camera_pan_direction, Vector3.ZERO, camera_pan_lerp_speed * delta)
 	_camera_zoom_direction = lerp(_camera_zoom_direction, Vector3.ZERO, camera_zoom_lerp_speed * delta)
@@ -126,12 +144,8 @@ func _apply_velocity(delta: float) -> void:
 
 
 func _camera_can_zoom_in() -> bool:
-	if camera_3d.position.z > camera_zoom_range.x:
-		return true
-	return false
+	return camera_3d.position.z > camera_zoom_range.x
 
 
 func _camera_can_zoom_out() -> bool:
-	if camera_3d.position.z < camera_zoom_range.y:
-		return true
-	return false
+	return camera_3d.position.z < camera_zoom_range.y
