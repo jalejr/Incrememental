@@ -18,7 +18,6 @@ func update_unit_logic(unit: BaseUnitData, delta: float):
 	
 	if soldier.attack_cooldown_remaining_ms > 0:
 		soldier.attack_cooldown_remaining_ms -= delta_ms
-		print(delta)
 	
 	match soldier.state:
 		SoldierData.State.IDLE:
@@ -136,14 +135,12 @@ func _perform_splash_attack(soldier: SoldierData):
 	if not primary_target:
 		return
 	
-	# Get all enemies in splash radius
 	var splash_targets = grid_manager.get_nearby_units(
 		primary_target.position,
 		soldier.stats.splash_radius,
 		team_id
 	)
 	
-	# Damage all units in splash radius
 	for target_data in splash_targets:
 		if target_data.manager:
 			target_data.manager.damage_unit(

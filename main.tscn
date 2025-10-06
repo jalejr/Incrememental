@@ -208,9 +208,9 @@ mesh = SubResource("BoxMesh_5vw27")
 [node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -3.356327)
 unit_manager = NodePath("../SoldierManager")
-max_units = 1
+max_units = 5
 
 [node name="UnitSpawnerBuilding2" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -14.211784)
 unit_manager = NodePath("../SoldierManager2")
-max_units = 1
+max_units = 5

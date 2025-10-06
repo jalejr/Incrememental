@@ -14,7 +14,7 @@ class_name UnitSpawnerBuilding
 
 ## public vars
 ## private vars
-var _spawned_units: Array = []  # Using UnitStats to hold for smaller
+var _spawned_units: Array[BaseUnitData] = []  # Using UnitStats to hold for smaller
 var _spawn_timer: Timer
 var _next_spawn_point_index: int = 0
 
@@ -63,7 +63,6 @@ func despawn_all_units():
 func _attempt_spawning():
 	if _spawned_units.size() >= max_units:
 		return
-
 	var spawn_pos = get_next_spawn_position()
 	if spawn_pos == Vector3.ZERO:
 		push_warning("No valid spawn position for building: ", name)
@@ -72,9 +71,9 @@ func _attempt_spawning():
 	var unit_stats: UnitStats = _get_unit_stats()
 	
 	if unit_stats:
-		_spawned_units.append(unit_stats)
-		unit_manager.spawn_unit(spawn_pos, unit_stats, self)
-		_on_unit_spawned(unit_stats, spawn_pos)
+		var unit_data = unit_manager.spawn_unit(spawn_pos, unit_stats, self)
+		_spawned_units.append(unit_data)
+		_on_unit_spawned(unit_data, spawn_pos)
 
 
 func get_next_spawn_position() -> Vector3:
@@ -105,7 +104,7 @@ func _force_spawn_now():
 	_attempt_spawning()
 
 
-func _on_unit_spawned(unit_stats: UnitStats, position: Vector3):
+func _on_unit_spawned(unit_data: BaseUnitData, position: Vector3):
 	# Logic should be put here. Probably a overridable 
 	print(name, " spawned unit at ", position, " (", get_alive_unit_count(), "/", max_units, ")")
 
@@ -120,7 +119,7 @@ func _on_upgrade_applied(upgrade_type: String, value: float):
 	print(name, " upgraded: ", upgrade_type, " +", value)
 
 
-func _on_manager_says_unit_died(unit, building):
+func _on_manager_says_unit_died(unit: BaseUnitData, building):
 	if building != self:
 		return
 	_spawned_units.erase(unit)

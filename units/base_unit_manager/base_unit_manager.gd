@@ -209,7 +209,6 @@ func _update_logic(delta: float):
 		return
 	
 	var frames_between_updates = ceili(units.size() / float(max_units_updated_per_frame))
-	print(frames_between_updates)
 	var compensated_delta = delta * frames_between_updates
 	
 	var units_updated_per_frame = mini(max_units_updated_per_frame, units.size())
