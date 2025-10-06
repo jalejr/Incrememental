@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=25 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://compositor/scripts/edge_detection_compositor.gd" id="2_1bvp3"]
@@ -6,8 +6,9 @@
 [ext_resource type="PackedScene" uid="uid://dyua7qihkpsby" path="res://resources/gold.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" uid="uid://cs0djqyjiehg" path="res://units/scavenger.tscn" id="6_7mycd"]
 [ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://grid_manager/spatial_grid_manager.tscn" id="6_272bh"]
-[ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://units/base_unit_manager/BaseUnitManager.tscn" id="7_5vw27"]
+[ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://units/base_unit_manager/base_unit_manager.tscn" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://units/spawners/unit_spawner_building.tscn" id="8_5vw27"]
+[ext_resource type="PackedScene" uid="uid://yyymo2467tpn" path="res://units/soldier_manager/soldier_manager.tscn" id="8_kek77"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -50,6 +51,18 @@ polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 agent_height = 2.0
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_272bh"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4c57u"]
+albedo_color = Color(6.160736e-06, 0.5948256, 0.78169036, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_efxa6"]
+material = SubResource("StandardMaterial3D_4c57u")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kek77"]
+albedo_color = Color(1, 0, 0.3254902, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_kek77"]
+material = SubResource("StandardMaterial3D_kek77")
 
 [sub_resource type="BoxMesh" id="BoxMesh_5vw27"]
 
@@ -177,41 +190,27 @@ unit_mesh = SubResource("CapsuleMesh_272bh")
 navigation_region = NodePath("../NavigationRegion3D")
 grid_manager = NodePath("../SpatialGridManager")
 
+[node name="SoldierManager" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
+unit_mesh = SubResource("BoxMesh_efxa6")
+navigation_region = NodePath("../NavigationRegion3D")
+grid_manager = NodePath("../SpatialGridManager")
+team_id = 1
+
+[node name="SoldierManager2" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
+unit_mesh = SubResource("BoxMesh_kek77")
+navigation_region = NodePath("../NavigationRegion3D")
+grid_manager = NodePath("../SpatialGridManager")
+team_id = 2
+
 [node name="MeshInstance3D14" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
 mesh = SubResource("BoxMesh_5vw27")
 
 [node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, 0)
-unit_manager = NodePath("../BaseUnitManager")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -3.356327)
+unit_manager = NodePath("../SoldierManager")
+max_units = 1
 
 [node name="UnitSpawnerBuilding2" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -53.49804)
-unit_manager = NodePath("../BaseUnitManager")
-
-[node name="UnitSpawnerBuilding3" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.112015, 0, -53.49804)
-unit_manager = NodePath("../BaseUnitManager")
-
-[node name="UnitSpawnerBuilding4" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 46.112015, 0, -1.6792336)
-unit_manager = NodePath("../BaseUnitManager")
-
-[node name="UnitSpawnerBuilding5" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.99165, 0, -1.6792336)
-unit_manager = NodePath("../BaseUnitManager")
-
-[node name="UnitSpawnerBuilding6" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.99165, 0, -55.399803)
-unit_manager = NodePath("../BaseUnitManager")
-
-[node name="UnitSpawnerBuilding7" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -87.99165, 0, 49.48018)
-unit_manager = NodePath("../BaseUnitManager")
-
-[node name="UnitSpawnerBuilding8" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.07892609, 0, 49.48018)
-unit_manager = NodePath("../BaseUnitManager")
-
-[node name="UnitSpawnerBuilding9" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 43.682808, 0, 49.48018)
-unit_manager = NodePath("../BaseUnitManager")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -14.211784)
+unit_manager = NodePath("../SoldierManager2")
+max_units = 1

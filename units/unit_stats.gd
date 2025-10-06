@@ -2,11 +2,21 @@ class_name UnitStats
 
 var move_speed: float = 4.0
 var max_health: float = 100.0
-var attack_damage: float = 10.0
-var attack_range: float = 3.0
+var attack_damage: float = 500.0
+var attack_range: float = 15.0
 var has_splash_damage: bool = false
 var splash_radius: float = 0.0
 var attacks_per_second: float = 1.0
+var attack_cooldown_ms: int = 1000
+
+func _init():
+	_recalculate_attack_cooldown()
+
+
+func set_attack_speed(speed: float):
+	attacks_per_second = speed
+	_recalculate_attack_cooldown()
+
 
 func duplicate_stats() -> UnitStats:
 	var new_stats: UnitStats = UnitStats.new()
@@ -16,5 +26,9 @@ func duplicate_stats() -> UnitStats:
 	new_stats.attack_range = attack_range
 	new_stats.has_splash_damage = has_splash_damage
 	new_stats.splash_radius = splash_radius
-	new_stats.attacks_per_second = attacks_per_second
+	new_stats.set_attack_speed(attacks_per_second)
 	return new_stats
+
+
+func _recalculate_attack_cooldown():
+	attack_cooldown_ms = int(1000.0 / attacks_per_second) if attacks_per_second > 0 else 1000

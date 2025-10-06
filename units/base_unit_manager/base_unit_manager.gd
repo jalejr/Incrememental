@@ -9,15 +9,10 @@ signal unit_died(unit: BaseUnitData, building: Node)
 @export var navigation_region: NavigationRegion3D
 @export var grid_manager: SpatialGridManager
 @export var team_id: int = 0
-@export var units_updated_per_frame: int = 100
+@export var max_units_updated_per_frame: int = 100
 @export var visual_lerp_speed: float = 10
 
 ## public vars
-var default_move_speed: float = 4.0
-var default_health: float = 100.0
-var default_attack_damage: float = 10.0
-var default_attack_range: float = 3.0
-
 ## private vars
 var units: Array[BaseUnitData] = []
 var multimesh: MultiMesh
@@ -27,15 +22,12 @@ var update_index: int = 0
 
 ## onready vars
 ## methods to override
+
+func create_unit_instance() -> BaseUnitData:
+	return BaseUnitData.new()
+
+
 func update_unit_logic(unit: BaseUnitData, delta: float):
-	if unit.nav_path.is_empty() or unit.path_index >= unit.nav_path.size():
-	# Unit is idle, give it a new patrol point
-		var patrol_point = unit.spawn_building.global_position + Vector3(
-			randf_range(-20, 20),  # Also made this smaller
-			0,
-			randf_range(-20, 20)
-		)
-		_set_unit_path(unit, patrol_point)
 	if not unit.nav_path.is_empty():
 		move_along_path(unit, delta)
 
@@ -82,7 +74,7 @@ func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Nod
 		push_error("Cannot spawn more units! Max capacity: ", multimesh.instance_count)
 		return null
 	
-	var unit: BaseUnitData = BaseUnitData.new()
+	var unit: BaseUnitData = create_unit_instance()
 	unit.position = position
 	unit.visual_position = position
 	unit.spawn_building = building
@@ -125,13 +117,45 @@ func destroy_unit(index: int):
 	unit_died.emit(unit, building)
 	
 	units.remove_at(index)
-	multimesh.instance_count = units.size()
+	multimesh.visible_instance_count = units.size()
 	
 	for i in range(index, units.size()):
 		units[i].grid_data.manager_index = i
 		_update_unit_visuals(units[i], i)
 	
 	on_unit_died(unit.position)
+
+
+func find_nearest_enemy(unit: BaseUnitData, search_range: float = -1.0) -> BaseUnitData:
+	var range_to_use = search_range if search_range > 0 else unit.stats.attack_range
+	
+	var enemy_data = grid_manager.get_nearest_unit(
+		unit.position,
+		range_to_use,
+		team_id  # Exclude our own team
+	)
+	
+	if enemy_data and enemy_data.manager:
+		return enemy_data.manager.get_unit(enemy_data.manager_index)
+	
+	return null
+
+
+func get_nearby_enemies(position: Vector3, radius: float) -> Array:
+	var enemies = []
+	var nearby = grid_manager.get_nearby_units(position, radius, team_id)
+	
+	for enemy_data in nearby:
+		if enemy_data.manager:
+			var enemy_unit = enemy_data.manager.get_unit(enemy_data.manager_index)
+			if enemy_unit:
+				enemies.append({
+					"unit": enemy_unit,
+					"manager": enemy_data.manager,
+					"index": enemy_data.manager_index
+				})
+	
+	return enemies
 
 
 func get_unit(index: int) -> BaseUnitData:
@@ -158,10 +182,6 @@ func damage_unit(index: int, damage: float, source_position: Vector3 = Vector3.Z
 
 func get_default_stats() -> UnitStats:
 	var stats: UnitStats = UnitStats.new()
-	stats.move_speed = default_move_speed
-	stats.max_health = default_health
-	stats.attack_damage = default_attack_damage
-	stats.attack_range = default_attack_range
 	return stats
 
 
@@ -188,17 +208,17 @@ func _update_logic(delta: float):
 	if units.is_empty():
 		return
 	
-	# Calculate delta compensation (if updating every N frames, multiply delta by N)
-	var frames_between_updates = float(units.size()) / float(units_updated_per_frame)
+	var frames_between_updates = ceili(units.size() / float(max_units_updated_per_frame))
+	print(frames_between_updates)
 	var compensated_delta = delta * frames_between_updates
 	
+	var units_updated_per_frame = mini(max_units_updated_per_frame, units.size())
 	for i in range(units_updated_per_frame):
 		var index = (update_index + i) % units.size()
 		var unit = units[index]
 		
 		update_unit_logic(unit, compensated_delta)
 		
-		# Update grid position
 		if unit.grid_data:
 			grid_manager.update_unit_position(unit.grid_data, unit.position)
 	
