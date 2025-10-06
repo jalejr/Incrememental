@@ -8,4 +8,4 @@ enum State {
 }
 
 var state: State = State.IDLE
-var attack_cooldown_remaining_ms: int = 0
+var attack_cooldown_remaining: float = 0.0

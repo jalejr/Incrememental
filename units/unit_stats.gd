@@ -7,7 +7,7 @@ var attack_range: float = 15.0
 var has_splash_damage: bool = false
 var splash_radius: float = 0.0
 var attacks_per_second: float = 1.0
-var attack_cooldown_ms: int = 1000
+var attack_cooldown_sec: float = 1.0
 
 func _init():
 	_recalculate_attack_cooldown()
@@ -31,4 +31,4 @@ func duplicate_stats() -> UnitStats:
 
 
 func _recalculate_attack_cooldown():
-	attack_cooldown_ms = int(1000.0 / attacks_per_second) if attacks_per_second > 0 else 1000
+	attack_cooldown_sec = (1.0 / attacks_per_second) if attacks_per_second > 0.0 else 1.0

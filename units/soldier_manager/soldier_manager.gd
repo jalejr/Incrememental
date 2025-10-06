@@ -14,10 +14,9 @@ func create_unit_instance() -> BaseUnitData:
 
 func update_unit_logic(unit: BaseUnitData, delta: float):
 	var soldier = unit as SoldierData
-	var delta_ms = int(delta * 1000.0)
 	
-	if soldier.attack_cooldown_remaining_ms > 0:
-		soldier.attack_cooldown_remaining_ms -= delta_ms
+	if soldier.attack_cooldown_remaining > 0:
+		soldier.attack_cooldown_remaining -= delta
 	
 	match soldier.state:
 		SoldierData.State.IDLE:
@@ -94,7 +93,7 @@ func _soldier_attack_behavior(soldier: SoldierData):
 		soldier.state = SoldierData.State.IDLE
 		return
 	
-	if soldier.attack_cooldown_remaining_ms > 0:
+	if soldier.attack_cooldown_remaining > 0:
 		return
 	
 	if soldier.stats.has_splash_damage:
@@ -110,8 +109,6 @@ func _perform_single_attack(soldier: SoldierData):
 		team_id
 	)
 	
-	print(nearest_enemy_data)
-	
 	if not nearest_enemy_data:
 		return
 	
@@ -122,7 +119,7 @@ func _perform_single_attack(soldier: SoldierData):
 			soldier.position
 		)
 		
-		soldier.attack_cooldown_remaining_ms = soldier.stats.attack_cooldown_ms
+		soldier.attack_cooldown_remaining = soldier.stats.attack_cooldown_sec
 		on_unit_attacked(nearest_enemy_data.position)
 
 func _perform_splash_attack(soldier: SoldierData):
