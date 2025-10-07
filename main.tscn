@@ -1,14 +1,16 @@
-[gd_scene load_steps=25 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=27 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://compositor/scripts/edge_detection_compositor.gd" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://rts_camera/rts_camera.tscn" id="3_h2yge"]
+[ext_resource type="Script" uid="uid://5urlldyq2fti" path="res://level.gd" id="4_4c57u"]
 [ext_resource type="PackedScene" uid="uid://dyua7qihkpsby" path="res://resources/gold.tscn" id="5_lquwl"]
 [ext_resource type="PackedScene" uid="uid://cs0djqyjiehg" path="res://units/scavenger.tscn" id="6_7mycd"]
 [ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://grid_manager/spatial_grid_manager.tscn" id="6_272bh"]
 [ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://units/base_unit_manager/base_unit_manager.tscn" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://units/spawners/unit_spawner_building.tscn" id="8_5vw27"]
 [ext_resource type="PackedScene" uid="uid://yyymo2467tpn" path="res://units/soldier_manager/soldier_manager.tscn" id="8_kek77"]
+[ext_resource type="Script" uid="uid://bqnvfyq0m3r0p" path="res://ui.gd" id="11_efxa6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -99,120 +101,140 @@ shadow_enabled = true
 directional_shadow_mode = 0
 directional_shadow_max_distance = 250.0
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
-material_override = SubResource("StandardMaterial3D_lquwl")
-mesh = SubResource("PlaneMesh_h2yge")
-skeleton = NodePath("../../../../World")
-
 [node name="RtsCamera" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("3_h2yge")]
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="Level" type="Node3D" parent="Node3D/SubViewportContainer/SubViewport"]
+script = ExtResource("4_4c57u")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
+material_override = SubResource("StandardMaterial3D_lquwl")
+mesh = SubResource("PlaneMesh_h2yge")
+skeleton = NodePath("../../../../../World")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.8660254, 0, -0.5, 0, 1, 0, 0.5, 0, 0.8660254, 0, 0.5, -26.546276)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D3" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.9659258, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.9659258, 6.072158, 0.5, -26.546276)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D4" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.258819, 0, -0.9659258, 0, 1, 0, 0.9659258, 0, 0.258819, 0.88924694, 0.5, -19.948547)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D5" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D5" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.86602545, 0, -0.5, 0, 1, 0, 0.5, 0, 0.86602545, 5.182911, 0.5, -15.654884)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D6" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D6" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.9659258, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.9659258, -22.106903, 0.5, -23.118832)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D7" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D7" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.5, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.5, -17.81324, 0.5, -27.412497)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D8" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D8" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.86602545, 0, -0.5, 0, 1, 0, 0.5, 0, 0.86602545, -16.812813, 0.5, -19.082325)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D9" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D9" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.9659258, 0, 0.25881907, 0, 1, 0, -0.25881907, 0, 0.9659258, -10.740656, 0.5, -19.082327)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D10" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D10" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(-2.9802322e-08, 0, -1.0000001, 0, 1, 0, 1.0000001, 0, -2.9802322e-08, 17.305542, 0.5, -10.348639)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D11" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D11" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(0.7071068, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, 0.7071068, 20.341623, 0.5, -5.0899963)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D12" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D12" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(-0.70710677, 0, -0.7071068, 0, 1, 0, 0.7071068, 0, -0.70710677, 12.0363655, 0.5, -6.279665)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="MeshInstance3D13" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D13" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 transform = Transform3D(2.9802322e-08, 0, -1, 0, 1, 0, 1, 0, 2.9802322e-08, 10.464777, 0.5, -0.41441154)
 mesh = SubResource("PrismMesh_h2yge")
-skeleton = NodePath("../../../../World")
+skeleton = NodePath("../../../../../World")
 
-[node name="Gold" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("5_lquwl")]
+[node name="Gold" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("5_lquwl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.282616, 0, -6.968609)
 
-[node name="Gold2" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("5_lquwl")]
+[node name="Gold2" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("5_lquwl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.2216063, 0, -6.968609)
 
-[node name="Scavenger" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("6_7mycd")]
+[node name="Scavenger" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_7mycd")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.396986, 0, 0)
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 navigation_mesh = SubResource("NavigationMesh_kek77")
 
-[node name="CSGBox3D" type="CSGBox3D" parent="Node3D/SubViewportContainer/SubViewport/NavigationRegion3D"]
+[node name="CSGBox3D" type="CSGBox3D" parent="Node3D/SubViewportContainer/SubViewport/Level/NavigationRegion3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, 0)
 use_collision = true
 size = Vector3(256, 1, 256)
 
-[node name="SpatialGridManager" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("6_272bh")]
+[node name="SpatialGridManager" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_272bh")]
 
-[node name="BaseUnitManager" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("7_5vw27")]
+[node name="BaseUnitManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("7_5vw27")]
 unit_mesh = SubResource("CapsuleMesh_272bh")
 navigation_region = NodePath("../NavigationRegion3D")
 grid_manager = NodePath("../SpatialGridManager")
 
-[node name="SoldierManager" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
+[node name="SoldierManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
 unit_mesh = SubResource("BoxMesh_efxa6")
 navigation_region = NodePath("../NavigationRegion3D")
 grid_manager = NodePath("../SpatialGridManager")
 team_id = 1
 
-[node name="SoldierManager2" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
+[node name="SoldierManager2" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
 unit_mesh = SubResource("BoxMesh_kek77")
 navigation_region = NodePath("../NavigationRegion3D")
 grid_manager = NodePath("../SpatialGridManager")
 team_id = 2
 
-[node name="MeshInstance3D14" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport"]
+[node name="MeshInstance3D14" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 mesh = SubResource("BoxMesh_5vw27")
+skeleton = NodePath("../..")
 
-[node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+[node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -3.356327)
 unit_manager = NodePath("../SoldierManager")
 max_units = 100
 spawn_interval = 0.1
 
-[node name="UnitSpawnerBuilding2" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+[node name="UnitSpawnerBuilding2" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -14.211784)
 unit_manager = NodePath("../SoldierManager2")
 max_units = 100
 spawn_interval = 0.1
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("11_efxa6")
+
+[node name="Label" type="Label" parent="Control"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
