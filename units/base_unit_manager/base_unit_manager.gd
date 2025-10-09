@@ -2,8 +2,7 @@ extends Node
 class_name BaseUnitManager
 
 signal unit_died(unit: BaseUnitData, building: Node)
-## enums
-## consts
+
 ## exports
 @export var unit_mesh: Mesh
 @export var navigation_region: NavigationRegion3D
@@ -12,7 +11,6 @@ signal unit_died(unit: BaseUnitData, building: Node)
 @export var max_units_updated_per_frame: int = 100
 @export var visual_lerp_speed: float = 10
 
-## public vars
 ## private vars
 var units: Array[BaseUnitData] = []
 var multimesh: MultiMesh
@@ -20,9 +18,7 @@ var multimesh_instance: MultiMeshInstance3D
 var nav_map: RID
 var update_index: int = 0
 
-## onready vars
 ## methods to override
-
 func create_unit_instance() -> BaseUnitData:
 	return BaseUnitData.new()
 
@@ -50,8 +46,19 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_update_logic(delta) # we are time slicing
-	_update_visuals(delta) # we do this on all
+	#_update_logic(delta) # we are time slicing
+	#_update_visuals(delta) # we do this on all
+	
+	var start = Time.get_ticks_usec()
+	_update_logic(delta)
+	var logic_time = Time.get_ticks_usec() - start
+
+	start = Time.get_ticks_usec()
+	_update_visuals(delta)
+	var visual_time = Time.get_ticks_usec() - start
+	
+	print("Name: ", name)
+	print("Logic: %dμs, Visuals: %dμs" % [logic_time, visual_time])
 
 
 func _physics_process(_delta: float) -> void:

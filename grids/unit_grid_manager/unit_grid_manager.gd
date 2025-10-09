@@ -1,12 +1,12 @@
 extends GridManagerBase
 class_name SpatialGridManager
-## enums
-## consts
-## exports
+
 ## public vars
 var spatial_grid: Dictionary = {}
 var registered_units: Array[UnitGridData] = []
+
 ## private vars
+
 var _next_unit_id: int = 0
 ## onready vars
 

@@ -224,4 +224,203 @@ team_id = 2
 mesh = SubResource("BoxMesh_5vw27")
 skeleton = NodePath("../..")
 
+[node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding2" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding3" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding4" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding5" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -98.05143, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding6" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding7" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding8" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding9" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding10" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 0)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding11" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding12" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding13" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding14" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding15" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -98.05143, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding16" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding17" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding18" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding19" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding20" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 34.3784)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding21" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding22" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding23" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding24" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding25" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -98.05143, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding26" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding27" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding28" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding29" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding30" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 70.72644)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding31" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding32" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding33" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding34" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding35" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -98.05143, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding36" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding37" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding38" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding39" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager")
+
+[node name="UnitSpawnerBuilding40" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -32.094826)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding41" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding42" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding43" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding44" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding45" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -98.05143, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding46" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding47" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding48" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding49" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
+[node name="UnitSpawnerBuilding50" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -61.54534)
+unit_manager = NodePath("../SoldierManager2")
+
 [editable path="Node3D/SubViewportContainer/SubViewport/RtsCamera"]
