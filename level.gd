@@ -31,6 +31,5 @@ func stop_money_timer() -> void:
 
 ## private methods
 func _on_money_timer_timeout() -> void:
-	print("We updating?")
 	money_count += 1
 	money_updated.emit(money_count)

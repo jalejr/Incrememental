@@ -17,6 +17,7 @@ func _unhandled_input(_event: InputEvent) -> void:
 			Input.is_action_just_released("left_click")):
 		get_viewport().set_input_as_handled()
 		Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+		print(Engine.get_frames_per_second())
 	
 	if Input.is_action_just_released("escape"):
 		get_viewport().set_input_as_handled()

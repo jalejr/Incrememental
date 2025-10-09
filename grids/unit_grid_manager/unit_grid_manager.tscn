@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dnk5c7577fdlf"]
+
+[ext_resource type="Script" uid="uid://ddibjfbipu3c6" path="res://grids/unit_grid_manager/unit_grid_manager.gd" id="1_v84c5"]
+
+[node name="UnitGridManager" type="Node"]
+script = ExtResource("1_v84c5")

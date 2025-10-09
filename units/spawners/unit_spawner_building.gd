@@ -106,17 +106,20 @@ func _force_spawn_now():
 
 func _on_unit_spawned(unit_data: BaseUnitData, position: Vector3):
 	# Logic should be put here. Probably a overridable 
-	print(name, " spawned unit at ", position, " (", get_alive_unit_count(), "/", max_units, ")")
+	#print(name, " spawned unit at ", position, " (", get_alive_unit_count(), "/", max_units, ")")
+	pass
 
 
 func _on_unit_died(unit) -> void:
 	# Logic should be put here. Probably a overridable 
-	print(name, " lost a unit (", get_alive_unit_count(), "/", max_units, " remaining)")
+	#print(name, " lost a unit (", get_alive_unit_count(), "/", max_units, " remaining)")
+	pass
 
 
 func _on_upgrade_applied(upgrade_type: String, value: float):
 	# Logic should be put here. Probably a overridable 
-	print(name, " upgraded: ", upgrade_type, " +", value)
+	#print(name, " upgraded: ", upgrade_type, " +", value)
+	pass
 
 
 func _on_manager_says_unit_died(unit: BaseUnitData, building):

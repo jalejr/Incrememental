@@ -1,19 +1,18 @@
-extends Node
+extends GridManagerBase
 class_name SpatialGridManager
 ## enums
 ## consts
 ## exports
-@export var grid_cell_size: float = 5.0
 ## public vars
 var spatial_grid: Dictionary = {}
 var registered_units: Array[UnitGridData] = []
-var update_index: int = 0
 ## private vars
+var _next_unit_id: int = 0
 ## onready vars
 
 ## built-in override methods
 func _ready() -> void:
-	print("SpatialGridManager initialized")
+	print("UnitGridManager initialized")
 
 
 ## public methods
@@ -23,7 +22,9 @@ func register_unit(position: Vector3, manager: Node, manager_index: int, team_id
 	data.manager = manager
 	data.manager_index = manager_index
 	data.team_id = team_id
-	data.grid_cell = _world_to_grid(position)
+	data.grid_cell = world_to_grid(position)
+	data.unit_id = _next_unit_id
+	_next_unit_id += 1
 	
 	registered_units.append(data)
 	_add_to_grid(data)
@@ -37,7 +38,7 @@ func unregister_unit(unit_data: UnitGridData):
 
 
 func update_unit_position(unit_data: UnitGridData, new_position: Vector3):
-	var new_cell = _world_to_grid(new_position)
+	var new_cell = world_to_grid(new_position)
 	
 	if new_cell != unit_data.grid_cell:
 		_remove_from_grid(unit_data)
@@ -49,25 +50,24 @@ func update_unit_position(unit_data: UnitGridData, new_position: Vector3):
 
 func get_nearby_units(position: Vector3, radius: float, exclude_team: int = -1) -> Array[UnitGridData]:
 	var nearby_units: Array[UnitGridData] = []
-	var center_cell = _world_to_grid(position)
+	var center_cell = world_to_grid(position)
 	
 	var cell_distance_to_check = int(ceil(radius / grid_cell_size)) + 1
 	var radius_squared = radius * radius
 	
-	for x in range(-cell_distance_to_check, cell_distance_to_check + 1):
-		for z in range(-cell_distance_to_check, cell_distance_to_check + 1):
-			var cell_to_check = center_cell + Vector2i(x, z)
-			
-			if not spatial_grid.has(cell_to_check):
+	var cells_to_check = get_cells_in_radius(center_cell, cell_distance_to_check)
+	for cell_to_check in cells_to_check:
+		if not spatial_grid.has(cell_to_check):
+			continue
+		
+		var cell_units = spatial_grid[cell_to_check]
+		for unit_data in cell_units.values():
+			if exclude_team >= 0 and unit_data.team_id == exclude_team:
 				continue
 			
-			for unit_data in spatial_grid[cell_to_check]:
-				if exclude_team >= 0 and unit_data.team_id == exclude_team:
-					continue
-				
-				var distance_squared = position.distance_squared_to(unit_data.position)
-				if distance_squared <= radius_squared:
-					nearby_units.append(unit_data)
+			var distance_squared = position.distance_squared_to(unit_data.position)
+			if distance_squared <= radius_squared:
+				nearby_units.append(unit_data)
 	
 	return nearby_units 
 
@@ -93,19 +93,11 @@ func get_nearest_unit(position: Vector3, radius: float, exclude_team: int = -1) 
 
 func get_units_in_cell(cell: Vector2i) -> Array[UnitGridData]:
 	if spatial_grid.has(cell):
-		return spatial_grid[cell].duplicate()
+		var units: Array[UnitGridData] = []
+		units.assign(spatial_grid[cell].values())
+		return units
 	
 	return []
-
-
-func get_units_of_team(team_id: int) -> Array[UnitGridData]:
-	var team_units: Array[UnitGridData] = []
-	
-	for unit_data in registered_units:
-		if unit_data.team_id == team_id:
-			team_units.append(unit_data)
-	
-	return team_units
 
 
 func get_grid_stats() -> Dictionary:
@@ -126,20 +118,16 @@ func print_stats():
 ## private methods
 func _add_to_grid(unit_data: UnitGridData):
 	if not spatial_grid.has(unit_data.grid_cell):
-		spatial_grid[unit_data.grid_cell] = []
-	spatial_grid[unit_data.grid_cell].append(unit_data)
+		spatial_grid[unit_data.grid_cell] = {}
+	spatial_grid[unit_data.grid_cell][unit_data.unit_id] = unit_data
 
 
 func _remove_from_grid(unit_data: UnitGridData):
-	if spatial_grid.has(unit_data.grid_cell):
-		spatial_grid[unit_data.grid_cell].erase(unit_data)
-		
-		if spatial_grid[unit_data.grid_cell].is_empty():
-			spatial_grid.erase(unit_data.grid_cell)
-
-
-func _world_to_grid(position: Vector3) -> Vector2i:
-	return Vector2i(
-		int(floor(position.x / grid_cell_size)),
-		int(floor(position.z / grid_cell_size))
-	)
+	if not spatial_grid.has(unit_data.grid_cell):
+		return
+	
+	var cell_dict = spatial_grid[unit_data.grid_cell]
+	cell_dict.erase(unit_data.unit_id)
+	
+	if cell_dict.is_empty():
+		spatial_grid.erase(unit_data.grid_cell)

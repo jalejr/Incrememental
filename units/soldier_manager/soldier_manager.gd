@@ -30,7 +30,6 @@ func update_unit_logic(unit: BaseUnitData, delta: float):
 
 
 func on_unit_attacked(position: Vector3):
-	print("We hitting")
 	# Play melee/ranged hit sound
 	# Spawn hit particle
 	pass
@@ -42,7 +41,6 @@ func on_splash_attack(position: Vector3, radius: float):
 
 func on_unit_damaged(unit: BaseUnitData, damage: float, source_position: Vector3):
 	# Flash red, show damage number, etc.
-	print("We hit", damage)
 	pass
 
 

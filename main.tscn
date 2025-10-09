@@ -1,16 +1,18 @@
-[gd_scene load_steps=27 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=29 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://compositor/scripts/edge_detection_compositor.gd" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://rts_camera/rts_camera.tscn" id="3_h2yge"]
 [ext_resource type="Script" uid="uid://5urlldyq2fti" path="res://level.gd" id="4_4c57u"]
+[ext_resource type="PackedScene" uid="uid://b5w4dwx16567k" path="res://grids/building_grid_manager/building_grid_manager.tscn" id="4_dg77c"]
 [ext_resource type="PackedScene" uid="uid://dyua7qihkpsby" path="res://resources/gold.tscn" id="5_lquwl"]
+[ext_resource type="PackedScene" uid="uid://cll5aue32ry52" path="res://controller/building_placement_controller.tscn" id="5_ycdy4"]
 [ext_resource type="PackedScene" uid="uid://cs0djqyjiehg" path="res://units/scavenger.tscn" id="6_7mycd"]
-[ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://grid_manager/spatial_grid_manager.tscn" id="6_272bh"]
+[ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://grids/unit_grid_manager/unit_grid_manager.tscn" id="6_272bh"]
+[ext_resource type="PackedScene" uid="uid://dglrm60njnkoq" path="res://grids/building_grid_visualizer/grid_visualizer.tscn" id="6_w48qg"]
 [ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://units/base_unit_manager/base_unit_manager.tscn" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://units/spawners/unit_spawner_building.tscn" id="8_5vw27"]
 [ext_resource type="PackedScene" uid="uid://yyymo2467tpn" path="res://units/soldier_manager/soldier_manager.tscn" id="8_kek77"]
-[ext_resource type="Script" uid="uid://bqnvfyq0m3r0p" path="res://ui.gd" id="11_efxa6"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -102,6 +104,17 @@ directional_shadow_mode = 0
 directional_shadow_max_distance = 250.0
 
 [node name="RtsCamera" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("3_h2yge")]
+
+[node name="BuildingGridManager" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("4_dg77c")]
+
+[node name="BuildingPlacementController" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("placement_grid", "grid_visualizer", "camera") instance=ExtResource("5_ycdy4")]
+placement_grid = NodePath("../BuildingGridManager")
+grid_visualizer = NodePath("../BuildingGridVisualizer")
+camera = NodePath("../RtsCamera/Camera3D")
+test_scene = ExtResource("8_5vw27")
+
+[node name="BuildingGridVisualizer" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("placement_grid") instance=ExtResource("6_w48qg")]
+placement_grid = NodePath("../BuildingGridManager")
 
 [node name="Level" type="Node3D" parent="Node3D/SubViewportContainer/SubViewport"]
 script = ExtResource("4_4c57u")
@@ -211,30 +224,4 @@ team_id = 2
 mesh = SubResource("BoxMesh_5vw27")
 skeleton = NodePath("../..")
 
-[node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -3.356327)
-unit_manager = NodePath("../SoldierManager")
-max_units = 100
-spawn_interval = 0.1
-
-[node name="UnitSpawnerBuilding2" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("unit_manager") instance=ExtResource("8_5vw27")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.882046, 0, -14.211784)
-unit_manager = NodePath("../SoldierManager2")
-max_units = 100
-spawn_interval = 0.1
-
-[node name="Control" type="Control" parent="."]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-script = ExtResource("11_efxa6")
-
-[node name="Label" type="Label" parent="Control"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 23.0
+[editable path="Node3D/SubViewportContainer/SubViewport/RtsCamera"]
