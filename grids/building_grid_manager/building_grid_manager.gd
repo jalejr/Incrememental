@@ -1,11 +1,10 @@
 extends GridManagerBase
 class_name BuildingGridManager
-## enums
-## consts
+
 ## exports
 # Absolute limit of world
 @export var grid_world_size: Vector2 = Vector2(512.0, 512.0)
-## public vars
+
 ## private vars
 var _unlocked_cells: Dictionary = {}
 var _occupied_cells: Dictionary = {}
@@ -14,6 +13,7 @@ var _buildings: Array[BuildingGridData] = []
 ## built-in override methods
 func _ready() -> void:
 	print("BuildingGridManager initalized - Cell size: ", grid_cell_size)
+	# TODO Have the unlock happen through some other way like the level starting event
 	unlock_starting_area(Vector3(0,0,0), 5)
 
 ## public methods

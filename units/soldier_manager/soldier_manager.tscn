@@ -4,3 +4,4 @@
 
 [node name="SoldierManager" type="Node"]
 script = ExtResource("1_d0b35")
+unit_type = 1

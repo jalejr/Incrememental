@@ -4,7 +4,7 @@ class_name UnitSpawnerBuilding
 ## consts
 ## exports
 @export_group("Unit Spawning")
-@export var unit_manager: BaseUnitManager
+@export var unit_type: Unit.Type = Unit.Type.BASE
 @export var max_units: int = 10
 @export var spawn_interval: float = 3.0
 @export var auto_spawn: bool = true
@@ -14,20 +14,20 @@ class_name UnitSpawnerBuilding
 
 ## public vars
 ## private vars
+var _unit_manager: BaseUnitManager
 var _spawned_units: Array[BaseUnitData] = []  # Using UnitStats to hold for smaller
 var _spawn_timer: Timer
 var _next_spawn_point_index: int = 0
 
 ## onready vars
 ## built-in override methods
-
-
 func _ready() -> void:
-	if not unit_manager:
+	_unit_manager = UnitManagerRegistry.get_manager(unit_type)
+	if not _unit_manager:
 		push_warning("No unit manager assigned to building: ", name)
 		return
 	
-	unit_manager.unit_died.connect(_on_manager_says_unit_died)
+	_unit_manager.unit_died.connect(_on_manager_says_unit_died)
 	
 	_spawn_timer = Timer.new()
 	_spawn_timer.wait_time = spawn_interval
@@ -52,9 +52,9 @@ func stop_spawning():
 func despawn_all_units():
 	for unit in _spawned_units:
 		if unit:
-			var index = unit_manager.units.find(unit)
+			var index = _unit_manager.units.find(unit)
 			if index >= 0:
-				unit_manager.kill_unit(index)
+				_unit_manager.kill_unit(index)
 	
 	_spawned_units.clear()
 
@@ -71,7 +71,7 @@ func _attempt_spawning():
 	var unit_stats: UnitStats = _get_unit_stats()
 	
 	if unit_stats:
-		var unit_data = unit_manager.spawn_unit(spawn_pos, unit_stats, self)
+		var unit_data = _unit_manager.spawn_unit(spawn_pos, unit_stats, self)
 		_spawned_units.append(unit_data)
 		_on_unit_spawned(unit_data, spawn_pos)
 
@@ -87,7 +87,7 @@ func get_next_spawn_position() -> Vector3:
 
 
 func _get_unit_stats() -> UnitStats:
-	var stats = unit_manager.get_default_stats()
+	var stats = _unit_manager.get_default_stats()
 
 	return stats
 

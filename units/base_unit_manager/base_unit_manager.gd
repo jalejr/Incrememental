@@ -4,6 +4,7 @@ class_name BaseUnitManager
 signal unit_died(unit: BaseUnitData, building: Node)
 
 ## exports
+@export var unit_type: Unit.Type = Unit.Type.BASE
 @export var unit_mesh: Mesh
 @export var navigation_region: NavigationRegion3D
 @export var grid_manager: SpatialGridManager
@@ -40,7 +41,7 @@ func _ready() -> void:
 	if not grid_manager:
 		push_error("GridManager not assigned to ", name)
 		return
-	
+	UnitManagerRegistry.register_manager(unit_type, self)
 	_setup_multimesh()
 	_setup_navigation()
 

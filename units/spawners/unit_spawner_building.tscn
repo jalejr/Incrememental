@@ -9,6 +9,7 @@ albedo_color = Color(1, 0, 1, 1)
 
 [node name="UnitSpawnerBuilding" type="Node3D" node_paths=PackedStringArray("spawn_points")]
 script = ExtResource("1_ht01f")
+unit_type = 1
 max_units = 50
 spawn_interval = 1.0
 spawn_points = [NodePath("FrontSpawn"), NodePath("LeftSpawn"), NodePath("RightSpawn")]
