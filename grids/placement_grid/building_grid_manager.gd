@@ -1,4 +1,4 @@
-extends GridManagerBase
+extends GridBase
 class_name BuildingGridManager
 
 ## exports

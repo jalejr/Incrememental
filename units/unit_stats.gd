@@ -1,5 +1,6 @@
 class_name UnitStats
 
+var radius: float = 0.5
 var move_speed: float = 4.0
 var max_health: float = 100.0
 var attack_damage: float = 500.0

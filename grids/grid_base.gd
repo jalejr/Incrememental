@@ -1,5 +1,5 @@
 extends Node
-class_name GridManagerBase
+class_name GridBase
 
 ## exports
 @export var grid_cell_size: float = 5.0

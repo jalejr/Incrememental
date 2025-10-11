@@ -15,7 +15,7 @@ class_name UnitSpawnerBuilding
 ## public vars
 ## private vars
 var _unit_manager: BaseUnitManager
-var _spawned_units: Array[BaseUnitData] = []  # Using UnitStats to hold for smaller
+var _spawned_units: Array[BaseUnitData] = []
 var _spawn_timer: Timer
 var _next_spawn_point_index: int = 0
 

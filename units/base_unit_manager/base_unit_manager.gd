@@ -87,6 +87,7 @@ func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Nod
 	unit.visual_position = position
 	unit.spawn_building = building
 	
+	# TODO Change this to use real grabbed values
 	if custom_stats:
 		unit.stats = custom_stats.duplicate_stats()
 	else:
@@ -96,11 +97,12 @@ func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Nod
 	
 	unit.agent_rid = NavigationServer3D.agent_create()
 	NavigationServer3D.agent_set_map(unit.agent_rid, nav_map)
-	NavigationServer3D.agent_set_radius(unit.agent_rid, 0.5)
+	NavigationServer3D.agent_set_radius(unit.agent_rid, unit.stats.radius)
 	NavigationServer3D.agent_set_max_speed(unit.agent_rid, unit.stats.move_speed)
+	NavigationServer3D.agent_set_avoidance_enabled(unit.agent_rid, true)
 	
 	var index = units.size()
-	unit.grid_data = grid_manager.register_unit(position, self, index, team_id)
+	unit.grid_data = grid_manager.register_unit(position, unit.stats.radius, self, index, team_id)
 	
 	units.append(unit)
 	
@@ -261,6 +263,10 @@ func move_along_path(unit: BaseUnitData, delta: float):
 	unit.velocity = direction * unit.stats.move_speed
 	
 	var safe_velocity = NavigationServer3D.agent_get_velocity(unit.agent_rid)
+	# TODO see if this commented option is the right move
+	# the y is needed for slopes and i hear using the already calc'd velocity would work
+	# i'm not even sure if when they get pushed out overtime if they go to 0.0
+	# safe_velocity.y = unit.velocity.y
 	var distance = unit.position.distance_to(target)
 	
 	if distance < 0.5:
