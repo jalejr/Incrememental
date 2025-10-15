@@ -16,9 +16,10 @@ class_name BuildingData
 @export_group("Combat")
 @export var max_health: float = 100.0
 @export var team_id: int = 0
+@export var radius: float = 2.0
 
 @export_group("Adjacency Buffs")
-@export var buffs: Array[BuildingBuff] = []
+@export var adjacent_aura_buffs: Array[Buff] = []
 
 #TODO Add these in later
 #@export_group("Upgrades")

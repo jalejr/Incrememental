@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://5k3hagwi4mhh"]
+[gd_scene load_steps=5 format=3 uid="uid://5k3hagwi4mhh"]
 
-[ext_resource type="Script" uid="uid://bdv8jw7nidhfq" path="res://units/spawners/unit_spawner_building.gd" id="1_ht01f"]
+[ext_resource type="Script" uid="uid://bimom22u84uvi" path="res://scripts/buildings/spawner_building.gd" id="1_ht01f"]
+[ext_resource type="Resource" uid="uid://dpq2buwb1yqrl" path="res://resources/spawner_data/barracks_spawner_data.tres" id="2_l20v5"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ukg2"]
 albedo_color = Color(1, 0, 1, 1)
@@ -9,9 +10,7 @@ albedo_color = Color(1, 0, 1, 1)
 
 [node name="UnitSpawnerBuilding" type="Node3D" node_paths=PackedStringArray("spawn_points")]
 script = ExtResource("1_ht01f")
-unit_type = 1
-max_units = 50
-spawn_interval = 1.0
+spawner_data = ExtResource("2_l20v5")
 spawn_points = [NodePath("FrontSpawn"), NodePath("LeftSpawn"), NodePath("RightSpawn")]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]

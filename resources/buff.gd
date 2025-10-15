@@ -1,5 +1,5 @@
 extends Resource
-class_name BuildingBuff
+class_name Buff
 
 enum Type {
 	ATTACK_DAMAGE,
