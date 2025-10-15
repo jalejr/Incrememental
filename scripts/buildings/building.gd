@@ -2,13 +2,10 @@ extends Node3D
 class_name Building
 
 signal health_changed(new_health: float, max_health: float)
+## export vars
+@export var building_data: BuildingData
 
 ## public vars
-# Placement vars
-var building_data: BuildingData
-var grid_position: Vector2i
-
-# Combat vars
 var team_id: int = 0
 var max_health: float = 100.0
 var health: float = 100.0

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BuildingCatalogEntry" load_steps=5 format=3 uid="uid://cycjr7js35a5e"]
+
+[ext_resource type="Script" uid="uid://cljj3ecli3qgi" path="res://resources/building_catalog_entry.gd" id="1_pdtdy"]
+[ext_resource type="Resource" uid="uid://dpoeuv3le7d6h" path="res://resources/building_data/barracks_data.tres" id="1_yqf6l"]
+[ext_resource type="PackedScene" uid="uid://70ovpi77bxc" path="res://scenes/buildings/preview_building.tscn" id="2_0glcc"]
+[ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://units/spawners/unit_spawner_building.tscn" id="3_fha17"]
+
+[resource]
+script = ExtResource("1_pdtdy")
+building_data = ExtResource("1_yqf6l")
+scene = ExtResource("3_fha17")
+preview_scene = ExtResource("2_0glcc")
+metadata/_custom_type_script = "uid://cljj3ecli3qgi"

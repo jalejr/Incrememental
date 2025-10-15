@@ -7,8 +7,12 @@ class_name BuildingPlacementController
 @export var camera: Camera3D
 @export var test_scene: PackedScene
 
+# TODO remove these they are for testing
+const BARRACKS_CATALOG_ENTRY = preload("uid://cycjr7js35a5e")
+const BASE_CATALOG_ENTRY = preload("uid://c1bjdicwfd6r1")
+
 ## private vars
-var _selected_building_config: BuildingConfig
+var _selected_catalog_entry: BuildingCatalogEntry
 var _preview_position: Vector3
 var _is_placing: bool = false
 var _preview_valid: bool = false
@@ -17,12 +21,8 @@ var _preview_valid: bool = false
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("test"):
 		#TODO remove this when done testing and use real data
-		var building_config = BuildingConfig.new()
-		building_config.scene = test_scene
-		building_config.grid_size = Vector2i(2,3)
-		building_config.placement_cost = 5
-		building_config.unlock_radius = 5
-		start_placement(building_config)
+
+		start_placement(BARRACKS_CATALOG_ENTRY)
 	
 	if not _is_placing:
 		return
@@ -37,15 +37,15 @@ func _process(_delta: float) -> void:
 
 
 ## public methods
-func start_placement(config: BuildingConfig):
+func start_placement(catalog_entry: BuildingCatalogEntry):
 	_is_placing = true
-	_selected_building_config = config
-	grid_visualizer.show_placement_preview(Vector3.ZERO, config.grid_size, false)
+	_selected_catalog_entry = catalog_entry
+	grid_visualizer.show_placement_preview(Vector3.ZERO, catalog_entry.building_data.grid_size, false)
 
 
 func cancel_placement():
 	_is_placing = false
-	_selected_building_config = null
+	_selected_catalog_entry = null
 	grid_visualizer.hide_placement_preview()
 
 
@@ -61,8 +61,8 @@ func _update_preview():
 	if intersection:
 		_preview_position = intersection
 		var grid_pos = placement_grid.world_to_grid(_preview_position)
-		_preview_valid = placement_grid.can_place_building(grid_pos, _selected_building_config.grid_size)
-		grid_visualizer.show_placement_preview(_preview_position, _selected_building_config.grid_size, _preview_valid)
+		_preview_valid = placement_grid.can_place_building(grid_pos, _selected_catalog_entry.building_data.grid_size)
+		grid_visualizer.show_placement_preview(_preview_position, _selected_catalog_entry.building_data.grid_size, _preview_valid)
 
 
 func _try_placing_building():
@@ -79,18 +79,18 @@ func _try_placing_building():
 	var grid_pos = placement_grid.world_to_grid(_preview_position)
 	var world_pos = placement_grid.get_placement_preview_position(
 		_preview_position,
-		_selected_building_config.grid_size
+		_selected_catalog_entry.building_data.grid_size
 	)
 	
-	var building = _selected_building_config.scene.instantiate()
+	var building = _selected_catalog_entry.scene.instantiate()
 	get_tree().root.add_child(building)
 	building.global_position = world_pos
 	
 	var building_data = placement_grid.place_building(
 		building,
 		grid_pos,
-		_selected_building_config.grid_size,
-		_selected_building_config.unlock_radius
+		_selected_catalog_entry.building_data.grid_size,
+		_selected_catalog_entry.building_data.unlock_radius
 	)
 	
 	if not building_data:

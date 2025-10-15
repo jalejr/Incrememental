@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BuildingCatalogEntry" load_steps=5 format=3 uid="uid://c1bjdicwfd6r1"]
+
+[ext_resource type="Resource" uid="uid://b5gxi20u4ip5i" path="res://resources/building_data/base_data.tres" id="1_ca3ku"]
+[ext_resource type="PackedScene" uid="uid://70ovpi77bxc" path="res://scenes/buildings/preview_building.tscn" id="2_rieop"]
+[ext_resource type="PackedScene" uid="uid://dyua7qihkpsby" path="res://resources/gold.tscn" id="3_njrkd"]
+[ext_resource type="Script" uid="uid://cljj3ecli3qgi" path="res://resources/building_catalog_entry.gd" id="4_gweay"]
+
+[resource]
+script = ExtResource("4_gweay")
+building_data = ExtResource("1_ca3ku")
+scene = ExtResource("3_njrkd")
+preview_scene = ExtResource("2_rieop")
+metadata/_custom_type_script = "uid://cljj3ecli3qgi"
