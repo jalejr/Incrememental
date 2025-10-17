@@ -12,7 +12,7 @@ var health: float = 100.0
 var radius: float = 0.5
 var adjacent_aura_buffs: Array[Buff] = []
 var active_buffs: Dictionary[Building, Array] = {}
-var cached_buff_multiplier: Dictionary[Buff, float] = {}
+var cached_buffs_calculated: Dictionary[Buff.Type, float] = {}
 
 ## built-in override methods
 func _ready() -> void:

@@ -4,7 +4,7 @@ extends Node
 var _managers: Dictionary = {}
 
 # public methods
-func register_manager(unit_type: Unit.Type, manager: BaseUnitManager):
+func register_manager(unit_type: Unit.Type, manager: UnitManager):
 	if _managers.has(unit_type):
 		push_error("Manager already registered for type: ", unit_type)
 		return
@@ -13,7 +13,7 @@ func register_manager(unit_type: Unit.Type, manager: BaseUnitManager):
 	print("Registered manager for ", Unit.Type.keys()[unit_type])
 
 
-func get_manager(unit_type: Unit.Type) -> BaseUnitManager:
+func get_manager(unit_type: Unit.Type) -> UnitManager:
 	if not _managers.has(unit_type):
 		push_error("No manager registered for type: ", unit_type)
 		return null

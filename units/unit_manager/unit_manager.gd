@@ -1,10 +1,16 @@
 extends Node
-class_name BaseUnitManager
+class_name UnitManager
 
-signal unit_died(unit: BaseUnitData, building: Node)
+signal unit_died(unit: UnitData, building: Node)
+
+class UnitTypeRuntimeData:
+	var config: UnitTypeConfig
+	var multimesh: MultiMesh
+	var multimesh_instance: MultiMeshInstance3D
 
 ## exports
-@export var unit_type: Unit.Type = Unit.Type.BASE
+@export var unit_type_configs: Array[UnitTypeConfig] = []
+#@export var unit_type: Unit.Type = Unit.Type.BASE
 @export var unit_mesh: Mesh
 @export var navigation_region: NavigationRegion3D
 @export var grid_manager: SpatialGridManager
@@ -13,23 +19,28 @@ signal unit_died(unit: BaseUnitData, building: Node)
 @export var visual_lerp_speed: float = 10
 
 ## private vars
-var units: Array[BaseUnitData] = []
+var units: Array[UnitData] = []
 var multimesh: MultiMesh
 var multimesh_instance: MultiMeshInstance3D
 var nav_map: RID
 var update_index: int = 0
 
+var _unit_types_runtime: Dictionary = {}
+var _all_units: Array[UnitData] = []
+var _free_indices: Array[int] = []
+var _alive_count: int = 0
+
 ## methods to override
-func create_unit_instance() -> BaseUnitData:
-	return BaseUnitData.new()
+func create_unit_instance() -> UnitData:
+	return UnitData.new()
 
 
-func update_unit_logic(unit: BaseUnitData, delta: float):
+func update_unit_logic(unit: UnitData, delta: float):
 	if not unit.nav_path.is_empty():
 		move_along_path(unit, delta)
 
 
-func on_unit_damaged(_unit: BaseUnitData, _damage: float, _source_position: Vector3):
+func on_unit_damaged(_unit: UnitData, _damage: float, _source_position: Vector3):
 	pass
 
 func on_unit_died(_position: Vector3):
@@ -38,11 +49,12 @@ func on_unit_died(_position: Vector3):
 
 ## built-in override methods
 func _ready() -> void:
+	_setup_unit_types()
+	
 	if not grid_manager:
 		push_error("GridManager not assigned to ", name)
 		return
-	UnitManagerRegistry.register_manager(unit_type, self)
-	_setup_multimesh()
+	#UnitManagerRegistry.register_manager(unit_type, self)
 	_setup_navigation()
 
 
@@ -77,21 +89,32 @@ func _exit_tree():
 
 
 ## public methods
-func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Node = null) -> BaseUnitData:
-	if units.size() >= multimesh.instance_count:
-		push_error("Cannot spawn more units! Max capacity: ", multimesh.instance_count)
+func spawn_unit(
+	unit_type: Unit.Type, 
+	position: Vector3, 
+	buffs: Dictionary[Buff.Type, float] = {}, 
+	building: Node = null,
+	targetable: bool = true,
+	attackable: bool = true
+	) -> UnitData:
+	if not _unit_types_runtime.has(unit_type):
+		push_error("Unknown unit type ID: %d" % unit_type)
 		return null
 	
-	var unit: BaseUnitData = create_unit_instance()
+	var runtime: UnitTypeRuntimeData = _unit_types_runtime[unit_type]
+	var config: UnitTypeConfig = runtime.config
+	
+	var unit: UnitData = config.unit_script.new()
+	
 	unit.position = position
 	unit.visual_position = position
 	unit.spawn_building = building
+	unit.team_id = team_id
+	unit.is_alive = true
+	unit.is_targetable = targetable
+	unit.is_attackable = attackable
 	
-	# TODO Change this to use real grabbed values
-	if custom_stats:
-		unit.stats = custom_stats.duplicate_stats()
-	else:
-		unit.stats = get_default_stats()
+	unit.stats = _calculate_stats_with_buffs(config.default_stats, buffs)
 	
 	unit.health = unit.stats.max_health
 	
@@ -101,7 +124,15 @@ func spawn_unit(position: Vector3, custom_stats: UnitStats = null, building: Nod
 	NavigationServer3D.agent_set_max_speed(unit.agent_rid, unit.stats.move_speed)
 	NavigationServer3D.agent_set_avoidance_enabled(unit.agent_rid, true)
 	
-	var index = units.size()
+	var index: int
+	
+	if not _free_indices.is_empty():
+		index = _free_indices.pop_back()
+		_all_units[index] = unit
+	else:
+		index = _all_units.size()
+		_all_units.append(unit)
+	
 	unit.grid_data = grid_manager.register_unit(position, unit.stats.radius, self, index, team_id)
 	
 	units.append(unit)
@@ -136,7 +167,7 @@ func destroy_unit(index: int):
 	on_unit_died(unit.position)
 
 
-func find_nearest_enemy(unit: BaseUnitData, search_range: float = -1.0) -> BaseUnitData:
+func find_nearest_enemy(unit: UnitData, search_range: float = -1.0) -> UnitData:
 	var range_to_use = search_range if search_range > 0 else unit.stats.attack_range
 	
 	var enemy_data = grid_manager.get_nearest_unit(
@@ -168,7 +199,7 @@ func get_nearby_enemies(position: Vector3, radius: float) -> Array:
 	return enemies
 
 
-func get_unit(index: int) -> BaseUnitData:
+func get_unit(index: int) -> UnitData:
 	if index >= 0 and index < units.size():
 		return units[index]
 	return null
@@ -196,16 +227,34 @@ func get_default_stats() -> UnitStats:
 
 
 ## private methods
-func _setup_multimesh():
-	multimesh = MultiMesh.new()
-	multimesh.mesh = unit_mesh
-	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.use_custom_data = true
-	multimesh.instance_count = 3000
-	multimesh.visible_instance_count = 0
+func _setup_unit_types():
+	if unit_type_configs.size() <= 0:
+		push_warning("No unit_type_configs added to manager...")
 	
-	multimesh_instance = MultiMeshInstance3D.new()
-	multimesh_instance.multimesh = multimesh
+	for config in unit_type_configs:
+		if _unit_types_runtime.has(config.type_id):
+			push_error("Duplicate type_id %d for %s" % [config.type_id, config.type_name])
+			continue
+		
+		var runtime = UnitTypeRuntimeData.new()
+		runtime.config = config
+		
+		_setup_multimesh(runtime, config)
+		
+		_unit_types_runtime[config.unit_type] = runtime
+		
+
+func _setup_multimesh(runtime: UnitTypeRuntimeData, config: UnitTypeConfig):
+	runtime.multimesh = MultiMesh.new()
+	runtime.multimesh.mesh = unit_mesh
+	runtime.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	runtime.multimesh.use_custom_data = true
+	runtime.multimesh.instance_count = config.max_count
+	runtime.multimesh.visible_instance_count = 0
+	
+	runtime.multimesh_instance = MultiMeshInstance3D.new()
+	runtime.multimesh_instance.multimesh = multimesh
+	
 	add_child(multimesh_instance)
 
 
@@ -243,7 +292,7 @@ func _update_visuals(delta: float):
 		_update_unit_visuals(unit, i)
 
 
-func _update_unit_visuals(unit: BaseUnitData, index: int):
+func _update_unit_visuals(unit: UnitData, index: int):
 	var transform = Transform3D(Basis(), unit.visual_position)
 	multimesh.set_instance_transform(index, transform)
 	
@@ -253,7 +302,11 @@ func _update_unit_visuals(unit: BaseUnitData, index: int):
 	multimesh.set_instance_custom_data(index, custom_data)
 
 
-func move_along_path(unit: BaseUnitData, delta: float):
+func _calculate_stats_with_buffs(unit_stats: UnitStats, buff_dictionary: Dictionary[Buff.Type, float]) -> UnitStats:
+	return UnitStats.new()
+
+
+func move_along_path(unit: UnitData, delta: float):
 	if unit.nav_path.is_empty() or unit.path_index >= unit.nav_path.size():
 		unit.velocity = Vector3.ZERO
 		return
@@ -275,7 +328,7 @@ func move_along_path(unit: BaseUnitData, delta: float):
 		unit.position += safe_velocity * delta
 
 
-func _move_along_path(unit: BaseUnitData, delta: float):
+func _move_along_path(unit: UnitData, delta: float):
 	if unit.nav_path.is_empty() or unit.path_index >= unit.nav_path.size():
 		unit.velocity = Vector3.ZERO
 		return
@@ -293,6 +346,6 @@ func _move_along_path(unit: BaseUnitData, delta: float):
 		unit.position += safe_velocity * delta
 
 
-func _set_unit_path(unit: BaseUnitData, target: Vector3):
+func _set_unit_path(unit: UnitData, target: Vector3):
 	unit.nav_path = NavigationServer3D.map_get_path(nav_map, unit.position, target, true)
 	unit.path_index = 0

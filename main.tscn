@@ -10,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://cs0djqyjiehg" path="res://units/scavenger.tscn" id="6_7mycd"]
 [ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://grids/spatial_grid/spatial_grid.tscn" id="6_272bh"]
 [ext_resource type="PackedScene" uid="uid://dglrm60njnkoq" path="res://grids/building_grid_visualizer/grid_visualizer.tscn" id="6_w48qg"]
-[ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://units/base_unit_manager/base_unit_manager.tscn" id="7_5vw27"]
+[ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://units/unit_manager/unit_manager.tscn" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://units/spawners/unit_spawner_building.tscn" id="8_5vw27"]
 [ext_resource type="PackedScene" uid="uid://yyymo2467tpn" path="res://units/soldier_manager/soldier_manager.tscn" id="8_kek77"]
 
