@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 EventBus="*res://global/event_bus.gd"
-UnitManagerRegistry="*res://global/unit_manager_registry.gd"
 
 [dotnet]
 

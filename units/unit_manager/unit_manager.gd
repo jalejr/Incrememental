@@ -7,39 +7,34 @@ class UnitTypeRuntimeData:
 	var config: UnitTypeConfig
 	var multimesh: MultiMesh
 	var multimesh_instance: MultiMeshInstance3D
+	var alive_count: int = 0
 
 ## exports
 @export var unit_type_configs: Array[UnitTypeConfig] = []
-#@export var unit_type: Unit.Type = Unit.Type.BASE
-@export var unit_mesh: Mesh
 @export var navigation_region: NavigationRegion3D
 @export var grid_manager: SpatialGridManager
-@export var team_id: int = 0
 @export var max_units_updated_per_frame: int = 100
 @export var visual_lerp_speed: float = 10
 
 ## private vars
-var units: Array[UnitData] = []
-var multimesh: MultiMesh
-var multimesh_instance: MultiMeshInstance3D
 var nav_map: RID
 var update_index: int = 0
 
 var _unit_types_runtime: Dictionary = {}
 var _all_units: Array[UnitData] = []
 var _free_indices: Array[int] = []
-var _alive_count: int = 0
+var _alive_count_for_all: int = 0
+
+var _thread_pool: Array[Thread] = []
+var _thread_count: int
+var _result_queue: Array = []
+var _queue_mutex: Mutex = Mutex.new()
+
+var _path_request_queue: Array = []
+var _damage_request_queue: Array = []
 
 ## methods to override
-func create_unit_instance() -> UnitData:
-	return UnitData.new()
-
-
-func update_unit_logic(unit: UnitData, delta: float):
-	if not unit.nav_path.is_empty():
-		move_along_path(unit, delta)
-
-
+# These two should probably become methods in UnitData
 func on_unit_damaged(_unit: UnitData, _damage: float, _source_position: Vector3):
 	pass
 
@@ -49,48 +44,39 @@ func on_unit_died(_position: Vector3):
 
 ## built-in override methods
 func _ready() -> void:
+	_thread_count = _calculate_optimal_thread_count()
+	_initialize_threads()
 	_setup_unit_types()
-	
+	print("How manY?")
 	if not grid_manager:
 		push_error("GridManager not assigned to ", name)
 		return
-	#UnitManagerRegistry.register_manager(unit_type, self)
 	_setup_navigation()
 
 
 func _process(delta: float) -> void:
-	#_update_logic(delta) # we are time slicing
-	#_update_visuals(delta) # we do this on all
-	
 	var start = Time.get_ticks_usec()
-	_update_logic(delta)
 	var logic_time = Time.get_ticks_usec() - start
-
 	start = Time.get_ticks_usec()
+	
 	_update_visuals(delta)
+	
 	var visual_time = Time.get_ticks_usec() - start
 	
 	print("Name: ", name)
 	print("Logic: %dμs, Visuals: %dμs" % [logic_time, visual_time])
 
 
-func _physics_process(_delta: float) -> void:
-	for unit in units:
-		NavigationServer3D.agent_set_position(unit.agent_rid, unit.position)
-		NavigationServer3D.agent_set_velocity(unit.agent_rid, unit.velocity)
-
-
-func _exit_tree():
-	for unit in units:
-		if unit.grid_data:
-			grid_manager.unregister_unit(unit.grid_data)
-		if unit.agent_rid.is_valid():
-			NavigationServer3D.free_rid(unit.agent_rid)
+func _physics_process(delta: float) -> void:
+	_update_logic(delta)
+	_update_navigation_sync()
+	_update_movement(delta)
 
 
 ## public methods
 func spawn_unit(
-	unit_type: Unit.Type, 
+	unit_type: Unit.Type,
+	team_id: int,
 	position: Vector3, 
 	buffs: Dictionary[Buff.Type, float] = {}, 
 	building: Node = null,
@@ -106,6 +92,7 @@ func spawn_unit(
 	
 	var unit: UnitData = config.unit_script.new()
 	
+	unit.unit_type = config.unit_type
 	unit.position = position
 	unit.visual_position = position
 	unit.spawn_building = building
@@ -115,7 +102,6 @@ func spawn_unit(
 	unit.is_attackable = attackable
 	
 	unit.stats = _calculate_stats_with_buffs(config.default_stats, buffs)
-	
 	unit.health = unit.stats.max_health
 	
 	unit.agent_rid = NavigationServer3D.agent_create()
@@ -135,95 +121,90 @@ func spawn_unit(
 	
 	unit.grid_data = grid_manager.register_unit(position, unit.stats.radius, self, index, team_id)
 	
-	units.append(unit)
+	_alive_count_for_all += 1
+	runtime.alive_count += 1
+	runtime.multimesh.visible_instance_count = runtime.alive_count
 	
-	multimesh.visible_instance_count = units.size()
-	_update_unit_visuals(unit, index)
+	var instance_idx = runtime.alive_count - 1
+	var transform = Transform3D(Basis(), position)
+	runtime.multimesh.set_instance_transform(instance_idx, transform)
+	runtime.multimesh.set_instance_custom_data(instance_idx, unit.get_custom_visual_data())
 	
 	return unit
 
 
 func destroy_unit(index: int):
-	if index < 0 or index >= units.size():
+	if index < 0 or index >= _all_units.size():
 		return
 	
-	var unit = units[index]
+	var unit = _all_units[index]
 	var building: Node = unit.spawn_building
+	if not unit.is_alive:
+		return
+		
+	unit.is_alive = false
 	
 	grid_manager.unregister_unit(unit.grid_data)
 	
 	if unit.agent_rid.is_valid():
 		NavigationServer3D.free_rid(unit.agent_rid)
 	
+	var runtime: UnitTypeRuntimeData = _unit_types_runtime[unit.unit_type]
+	runtime.alive_count -= 1
+	runtime.multimesh.visible_instance_count = runtime.alive_count
+	
 	unit_died.emit(unit, building)
-	
-	units.remove_at(index)
-	multimesh.visible_instance_count = units.size()
-	
-	for i in range(index, units.size()):
-		units[i].grid_data.manager_index = i
-		_update_unit_visuals(units[i], i)
-	
 	on_unit_died(unit.position)
 
 
-func find_nearest_enemy(unit: UnitData, search_range: float = -1.0) -> UnitData:
-	var range_to_use = search_range if search_range > 0 else unit.stats.attack_range
-	
-	var enemy_data = grid_manager.get_nearest_unit(
-		unit.position,
-		range_to_use,
-		team_id  # Exclude our own team
-	)
-	
-	if enemy_data and enemy_data.manager:
-		return enemy_data.manager.get_unit(enemy_data.manager_index)
-	
-	return null
-
-
-func get_nearby_enemies(position: Vector3, radius: float) -> Array:
-	var enemies = []
-	var nearby = grid_manager.get_nearby_units(position, radius, team_id)
-	
-	for enemy_data in nearby:
-		if enemy_data.manager:
-			var enemy_unit = enemy_data.manager.get_unit(enemy_data.manager_index)
-			if enemy_unit:
-				enemies.append({
-					"unit": enemy_unit,
-					"manager": enemy_data.manager,
-					"index": enemy_data.manager_index
-				})
-	
-	return enemies
-
-
 func get_unit(index: int) -> UnitData:
-	if index >= 0 and index < units.size():
-		return units[index]
+	if index >= 0 and index < _all_units.size():
+		var unit = _all_units[index]
+		if unit.is_alive:
+			return unit
 	return null
 
 
 func damage_unit(index: int, damage: float, source_position: Vector3 = Vector3.ZERO) -> bool:
-	if index < 0 or index >= units.size():
+	var unit = get_unit(index)
+	if not unit:
 		return false
 	
-	var unit = units[index]
-	unit.health -= damage
+	if not unit.is_attackable:
+		return false
 	
+	unit.health -= damage
 	on_unit_damaged(unit, damage, source_position)
 	
 	if unit.health <= 0:
 		destroy_unit(index)
-		return true
 	
-	return false
+	return true
 
 
-func get_default_stats() -> UnitStats:
-	var stats: UnitStats = UnitStats.new()
-	return stats
+func set_unit_path(unit: UnitData, target: Vector3):
+	unit.nav_path = NavigationServer3D.map_get_path(
+		nav_map, 
+		unit.position, 
+		target, 
+		true
+	)
+	unit.path_index = 0
+	unit.cached_target_position = target
+	unit.path_age = 0.0
+
+
+func queue_damage_request(target_unit: UnitData, damage: float, source_position: Vector3 = Vector3.ZERO):
+	if not target_unit or not target_unit.is_alive or not target_unit.is_attackable:
+		return
+	
+	target_unit.health -= damage
+	on_unit_damaged(target_unit, damage, source_position)
+	
+	if target_unit.health <= 0:
+		var index = _all_units.find(target_unit)
+		if index >= 0:
+			destroy_unit(index)
 
 
 ## private methods
@@ -232,8 +213,8 @@ func _setup_unit_types():
 		push_warning("No unit_type_configs added to manager...")
 	
 	for config in unit_type_configs:
-		if _unit_types_runtime.has(config.type_id):
-			push_error("Duplicate type_id %d for %s" % [config.type_id, config.type_name])
+		if _unit_types_runtime.has(config.unit_type):
+			push_error("Duplicate type_id %d for %s" % [config.unit_type, config.type_name])
 			continue
 		
 		var runtime = UnitTypeRuntimeData.new()
@@ -246,16 +227,22 @@ func _setup_unit_types():
 
 func _setup_multimesh(runtime: UnitTypeRuntimeData, config: UnitTypeConfig):
 	runtime.multimesh = MultiMesh.new()
-	runtime.multimesh.mesh = unit_mesh
+	runtime.multimesh.mesh = config.mesh
 	runtime.multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	runtime.multimesh.use_custom_data = true
 	runtime.multimesh.instance_count = config.max_count
 	runtime.multimesh.visible_instance_count = 0
 	
 	runtime.multimesh_instance = MultiMeshInstance3D.new()
-	runtime.multimesh_instance.multimesh = multimesh
+	runtime.multimesh_instance.multimesh = runtime.multimesh
 	
-	add_child(multimesh_instance)
+	add_child(runtime.multimesh_instance)
+
+
+func _calculate_stats_with_buffs(base_stats: UnitStats, buffs: Dictionary) -> UnitStats:
+	var final_stats = base_stats.duplicate_stats()
+	# TODO real logic soon tm
+	return final_stats
 
 
 func _setup_navigation() -> void:
@@ -264,88 +251,132 @@ func _setup_navigation() -> void:
 
 
 func _update_logic(delta: float):
-	if units.is_empty():
+	if _alive_count_for_all == 0:
 		return
 	
-	var frames_between_updates = ceili(units.size() / float(max_units_updated_per_frame))
+	var frames_between_updates = ceili(_alive_count_for_all / float(max_units_updated_per_frame))
 	var compensated_delta = delta * frames_between_updates
+	var units_this_frame = mini(max_units_updated_per_frame, _alive_count_for_all)
+	var checked = 0
+	var updated = 0
+	var context = _create_logic_context(compensated_delta)
+	var start_index = update_index
 	
-	var units_updated_per_frame = mini(max_units_updated_per_frame, units.size())
-	for i in range(units_updated_per_frame):
-		var index = (update_index + i) % units.size()
-		var unit = units[index]
+	while updated < units_this_frame and checked < _all_units.size():
+		var index = (start_index + checked) % _all_units.size()
+		var unit = _all_units[index]
 		
-		update_unit_logic(unit, compensated_delta)
+		checked += 1
 		
-		if unit.grid_data:
-			grid_manager.update_unit_position(unit.grid_data, unit.position)
+		if not unit.is_alive:
+			continue
+		
+		unit.path_age += compensated_delta
+		unit.update_logic(compensated_delta, context)
+		
+		updated += 1
 	
-	update_index = (update_index + units_updated_per_frame) % max(units.size(), 1)
+	update_index = (start_index + checked) % max(_all_units.size(), 1)
 
 
 func _update_visuals(delta: float):
-	for i in range(units.size()):
-		var unit = units[i]
-		var lerp_weight: float = clamp(visual_lerp_speed * delta, 0.0, 1.0)
-		unit.visual_position = unit.visual_position.lerp(unit.position, lerp_weight)
+	var type_instance_indices: Dictionary = {}
+	for unit_type in _unit_types_runtime.keys():
+		type_instance_indices[unit_type] = 0
+	
+	for unit in _all_units:
+		if not unit.is_alive:
+			continue
 		
-		_update_unit_visuals(unit, i)
+		var lerp_weight = clampf(visual_lerp_speed * delta, 0.0, 1.0)
+		
+		unit.visual_position = unit.visual_position.lerp(unit.position, lerp_weight)
+
+		var runtime = _unit_types_runtime[unit.unit_type]
+		var instance_idx = type_instance_indices[unit.unit_type]
+		type_instance_indices[unit.unit_type] += 1
+		
+		var transform = Transform3D(Basis(), unit.visual_position)
+		runtime.multimesh.set_instance_transform(instance_idx, transform)
+		
+		var custom_data = unit.get_custom_visual_data()
+		runtime.multimesh.set_instance_custom_data(instance_idx, custom_data)
 
 
-func _update_unit_visuals(unit: UnitData, index: int):
-	var transform = Transform3D(Basis(), unit.visual_position)
-	multimesh.set_instance_transform(index, transform)
+func _update_navigation_sync():
+	for unit in _all_units:
+		if not unit.is_alive:
+			continue
+		
+		NavigationServer3D.agent_set_position(unit.agent_rid, unit.position)
+		NavigationServer3D.agent_set_velocity(unit.agent_rid, unit.velocity)
+
+
+func _update_movement(delta: float) -> void:
+	for unit in _all_units:
+		if not unit.is_alive:
+			continue
 	
-	var health_percent = unit.health / unit.stats.max_health
-	var custom_data = Color(health_percent, 0, 0, 1)
-	# TODO health logic health bar perhaps
-	multimesh.set_instance_custom_data(index, custom_data)
+		var safe_velocity = NavigationServer3D.agent_get_velocity(unit.agent_rid)
+		
+		if not unit.nav_path.is_empty() and unit.path_index < unit.nav_path.size():
+			var target = unit.nav_path[unit.path_index]
+			var distance = unit.position.distance_to(target)
+			
+			if distance < 0.5:
+				unit.path_index += 1
+				if unit.path_index >= unit.nav_path.size():
+					unit.velocity = Vector3.ZERO
+					continue
+				else:
+					target = unit.nav_path[unit.path_index]
+			
+			var direction = (target - unit.position).normalized()
+			unit.velocity = direction * unit.stats.move_speed
+			
+			safe_velocity.y = unit.velocity.y
+			unit.position += safe_velocity * delta
+		else:
+			unit.velocity = Vector3.ZERO
+		
+		if unit.grid_data:
+			var new_cell = grid_manager.world_to_grid(unit.position)
+			if new_cell != unit.grid_data.grid_cell:
+				grid_manager.update_unit_position(unit.grid_data, unit.position)
 
 
-func _calculate_stats_with_buffs(unit_stats: UnitStats, buff_dictionary: Dictionary[Buff.Type, float]) -> UnitStats:
-	return UnitStats.new()
+func _create_logic_context(delta: float) -> Dictionary:
+	"""Create context dictionary for unit logic updates"""
+	return {
+		"delta": delta,
+		"manager": self,
+		"grid_manager": grid_manager,
+		"nav_map": nav_map,
+
+		"set_path": set_unit_path,
+		"damage_unit": queue_damage_request  # For thread-safety later
+	}
 
 
-func move_along_path(unit: UnitData, delta: float):
-	if unit.nav_path.is_empty() or unit.path_index >= unit.nav_path.size():
-		unit.velocity = Vector3.ZERO
-		return
+func _calculate_optimal_thread_count() -> int:
+	var cpu_count = OS.get_processor_count()
+	return maxi(1, mini(int(cpu_count * 0.75), 8))
+
+
+func _initialize_threads():
+	_thread_pool.resize(_thread_count)
+	for i in _thread_count:
+		_thread_pool[i] = Thread.new()
+
+
+func _exit_tree():
+	for unit in _all_units:
+		if unit.is_alive:
+			if unit.grid_data:
+				grid_manager.unregister_unit(unit.grid_data)
+			if unit.agent_rid.is_valid():
+				NavigationServer3D.free_rid(unit.agent_rid)
 	
-	var target = unit.nav_path[unit.path_index]
-	var direction = (target - unit.position).normalized()
-	unit.velocity = direction * unit.stats.move_speed
-	
-	var safe_velocity = NavigationServer3D.agent_get_velocity(unit.agent_rid)
-	# TODO see if this commented option is the right move
-	# the y is needed for slopes and i hear using the already calc'd velocity would work
-	# i'm not even sure if when they get pushed out overtime if they go to 0.0
-	# safe_velocity.y = unit.velocity.y
-	var distance = unit.position.distance_to(target)
-	
-	if distance < 0.5:
-		unit.path_index += 1
-	else:
-		unit.position += safe_velocity * delta
-
-
-func _move_along_path(unit: UnitData, delta: float):
-	if unit.nav_path.is_empty() or unit.path_index >= unit.nav_path.size():
-		unit.velocity = Vector3.ZERO
-		return
-	
-	var target = unit.nav_path[unit.path_index]
-	var direction = (target - unit.position).normalized()
-	unit.velocity = direction * unit.stats.move_speed
-	
-	var safe_velocity = NavigationServer3D.agent_get_velocity(unit.agent_rid)
-	var distance = unit.position.distance_to(target)
-	
-	if distance < 0.5:
-		unit.path_index += 1
-	else:
-		unit.position += safe_velocity * delta
-
-
-func _set_unit_path(unit: UnitData, target: Vector3):
-	unit.nav_path = NavigationServer3D.map_get_path(nav_map, unit.position, target, true)
-	unit.path_index = 0
+	for thread in _thread_pool:
+		if thread.is_started():
+			thread.wait_to_finish()

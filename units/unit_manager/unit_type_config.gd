@@ -6,3 +6,4 @@ extends Resource
 @export var icon: Texture2D
 @export var mesh: Mesh
 @export var unit_script: GDScript
+@export var max_count: int

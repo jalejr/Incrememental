@@ -1,5 +1,5 @@
 extends SpatialGridEntity
 class_name SpatialGridUnit
 
-var manager: BaseUnitManager
+var manager: UnitManager
 var manager_index: int

@@ -13,7 +13,7 @@ var _next_spawn_point_index: int = 0
 
 ## built-in override methods
 func _ready() -> void:
-	_unit_manager = UnitManagerRegistry.get_manager(spawner_data.unit_type)
+	_unit_manager = $"../UnitManager"
 	if not _unit_manager:
 		push_warning("No unit manager assigned to building: ", name)
 		return
@@ -40,6 +40,7 @@ func stop_spawning():
 
 func despawn_all_units():
 	# TODO change logic to units leaving
+	# Outdated _unit_manager logic as well
 	for unit in _spawned_units:
 		if unit:
 			var index = _unit_manager.units.find(unit)
@@ -58,13 +59,9 @@ func _attempt_spawning():
 		push_warning("No valid spawn position for building: ", name)
 		return
 	
-	var unit_stats: UnitStats = _get_unit_stats()
-	
-	if unit_stats:
-		#TODO change spawn unit to proper unit type
-		var unit_data = _unit_manager.spawn_unit(Unit.Type.BASE, spawn_pos, cached_buffs_calculated, self)
-		_spawned_units.append(unit_data)
-		_on_unit_spawned(unit_data, spawn_pos)
+	var unit_data = _unit_manager.spawn_unit(spawner_data.unit_type, team_id, spawn_pos, cached_buffs_calculated, self)
+	_spawned_units.append(unit_data)
+	_on_unit_spawned(unit_data, spawn_pos)
 
 
 func _get_next_spawn_position() -> Vector3:
@@ -75,12 +72,6 @@ func _get_next_spawn_position() -> Vector3:
 	_next_spawn_point_index = (_next_spawn_point_index + 1) % spawn_points.size()
 	
 	return spawn_point.global_position
-
-
-func _get_unit_stats() -> UnitStats:
-	var stats = _unit_manager.get_default_stats()
-
-	return stats
 
 
 func _on_manager_says_unit_died(unit: UnitData, building):

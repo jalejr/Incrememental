@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=25 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://compositor/scripts/edge_detection_compositor.gd" id="2_1bvp3"]
@@ -12,7 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://dglrm60njnkoq" path="res://grids/building_grid_visualizer/grid_visualizer.tscn" id="6_w48qg"]
 [ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://units/unit_manager/unit_manager.tscn" id="7_5vw27"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://units/spawners/unit_spawner_building.tscn" id="8_5vw27"]
-[ext_resource type="PackedScene" uid="uid://yyymo2467tpn" path="res://units/soldier_manager/soldier_manager.tscn" id="8_kek77"]
+[ext_resource type="Script" uid="uid://cag84r2xxki5h" path="res://units/unit_manager/unit_type_config.gd" id="13_w48qg"]
+[ext_resource type="Resource" uid="uid://byu0ulg3x22fg" path="res://resources/unit_type_configs/soldier_type_config.tres" id="14_vivmo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -53,20 +54,6 @@ size = Vector3(2, 1, 2)
 vertices = PackedVector3Array(-127.5, 0.39999998, -127.5, -127.5, 0.39999998, 127.5, 127.5, 0.39999998, 127.5, 127.5, 0.39999998, -127.5)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 agent_height = 2.0
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_272bh"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4c57u"]
-albedo_color = Color(6.160736e-06, 0.5948256, 0.78169036, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_efxa6"]
-material = SubResource("StandardMaterial3D_4c57u")
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kek77"]
-albedo_color = Color(1, 0, 0.3254902, 1)
-
-[sub_resource type="BoxMesh" id="BoxMesh_kek77"]
-material = SubResource("StandardMaterial3D_kek77")
 
 [sub_resource type="BoxMesh" id="BoxMesh_5vw27"]
 
@@ -203,22 +190,10 @@ size = Vector3(256, 1, 256)
 
 [node name="SpatialGridManager" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_272bh")]
 
-[node name="BaseUnitManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("7_5vw27")]
-unit_mesh = SubResource("CapsuleMesh_272bh")
+[node name="UnitManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("7_5vw27")]
+unit_type_configs = Array[ExtResource("13_w48qg")]([ExtResource("14_vivmo")])
 navigation_region = NodePath("../NavigationRegion3D")
 grid_manager = NodePath("../SpatialGridManager")
-
-[node name="SoldierManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
-unit_mesh = SubResource("BoxMesh_efxa6")
-navigation_region = NodePath("../NavigationRegion3D")
-grid_manager = NodePath("../SpatialGridManager")
-team_id = 1
-
-[node name="SoldierManager2" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("8_kek77")]
-unit_mesh = SubResource("BoxMesh_kek77")
-navigation_region = NodePath("../NavigationRegion3D")
-grid_manager = NodePath("../SpatialGridManager")
-team_id = 2
 
 [node name="MeshInstance3D14" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 mesh = SubResource("BoxMesh_5vw27")
