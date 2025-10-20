@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dglrm60njnkoq"]
-
-[ext_resource type="Script" uid="uid://bda6xai6ow6ww" path="res://grids/building_grid_visualizer/building_grid_visualizer.gd" id="1_cyhu7"]
-
-[node name="BuildingGridVisualizer" type="Node3D"]
-script = ExtResource("1_cyhu7")

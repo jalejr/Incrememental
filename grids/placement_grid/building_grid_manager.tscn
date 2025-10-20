@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://b5w4dwx16567k"]
-
-[ext_resource type="Script" uid="uid://byb6xdek6q0xr" path="res://grids/placement_grid/building_grid_manager.gd" id="1_n4muj"]
-
-[node name="BuildingGridManager" type="Node"]
-script = ExtResource("1_n4muj")

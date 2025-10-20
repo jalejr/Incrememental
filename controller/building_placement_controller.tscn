@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://cll5aue32ry52"]
-
-[ext_resource type="Script" uid="uid://wcwt7xng7g4y" path="res://controller/building_placement_controller.gd" id="1_vywry"]
-
-[node name="BuildingPlacementController" type="Node"]
-script = ExtResource("1_vywry")

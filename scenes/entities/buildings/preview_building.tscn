@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3 uid="uid://70ovpi77bxc"]
+
+[ext_resource type="Script" uid="uid://c8veqkl4xg16k" path="res://scripts/entities/buildings/preview_building.gd" id="1_1p08s"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1p08s"]
+albedo_color = Color(8.278489e-06, 0.6719572, 0.9365002, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r450k"]
+albedo_color = Color(0.88301593, 0, 0.2240135, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_r450k"]
+
+[node name="PreviewBuilding" type="Node3D"]
+script = ExtResource("1_1p08s")
+valid_material = SubResource("StandardMaterial3D_1p08s")
+invalid_material = SubResource("StandardMaterial3D_r450k")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("SphereMesh_r450k")
+surface_material_override/0 = SubResource("StandardMaterial3D_1p08s")
