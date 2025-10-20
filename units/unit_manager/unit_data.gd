@@ -30,6 +30,9 @@ var path_index: int = 0
 var grid_data: SpatialGridUnit
 var spawn_building: Node = null
 
+# Caching for optimization
+var cached_runtime = null
+
 func update_logic(_delta: float, _context: Dictionary) -> void:
 	pass
 

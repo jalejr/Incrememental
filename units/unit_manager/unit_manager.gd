@@ -8,6 +8,7 @@ class UnitTypeRuntimeData:
 	var multimesh: MultiMesh
 	var multimesh_instance: MultiMeshInstance3D
 	var alive_count: int = 0
+	var visual_index: int = 0
 
 ## exports
 @export var unit_type_configs: Array[UnitTypeConfig] = []
@@ -100,6 +101,7 @@ func spawn_unit(
 	unit.is_alive = true
 	unit.is_targetable = targetable
 	unit.is_attackable = attackable
+	unit.cached_runtime = runtime
 	
 	unit.stats = _calculate_stats_with_buffs(config.default_stats, buffs)
 	unit.health = unit.stats.max_health
@@ -119,7 +121,7 @@ func spawn_unit(
 		index = _all_units.size()
 		_all_units.append(unit)
 	
-	unit.grid_data = grid_manager.register_unit(position, unit.stats.radius, self, index, team_id)
+	unit.grid_data = grid_manager.register_unit(position, unit.stats.radius, index, team_id)
 	
 	_alive_count_for_all += 1
 	runtime.alive_count += 1
@@ -279,10 +281,18 @@ func _update_logic(delta: float):
 	update_index = (start_index + checked) % max(_all_units.size(), 1)
 
 
+func _update_visuals_minimal(delta: float):
+	var count = 0
+	for unit in _all_units:
+		if not unit.is_alive:
+			continue
+		count += 1
+	print("Minimal: %d alive units iterated" % count)
+
+
 func _update_visuals(delta: float):
-	var type_instance_indices: Dictionary = {}
-	for unit_type in _unit_types_runtime.keys():
-		type_instance_indices[unit_type] = 0
+	for runtime in _unit_types_runtime.values():
+		runtime.visual_index = 0
 	
 	for unit in _all_units:
 		if not unit.is_alive:
@@ -292,9 +302,9 @@ func _update_visuals(delta: float):
 		
 		unit.visual_position = unit.visual_position.lerp(unit.position, lerp_weight)
 
-		var runtime = _unit_types_runtime[unit.unit_type]
-		var instance_idx = type_instance_indices[unit.unit_type]
-		type_instance_indices[unit.unit_type] += 1
+		var runtime = unit.cached_runtime
+		var instance_idx = runtime.visual_index
+		runtime.visual_index += 1
 		
 		var transform = Transform3D(Basis(), unit.visual_position)
 		runtime.multimesh.set_instance_transform(instance_idx, transform)
@@ -313,7 +323,8 @@ func _update_navigation_sync():
 
 
 func _update_movement(delta: float) -> void:
-	for unit in _all_units:
+	for i in range(_all_units.size()):
+		var unit = _all_units[i]
 		if not unit.is_alive:
 			continue
 	

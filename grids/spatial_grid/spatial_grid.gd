@@ -16,15 +16,15 @@ func _ready() -> void:
 
 
 ## public methods
-func register_unit(position: Vector3, radius: float, manager: Node, manager_index: int, team_id: int = 0) -> SpatialGridUnit:
+func register_unit(position: Vector3, radius: float, manager_index: int, team_id: int = 0) -> SpatialGridUnit:
 	var data = SpatialGridUnit.new()
+	data.manager_index = manager_index
 	data.position = position
 	data.radius = radius
-	data.manager = manager
-	data.manager_index = manager_index
 	data.team_id = team_id
 	data.grid_cell = world_to_grid(position)
 	data.entity_id = _next_unit_id
+	data.occupied_cells = _get_potentially_occupied_cells(data.grid_cell, radius)
 	_next_unit_id += 1
 	
 	_registered_units.append(data)
@@ -33,14 +33,15 @@ func register_unit(position: Vector3, radius: float, manager: Node, manager_inde
 	return data
 
 
-func register_building(position: Vector3, building: Node3D, team_id: int, attack_radius: float) -> SpatialGridBuilding:
+func register_building(position: Vector3, radius: float, building: Node3D) -> SpatialGridBuilding:
 	var data = BuildingGridData.new()
 	data.position = position
+	data.radius = building.radius
 	data.building = building
-	data.team_id = team_id
+	data.team_id = building.team_id
 	data.grid_cell = world_to_grid(position)
 	data.entity_id = _next_building_id
-	data.attack_radius = attack_radius
+	data.occupied_cells = _get_potentially_occupied_cells(data.grid_cell, radius)
 	_next_building_id += 1
 
 	_registered_buildings.append(data)
@@ -59,99 +60,154 @@ func unregister_building(building_data: SpatialGridBuilding):
 	_registered_buildings.erase(building_data)
 
 
-func update_unit_position(unit_data: SpatialGridUnit, new_position: Vector3):
+func update_unit_position(unit_data: SpatialGridUnit, new_position: Vector3) -> void:
 	var new_cell = world_to_grid(new_position)
 	
 	if new_cell != unit_data.grid_cell:
 		_remove_from_grid(unit_data)
 		unit_data.grid_cell = new_cell
+		unit_data.position = new_position
+		unit_data.occupied_cells = _get_potentially_occupied_cells(unit_data.grid_cell, unit_data.radius)
 		_add_to_grid(unit_data)
-	
-	unit_data.position = new_position
+	else:
+		unit_data.position = new_position
 
 
-func get_nearby_units(position: Vector3, radius: float, exclude_team: int = -1) -> Array[SpatialGridUnit]:
+func get_nearby_units(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> Array[SpatialGridUnit]:
 	var nearby_units: Array[SpatialGridUnit] = []
+	var seen_entities: Dictionary = {}
 	var center_cell = world_to_grid(position)
-	
 	var cell_distance_to_check = int(ceil(radius / grid_cell_size)) + 1
-	var radius_squared = radius * radius
-	
 	var cells_to_check = get_cells_in_radius(center_cell, cell_distance_to_check)
+	
 	for cell_to_check in cells_to_check:
 		if not _unit_grid.has(cell_to_check):
 			continue
 		
 		var cell_units = _unit_grid[cell_to_check]
 		for unit_data in cell_units.values():
-			if exclude_team >= 0 and unit_data.team_id == exclude_team:
+			if seen_entities.has(unit_data.entity_id):
 				continue
 			
+			seen_entities[unit_data.entity_id] = true
+			
+			if is_targeting_allies:
+				if unit_data.team_id != team_id:
+					continue
+			else:
+				if unit_data.team_id == team_id:
+					continue
+			
 			var distance_squared = position.distance_squared_to(unit_data.position)
-			if distance_squared <= radius_squared:
+			var effective_radius = radius + unit_data.radius
+			
+			if distance_squared <= effective_radius * effective_radius:
 				nearby_units.append(unit_data)
 	
-	return nearby_units 
+	return nearby_units
 
 
-func get_nearby_buildings(position: Vector3, radius: float, exclude_team: int = -1) -> Array[SpatialGridBuilding]:
+func get_nearby_buildings(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> Array[SpatialGridBuilding]:
 	var nearby_buildings: Array[SpatialGridBuilding] = []
+	var seen_entities: Dictionary = {}
 	var center_cell = world_to_grid(position)
 	var cell_radius = int(ceil(radius / grid_cell_size)) + 1
-
 	var cells_to_check = get_cells_in_radius(center_cell, cell_radius)
 
-	for cell in cells_to_check:
-		if not _building_grid.has(cell):
+	for cell_to_check in cells_to_check:
+		if not _building_grid.has(cell_to_check):
 			continue
 
-		var cell_buildings = _building_grid[cell]
+		var cell_buildings = _building_grid[cell_to_check]
 		for building_data in cell_buildings.values():
-			if exclude_team >= 0 and building_data.team_id == exclude_team:
+			if seen_entities.has(building_data.entity_id):
 				continue
+			
+			seen_entities[building_data.entity_id] = true
+			
+			if is_targeting_allies:
+				if building_data.team_id != team_id:
+					continue
+			else:
+				if building_data.team_id == team_id:
+					continue
 
-			var distance = position.distance_to(building_data.position)
-			if distance <= radius + building_data.radius:
+			var distance = position.distance_squared_to(building_data.position)
+			var effective_radius = radius + building_data.radius
+			
+			if distance <= effective_radius * effective_radius:
 				nearby_buildings.append(building_data)
 
 	return nearby_buildings
 
 
-func get_nearest_unit(position: Vector3, radius: float, exclude_team: int = -1) -> SpatialGridUnit:
-	var nearby_units = get_nearby_units(position, radius, exclude_team)
+func get_nearest_unit(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> SpatialGridUnit:
+	var center_cell = world_to_grid(position)
+	var max_cell_radius = int(ceil(radius / grid_cell_size)) + 1
+	var seen_entities: Dictionary = {}
 	
-	if nearby_units.is_empty():
-		return null
-	
-	var nearest_unit: SpatialGridUnit = null
-	var nearest_unit_distance_squared = INF
-	
-	for unit_data in nearby_units:
-		var distance_squared = position.distance_squared_to(unit_data.position)
+	# Search in expanding rings for early exit
+	for ring in range(max_cell_radius + 1):
+		var cells_in_ring = _get_cells_in_ring(center_cell, ring)
 		
-		if distance_squared < nearest_unit_distance_squared:
-			nearest_unit_distance_squared = distance_squared
-			nearest_unit = unit_data
+		for cell in cells_in_ring:
+			if not _unit_grid.has(cell):
+				continue
+			
+			var cell_units = _unit_grid[cell]
+			for unit_data in cell_units.values():
+				if seen_entities.has(unit_data.entity_id):
+					continue
+				seen_entities[unit_data.entity_id] = true
+				
+				if is_targeting_allies:
+					if unit_data.team_id != team_id:
+						continue
+				else:
+					if unit_data.team_id == team_id:
+						continue
+				
+				var distance_squared = position.distance_squared_to(unit_data.position)
+				var effective_radius = radius + unit_data.radius
+				
+				if distance_squared <= effective_radius * effective_radius:
+					return unit_data
 	
-	return nearest_unit
+	return null
 
 
-func get_nearest_building(position: Vector3, radius: float, exclude_team: int = -1) -> SpatialGridBuilding:
-	var nearby_buildings = get_nearby_buildings(position, radius, exclude_team)
+func get_nearest_building(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> SpatialGridBuilding:
+	var center_cell = world_to_grid(position)
+	var max_cell_radius = int(ceil(radius / grid_cell_size)) + 1
+	var seen_entities: Dictionary = {}
 
-	if nearby_buildings.is_empty():
-		return null
+	for ring in range(max_cell_radius + 1):
+		var cells_in_ring = _get_cells_in_ring(center_cell, ring)
+		
+		for cell in cells_in_ring:
+			if not _building_grid.has(cell):
+				continue
+
+			var cell_buildings = _building_grid[cell]
+			for building_data in cell_buildings.values():
+				if seen_entities.has(building_data.entity_id):
+					continue
+				seen_entities[building_data.entity_id] = true
+				
+				if is_targeting_allies:
+					if building_data.team_id != team_id:
+						continue
+				else:
+					if building_data.team_id == team_id:
+						continue
+				
+				var distance_squared = position.distance_squared_to(building_data.position)
+				var effective_radius = radius + building_data.radius
+				
+				if distance_squared <= effective_radius * effective_radius:
+					return building_data
 	
-	var nearest: SpatialGridBuilding = null
-	var nearest_distance = INF
-
-	for building_data in nearby_buildings:
-		var distance = position.distance_to(building_data.position)
-		if distance < nearest_distance:
-			nearest_distance = distance
-			nearest = building_data
-	
-	return nearest
+	return null
 
 
 func get_units_in_cell(cell: Vector2i) -> Array[SpatialGridUnit]:
@@ -180,34 +236,75 @@ func print_stats():
 
 ## private methods
 func _add_to_grid(unit_data: SpatialGridUnit):
-	if not _unit_grid.has(unit_data.grid_cell):
-		_unit_grid[unit_data.grid_cell] = {}
-	_unit_grid[unit_data.grid_cell][unit_data.entity_id] = unit_data
+	for cell in unit_data.occupied_cells:
+		if not _unit_grid.has(cell):
+			_unit_grid[cell] = {}
+		_unit_grid[cell][unit_data.entity_id] = unit_data
 
 
 func _remove_from_grid(unit_data: SpatialGridUnit):
-	if not _unit_grid.has(unit_data.grid_cell):
-		return
-	
-	var cell_dict = _unit_grid[unit_data.grid_cell]
-	cell_dict.erase(unit_data.entity_id)
-	
-	if cell_dict.is_empty():
-		_unit_grid.erase(unit_data.grid_cell)
+	for cell in unit_data.occupied_cells:
+		if not _unit_grid.has(cell):
+			continue
+		
+		var cell_dict = _unit_grid[cell]
+		cell_dict.erase(unit_data.entity_id)
+		
+		if cell_dict.is_empty():
+			_unit_grid.erase(cell)
 
 
 func _add_building_to_cell(building_data: SpatialGridBuilding):
-	if not _building_grid.has(building_data.grid_cell):
-		_building_grid[building_data.grid_cell] = {}
-	_building_grid[building_data.grid_cell][building_data.entity_id] = building_data
+	for cell in building_data.occupied_cells:
+		if not _building_grid.has(cell):
+			_building_grid[cell] = {}
+		_building_grid[cell][building_data.entity_id] = building_data
 
 
 func _remove_building_from_cell(building_data: SpatialGridBuilding):
-	if not _building_grid.has(building_data.grid_cell):
-		return
+	for cell in building_data.occupied_cells:
+		if not _building_grid.has(cell):
+			continue
+		
+		var cell_dict = _building_grid[cell]
+		cell_dict.erase(building_data.entity_id)
+		
+		if cell_dict.is_empty():
+			_building_grid.erase(cell)
+
+
+func _get_potentially_occupied_cells(center_cell: Vector2i, radius: float) -> Array[Vector2i]:
+	var occupied_cells: Array[Vector2i] = []
 	
-	var cell_dict = _building_grid[building_data.grid_cell]
-	cell_dict.erase(building_data.entity_id)
+	if radius < grid_cell_size * 0.5:
+		occupied_cells.append(center_cell)
+		return occupied_cells
 	
-	if cell_dict.is_empty():
-		_building_grid.erase(building_data.grid_cell)
+	var cell_radius = int(ceil(radius / grid_cell_size))
+	
+	for x_offset in range(-cell_radius, cell_radius + 1):
+		for z_offset in range(-cell_radius, cell_radius + 1):
+			occupied_cells.append(Vector2i(
+				center_cell.x + x_offset,
+				center_cell.y + z_offset
+			))
+	
+	return occupied_cells
+
+
+func _get_cells_in_ring(center: Vector2i, ring_radius: int) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	
+	if ring_radius == 0:
+		cells.append(center)
+		return cells
+	
+	for x in range(-ring_radius, ring_radius + 1):
+		cells.append(Vector2i(center.x + x, center.y - ring_radius))  # Top edge
+		cells.append(Vector2i(center.x + x, center.y + ring_radius))  # Bottom edge
+	
+	for z in range(-ring_radius + 1, ring_radius):
+		cells.append(Vector2i(center.x - ring_radius, center.y + z))  # Left edge
+		cells.append(Vector2i(center.x + ring_radius, center.y + z))  # Right edge
+	
+	return cells

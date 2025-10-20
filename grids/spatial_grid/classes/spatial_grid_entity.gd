@@ -5,3 +5,4 @@ var position: Vector3
 var team_id: int
 var grid_cell: Vector2i
 var radius: float
+var occupied_cells: Array[Vector2i] = []
