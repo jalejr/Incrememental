@@ -17,7 +17,10 @@ var unit_type: Type
 var visual_position: Vector3
 var velocity: Vector3
 var stats: UnitStats
-var is_dying: bool
+# In-process of cleaning up
+var is_dying: bool = false
+# Spawner building gone so disappearing
+var is_homeless: bool = false
 var cached_target_position: Vector3 = Vector3.ZERO
 var path_age: float = 0.0
 var path_recalc_interval: float = 0.5
@@ -43,8 +46,8 @@ var health: float:
 	get: return entity_data.health if entity_data else 0.0
 	set(value):
 		if entity_data: entity_data.health = value
-var team_id: int:
-	get: return entity_data.team_id if entity_data else -1
+var team_id: EntityData.Team:
+	get: return entity_data.team_id if entity_data else EntityData.Team.NONE
 	set(value):
 		if entity_data: entity_data.team_id = value
 var is_alive: bool:

@@ -77,7 +77,7 @@ func _physics_process(delta: float) -> void:
 ## public methods
 func spawn_unit(
 	unit_type: Unit.Type,
-	team_id: int,
+	team_id: EntityData.Team,
 	position: Vector3, 
 	buffs: Dictionary[Buff.Type, float] = {}, 
 	building: Node = null,
@@ -92,7 +92,8 @@ func spawn_unit(
 	var config: UnitTypeConfig = runtime.config
 	
 	var unit: Unit = config.unit_script.new()
-	
+	unit.entity_data = EntityData.new()
+	unit.entity_data.type = EntityData.Type.UNIT
 	unit.unit_type = config.unit_type
 	unit.position = position
 	unit.visual_position = position
@@ -121,7 +122,7 @@ func spawn_unit(
 		index = _all_units.size()
 		_all_units.append(unit)
 	
-	unit.grid_data = grid_manager.register_unit(position, unit.stats.radius, index, team_id)
+	grid_manager.register_entity(unit.entity_data, unit)
 	
 	_alive_count_for_all += 1
 	runtime.alive_count += 1
@@ -146,7 +147,7 @@ func destroy_unit(index: int):
 		
 	unit.is_alive = false
 	
-	grid_manager.unregister_unit(unit.grid_data)
+	grid_manager.unregister_entity(unit)
 	
 	if unit.agent_rid.is_valid():
 		NavigationServer3D.free_rid(unit.agent_rid)
@@ -208,6 +209,61 @@ func queue_damage_request(target_unit: Unit, damage: float, source_position: Vec
 		if index >= 0:
 			destroy_unit(index)
 
+
+func find_nearest_ally(unit: Unit, search_range: float, find_entity_type: EntityData.Type = EntityData.Type.UNDEFINED) -> Variant:
+	var entity: Variant
+	
+	if find_entity_type == EntityData.Type.UNDEFINED:
+		entity = grid_manager.get_nearest_entity(unit.position, search_range, unit.team_id, true)
+	else:
+		entity = grid_manager.get_nearest_entity_by_type(find_entity_type, unit.position, search_range, unit.team_id, true)
+	
+	if entity:
+		return entity
+	
+	return null
+
+
+func find_nearest_enemy(unit: Unit, search_range: float, find_entity_type: EntityData.Type = EntityData.Type.UNDEFINED) -> Variant:
+	var entity: Variant
+	
+	if find_entity_type == EntityData.Type.UNDEFINED:
+		entity = grid_manager.get_nearest_entity(unit.position, search_range, unit.team_id, false)
+	else:
+		entity = grid_manager.get_nearest_entity_by_type(find_entity_type, unit.position, search_range, unit.team_id, false)
+	
+	if entity:
+		return entity
+	
+	return null
+
+
+func find_nearby_allies(unit: Unit, search_range: float, find_entity_type: EntityData.Type = EntityData.Type.UNDEFINED) -> Array[Variant]:
+	var entities: Array[Variant]
+	
+	if find_entity_type == EntityData.Type.UNDEFINED:
+		entities = grid_manager.get_nearby_entities(unit.position, search_range, unit.team_id, true)
+	else:
+		entities = grid_manager.get_nearby_entities_by_type(find_entity_type, unit.position, search_range, unit.team_id, true)
+	
+	if entities.size():
+		return entities
+	
+	return []
+
+
+func find_nearby_enemies(unit: Unit, search_range: float, find_entity_type: EntityData.Type = EntityData.Type.UNDEFINED) -> Array[Variant]:
+	var entities: Array[Variant]
+	
+	if find_entity_type == EntityData.Type.UNDEFINED:
+		entities = grid_manager.get_nearby_entities(unit.position, search_range, unit.team_id, false)
+	else:
+		entities = grid_manager.get_nearby_entities_by_type(find_entity_type, unit.position, search_range, unit.team_id, false)
+	
+	if entities.size():
+		return entities
+	
+	return []
 
 ## private methods
 func _setup_unit_types():

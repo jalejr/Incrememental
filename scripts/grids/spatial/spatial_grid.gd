@@ -4,273 +4,243 @@ class_name SpatialGridManager
 ## private vars
 var _unit_grid: Dictionary = {}
 var _building_grid: Dictionary = {}
-
-var _registered_units: Array[SpatialGridUnit] = []
-var _registered_buildings: Array[SpatialGridBuilding]
-var _next_unit_id: int = 0
-var _next_building_id: int = 0
+var _entity_id_to_entity_object: Dictionary[int, Variant] = {}
+var _next_entity_id: int = 0
 
 ## built-in override methods
 func _ready() -> void:
-	print("UnitGridManager initialized")
+	print("SpatialGridManager initialized")
 
 
 ## public methods
-func register_unit(position: Vector3, radius: float, manager_index: int, team_id: int = 0) -> SpatialGridUnit:
-	var data = SpatialGridUnit.new()
-	data.manager_index = manager_index
-	data.position = position
-	data.radius = radius
-	data.team_id = team_id
-	data.grid_cell = world_to_grid(position)
-	data.entity_id = _next_unit_id
-	data.occupied_cells = _get_potentially_occupied_cells(data.grid_cell, radius)
-	_next_unit_id += 1
+func register_entity(entity_data: EntityData, entity_object: Variant) -> SpatialGridEntity:
+	var entity = SpatialGridEntity.new()
+	entity.entity_data = entity_data
+	entity.entity_id = _next_entity_id
+	_next_entity_id += 1
 	
-	_registered_units.append(data)
-	_add_to_grid(data)
+	entity.grid_cell = world_to_grid(entity_data.position)
+	entity.occupied_cells = _get_potentially_occupied_cells(
+		entity.grid_cell,
+		entity_data.radius
+	)
 	
-	return data
+	_add_to_grid(entity)
+	_entity_id_to_entity_object[entity.entity_id] = entity_object
+	
+	return entity
 
 
-func register_building(position: Vector3, radius: float, building: Node3D) -> SpatialGridBuilding:
-	var data = SpatialGridBuilding.new()
-	data.position = position
-	data.radius = building.radius
-	data.building = building
-	data.team_id = building.team_id
-	data.grid_cell = world_to_grid(position)
-	data.entity_id = _next_building_id
-	data.occupied_cells = _get_potentially_occupied_cells(data.grid_cell, radius)
-	_next_building_id += 1
-
-	_registered_buildings.append(data)
-	_add_building_to_cell(data)
-
-	return data
+func unregister_entity(entity: SpatialGridEntity) -> void:
+	_remove_from_grid(entity)
+	
+	_entity_id_to_entity_object.erase(entity.entity_id)
 
 
-func unregister_unit(unit_data: SpatialGridUnit):
-	_remove_from_grid(unit_data)
-	_registered_units.erase(unit_data)
-
-
-func unregister_building(building_data: SpatialGridBuilding):
-	_remove_building_from_cell(building_data)
-	_registered_buildings.erase(building_data)
-
-
-func update_unit_position(unit_data: SpatialGridUnit, new_position: Vector3) -> void:
+func update_entity_position(entity: SpatialGridEntity, new_position: Vector3) -> void:
 	var new_cell = world_to_grid(new_position)
 	
-	if new_cell != unit_data.grid_cell:
-		_remove_from_grid(unit_data)
-		unit_data.grid_cell = new_cell
-		unit_data.position = new_position
-		unit_data.occupied_cells = _get_potentially_occupied_cells(unit_data.grid_cell, unit_data.radius)
-		_add_to_grid(unit_data)
+	if new_cell != entity.grid_cell:
+		_remove_from_grid(entity)
+		
+		entity.grid_cell = new_cell
+		entity.entity_data.position = new_position
+		entity.occupied_cells = _get_potentially_occupied_cells(entity.grid_cell, entity.radius)
+		
+		_add_to_grid(entity)
 	else:
-		unit_data.position = new_position
+		entity.entity_data.position = new_position
 
 
-func get_nearby_units(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> Array[SpatialGridUnit]:
-	var nearby_units: Array[SpatialGridUnit] = []
+func get_nearby_entities(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> Array[Variant]:
+	var nearby_units: Array[Variant] = get_nearby_entities_by_type(
+		EntityData.Type.UNIT, 
+		position, 
+		radius, 
+		team_id, 
+		is_targeting_allies
+	)
+	var nearby_buildings: Array[Variant] = get_nearby_entities_by_type(
+		EntityData.Type.BUILDING, 
+		position, 
+		radius, 
+		team_id, 
+		is_targeting_allies
+	)
+	
+	return nearby_units + nearby_buildings
+
+
+func get_nearby_entities_by_type(
+	entity_type: EntityData.Type, 
+	position: Vector3, 
+	radius: float, 
+	team_id: EntityData.Team, 
+	is_targeting_allies: bool = false
+) -> Array[Variant]:
+	var nearby_entities: Array[Variant] = []
 	var seen_entities: Dictionary = {}
 	var center_cell = world_to_grid(position)
 	var cell_distance_to_check = int(ceil(radius / grid_cell_size)) + 1
 	var cells_to_check = get_cells_in_radius(center_cell, cell_distance_to_check)
+	var target_grid = _find_grid_to_target(entity_type)
 	
 	for cell_to_check in cells_to_check:
-		if not _unit_grid.has(cell_to_check):
+		if not target_grid.has(cell_to_check):
 			continue
 		
-		var cell_units = _unit_grid[cell_to_check]
-		for unit_data in cell_units.values():
-			if seen_entities.has(unit_data.entity_id):
+		var cell_units = target_grid[cell_to_check]
+		for entity in cell_units.values():
+			if seen_entities.has(entity.entity_id):
 				continue
 			
-			seen_entities[unit_data.entity_id] = true
+			seen_entities[entity.entity_id] = true
 			
-			if is_targeting_allies:
-				if unit_data.team_id != team_id:
-					continue
-			else:
-				if unit_data.team_id == team_id:
-					continue
+			var data: EntityData = entity.entity_data
 			
-			var distance_squared = position.distance_squared_to(unit_data.position)
-			var effective_radius = radius + unit_data.radius
+			if not data.is_alive or not data.is_targetable:
+				continue
+			
+			if team_id != EntityData.Team.NONE:
+				if is_targeting_allies:
+					if data.team_id != team_id:
+						continue
+				else:
+					if data.team_id == team_id:
+						continue
+			
+			var distance_squared = position.distance_squared_to(data.position)
+			var effective_radius = radius + data.radius
 			
 			if distance_squared <= effective_radius * effective_radius:
-				nearby_units.append(unit_data)
+				nearby_entities.append(_get_entity_object(entity))
 	
-	return nearby_units
+	return nearby_entities
 
 
-func get_nearby_buildings(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> Array[SpatialGridBuilding]:
-	var nearby_buildings: Array[SpatialGridBuilding] = []
-	var seen_entities: Dictionary = {}
-	var center_cell = world_to_grid(position)
-	var cell_radius = int(ceil(radius / grid_cell_size)) + 1
-	var cells_to_check = get_cells_in_radius(center_cell, cell_radius)
-
-	for cell_to_check in cells_to_check:
-		if not _building_grid.has(cell_to_check):
-			continue
-
-		var cell_buildings = _building_grid[cell_to_check]
-		for building_data in cell_buildings.values():
-			if seen_entities.has(building_data.entity_id):
-				continue
-			
-			seen_entities[building_data.entity_id] = true
-			
-			if is_targeting_allies:
-				if building_data.team_id != team_id:
-					continue
-			else:
-				if building_data.team_id == team_id:
-					continue
-
-			var distance = position.distance_squared_to(building_data.position)
-			var effective_radius = radius + building_data.radius
-			
-			if distance <= effective_radius * effective_radius:
-				nearby_buildings.append(building_data)
-
-	return nearby_buildings
-
-
-func get_nearest_unit(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> SpatialGridUnit:
-	var center_cell = world_to_grid(position)
-	var max_cell_radius = int(ceil(radius / grid_cell_size)) + 1
-	var seen_entities: Dictionary = {}
+func get_nearest_entity(position: Vector3, radius: float, team_id: EntityData.Team, is_targeting_allies: bool = false) -> Variant:
+	var nearby_unit: Variant = get_nearest_entity_by_type(
+		EntityData.Type.UNIT, 
+		position, 
+		radius, 
+		team_id, 
+		is_targeting_allies
+	)
 	
-	# Search in expanding rings for early exit
-	for ring in range(max_cell_radius + 1):
-		var cells_in_ring = _get_cells_in_ring(center_cell, ring)
-		
-		for cell in cells_in_ring:
-			if not _unit_grid.has(cell):
-				continue
-			
-			var cell_units = _unit_grid[cell]
-			for unit_data in cell_units.values():
-				if seen_entities.has(unit_data.entity_id):
-					continue
-				seen_entities[unit_data.entity_id] = true
-				
-				if is_targeting_allies:
-					if unit_data.team_id != team_id:
-						continue
-				else:
-					if unit_data.team_id == team_id:
-						continue
-				
-				var distance_squared = position.distance_squared_to(unit_data.position)
-				var effective_radius = radius + unit_data.radius
-				
-				if distance_squared <= effective_radius * effective_radius:
-					return unit_data
+	if nearby_unit: return nearby_unit
+	
+	var nearby_building: Variant = get_nearest_entity_by_type(
+		EntityData.Type.BUILDING, 
+		position, 
+		radius, 
+		team_id, 
+		is_targeting_allies
+	)
+	
+	if nearby_building: return nearby_building
 	
 	return null
 
 
-func get_nearest_building(position: Vector3, radius: float, team_id: int = -1, is_targeting_allies: bool = false) -> SpatialGridBuilding:
+func get_nearest_entity_by_type(
+	entity_type: EntityData.Type, 
+	position: Vector3, 
+	radius: float, 
+	team_id: EntityData.Team, 
+	is_targeting_allies: bool = false
+) -> Variant:
 	var center_cell = world_to_grid(position)
 	var max_cell_radius = int(ceil(radius / grid_cell_size)) + 1
 	var seen_entities: Dictionary = {}
-
+	var target_grid = _find_grid_to_target(entity_type)
+	
 	for ring in range(max_cell_radius + 1):
 		var cells_in_ring = _get_cells_in_ring(center_cell, ring)
 		
 		for cell in cells_in_ring:
-			if not _building_grid.has(cell):
+			if not target_grid.has(cell):
 				continue
-
-			var cell_buildings = _building_grid[cell]
-			for building_data in cell_buildings.values():
-				if seen_entities.has(building_data.entity_id):
+			
+			var cell_units = target_grid[cell]
+			for entity in cell_units.values():
+				if seen_entities.has(entity.entity_id):
 					continue
-				seen_entities[building_data.entity_id] = true
 				
-				if is_targeting_allies:
-					if building_data.team_id != team_id:
-						continue
-				else:
-					if building_data.team_id == team_id:
-						continue
+				seen_entities[entity.entity_id] = true
 				
-				var distance_squared = position.distance_squared_to(building_data.position)
-				var effective_radius = radius + building_data.radius
+				var data: EntityData = entity.entity_data
+				
+				if not data.is_alive or not data.is_targetable:
+					continue
+				
+				if team_id != EntityData.Team.NONE:
+					if is_targeting_allies:
+						if data.team_id != team_id:
+							continue
+					else:
+						if data.team_id == team_id:
+							continue
+				
+				var distance_squared = position.distance_squared_to(data.position)
+				var effective_radius = radius + data.radius
 				
 				if distance_squared <= effective_radius * effective_radius:
-					return building_data
+					return _get_entity_object(entity)
 	
 	return null
-
-
-func get_units_in_cell(cell: Vector2i) -> Array[SpatialGridUnit]:
-	if _unit_grid.has(cell):
-		var units: Array[SpatialGridUnit] = []
-		units.assign(_unit_grid[cell].values())
-		return units
-	
-	return []
 
 
 func get_grid_stats() -> Dictionary:
 	return {
-		"total_units": _registered_units.size(),
+		"total_entities": _entity_id_to_entity_object.size(),
 		"occupied_cells": _unit_grid.size(),
 		"cell_size": grid_cell_size
 	}
 
+
 func print_stats():
 	var stats = get_grid_stats()
 	print("=== Grid Stats ===")
-	print("Total units: ", stats.total_units)
 	print("Occupied cells: ", stats.occupied_cells)
-	print("Avg units per cell: ", float(stats.total_units) / max(stats.occupied_cells, 1))
-
+	print("Avg entities per cell: ", float(stats.total_entities) / max(stats.occupied_cells, 1))
 
 ## private methods
-func _add_to_grid(unit_data: SpatialGridUnit):
-	for cell in unit_data.occupied_cells:
-		if not _unit_grid.has(cell):
-			_unit_grid[cell] = {}
-		_unit_grid[cell][unit_data.entity_id] = unit_data
+func _add_to_grid(entity: SpatialGridEntity):
+	var target_grid: Dictionary = _find_grid_to_target(entity.entity_data.type)
+	
+	for cell in entity.occupied_cells:
+		if not target_grid.has(cell):
+			target_grid[cell] = {}
+		target_grid[cell][entity.entity_id] = entity
 
 
-func _remove_from_grid(unit_data: SpatialGridUnit):
-	for cell in unit_data.occupied_cells:
-		if not _unit_grid.has(cell):
+func _remove_from_grid(entity: SpatialGridEntity):
+	var target_grid: Dictionary = _find_grid_to_target(entity.entity_data.type)
+	
+	for cell in entity.occupied_cells:
+		if not target_grid.has(cell):
 			continue
 		
-		var cell_dict = _unit_grid[cell]
-		cell_dict.erase(unit_data.entity_id)
+		var cell_dict = target_grid[cell]
+		cell_dict.erase(entity.entity_id)
 		
 		if cell_dict.is_empty():
-			_unit_grid.erase(cell)
+			target_grid.erase(cell)
 
 
-func _add_building_to_cell(building_data: SpatialGridBuilding):
-	for cell in building_data.occupied_cells:
-		if not _building_grid.has(cell):
-			_building_grid[cell] = {}
-		_building_grid[cell][building_data.entity_id] = building_data
+func _find_grid_to_target(entity_type: EntityData.Type) -> Dictionary:
+	match entity_type:
+		EntityData.Type.UNIT:
+			return _unit_grid
+		EntityData.Type.BUILDING:
+			return _building_grid
+	
+	push_error("Trying to access Unknown unit type grid ID: %d" % entity_type)
+	return {}
 
 
-func _remove_building_from_cell(building_data: SpatialGridBuilding):
-	for cell in building_data.occupied_cells:
-		if not _building_grid.has(cell):
-			continue
-		
-		var cell_dict = _building_grid[cell]
-		cell_dict.erase(building_data.entity_id)
-		
-		if cell_dict.is_empty():
-			_building_grid.erase(cell)
+func _get_entity_object(entity: SpatialGridEntity) -> Variant:
+	return _entity_id_to_entity_object.get(entity.entity_id)
 
 
 func _get_potentially_occupied_cells(center_cell: Vector2i, radius: float) -> Array[Vector2i]:
