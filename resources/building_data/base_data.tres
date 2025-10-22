@@ -11,4 +11,5 @@ display_name = "default"
 description = "Debug building"
 icon = ExtResource("2_2t1x6")
 grid_size = Vector2i(1, 1)
+team_id = 2
 metadata/_custom_type_script = "uid://b4lhb37v3ri8b"

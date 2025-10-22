@@ -5,10 +5,13 @@ class_name SpatialGridManager
 var _unit_grid: Dictionary = {}
 var _building_grid: Dictionary = {}
 var _entity_id_to_entity_object: Dictionary[int, Variant] = {}
+var _entity_object_to_entity: Dictionary[Variant, SpatialGridEntity] = {}
 var _next_entity_id: int = 0
 
 ## built-in override methods
 func _ready() -> void:
+	EventBus.building_placed.connect(_on_building_placed)
+	EventBus.building_removed.connect(_on_building_removed)
 	print("SpatialGridManager initialized")
 
 
@@ -26,15 +29,20 @@ func register_entity(entity_data: EntityData, entity_object: Variant) -> Spatial
 	)
 	
 	_add_to_grid(entity)
+	
 	_entity_id_to_entity_object[entity.entity_id] = entity_object
+	_entity_object_to_entity[entity_object] = entity
 	
 	return entity
 
 
-func unregister_entity(entity: SpatialGridEntity) -> void:
+func unregister_entity(entity_object: Variant) -> void:
+	var entity = _entity_object_to_entity[entity_object]
+	
 	_remove_from_grid(entity)
 	
 	_entity_id_to_entity_object.erase(entity.entity_id)
+	_entity_object_to_entity.erase(entity_object)
 
 
 func update_entity_position(entity: SpatialGridEntity, new_position: Vector3) -> void:
@@ -202,6 +210,7 @@ func print_stats():
 	var stats = get_grid_stats()
 	print("=== Grid Stats ===")
 	print("Occupied cells: ", stats.occupied_cells)
+	print("Total entities: ", stats.total_entities)
 	print("Avg entities per cell: ", float(stats.total_entities) / max(stats.occupied_cells, 1))
 
 ## private methods
@@ -278,3 +287,11 @@ func _get_cells_in_ring(center: Vector2i, ring_radius: int) -> Array[Vector2i]:
 		cells.append(Vector2i(center.x + ring_radius, center.y + z))  # Right edge
 	
 	return cells
+
+
+func _on_building_placed(building: Variant, _grid_pos: Vector2i):
+	register_entity(building.entity_data, building)
+
+
+func _on_building_removed(building: Variant):
+	unregister_entity(building)

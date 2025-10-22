@@ -46,7 +46,7 @@ func can_place_building(grid_pos: Vector2i, building_size: Vector2i) -> bool:
 	return true
 
 
-func place_building(building_node: Node3D, grid_pos: Vector2i, building_size: Vector2i, 
+func place_building(building_node: Variant, grid_pos: Vector2i, building_size: Vector2i, 
 		unlock_radius: int) -> PlacementGridData:
 	if not can_place_building(grid_pos, building_size):
 		return null

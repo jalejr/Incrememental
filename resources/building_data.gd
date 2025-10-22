@@ -15,7 +15,7 @@ class_name BuildingData
 
 @export_group("Combat")
 @export var max_health: float = 100.0
-@export var team_id: int = 0
+@export var team_id: EntityData.Team
 @export var radius: float = 2.0
 
 @export_group("Adjacency Buffs")

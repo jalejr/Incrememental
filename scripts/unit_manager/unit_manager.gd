@@ -34,21 +34,11 @@ var _queue_mutex: Mutex = Mutex.new()
 var _path_request_queue: Array = []
 var _damage_request_queue: Array = []
 
-## methods to override
-# These two should probably become methods in Unit
-func on_unit_damaged(_unit: Unit, _damage: float, _source_position: Vector3):
-	pass
-
-func on_unit_died(_position: Vector3):
-	pass
-
-
 ## built-in override methods
 func _ready() -> void:
 	_thread_count = _calculate_optimal_thread_count()
 	_initialize_threads()
 	_setup_unit_types()
-	print("How manY?")
 	if not grid_manager:
 		push_error("GridManager not assigned to ", name)
 		return
@@ -157,7 +147,6 @@ func destroy_unit(index: int):
 	runtime.multimesh.visible_instance_count = runtime.alive_count
 	
 	unit_died.emit(unit, building)
-	on_unit_died(unit.position)
 
 
 func get_unit(index: int) -> Unit:
@@ -185,7 +174,6 @@ func queue_damage_request(target_unit: Unit, damage: float, source_position: Vec
 		return
 	
 	target_unit.health -= damage
-	on_unit_damaged(target_unit, damage, source_position)
 	
 	if target_unit.health <= 0:
 		var index = _all_units.find(target_unit)
@@ -300,7 +288,7 @@ func _update_logic(delta: float):
 	var units_this_frame = mini(max_units_updated_per_frame, _alive_count_for_all)
 	var checked = 0
 	var updated = 0
-	var context = _create_logic_context(compensated_delta)
+	var context = _create_logic_context()
 	var start_index = update_index
 	
 	while updated < units_this_frame and checked < _all_units.size():
@@ -318,15 +306,6 @@ func _update_logic(delta: float):
 		updated += 1
 	
 	update_index = (start_index + checked) % max(_all_units.size(), 1)
-
-
-func _update_visuals_minimal(delta: float):
-	var count = 0
-	for unit in _all_units:
-		if not unit.is_alive:
-			continue
-		count += 1
-	print("Minimal: %d alive units iterated" % count)
 
 
 func _update_visuals(delta: float):
@@ -395,16 +374,14 @@ func _update_movement(delta: float) -> void:
 				grid_manager.update_unit_position(unit.grid_data, unit.position)
 
 
-func _create_logic_context(delta: float) -> Dictionary:
+func _create_logic_context() -> Dictionary:
 	"""Create context dictionary for unit logic updates"""
 	return {
-		"delta": delta,
-		"manager": self,
-		"grid_manager": grid_manager,
-		"nav_map": nav_map,
-
 		"set_path": set_unit_path,
-		"take_damage": queue_damage_request  # For thread-safety later
+		"find_nearest_enemy": find_nearest_enemy,
+		"find_nearest_ally": find_nearest_ally,
+		"find_nearby_enemies": find_nearby_enemies,
+		"find_nearby_allies": find_nearby_allies
 	}
 
 

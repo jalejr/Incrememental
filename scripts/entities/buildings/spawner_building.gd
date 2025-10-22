@@ -13,6 +13,7 @@ var _next_spawn_point_index: int = 0
 
 ## built-in override methods
 func _ready() -> void:
+	super._ready()
 	_unit_manager = $"../UnitManager"
 	if not _unit_manager:
 		push_warning("No unit manager assigned to building: ", name)

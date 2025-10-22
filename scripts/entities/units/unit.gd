@@ -42,6 +42,10 @@ var radius: float:
 	get: return entity_data.radius if entity_data else 0.5
 	set(value):
 		if entity_data: entity_data.radius = value
+var max_health: float:
+	get: return entity_data.max_health if entity_data else 0.0
+	set(value):
+		if entity_data: entity_data.max_health = value
 var health: float:
 	get: return entity_data.health if entity_data else 0.0
 	set(value):
@@ -73,6 +77,12 @@ func get_custom_visual_data() -> Color:
 
 func take_damage(damage: float, source_pos: Vector3):
 	health -= damage
+	if health <= 0:
+		unit_died()
+
+
+func unit_died():
+	pass
 
 
 func needs_path_recalc(target_position: Vector3, max_age: float = -1.0, max_drift: float = 5.0) -> bool:
@@ -89,6 +99,7 @@ func needs_path_recalc(target_position: Vector3, max_age: float = -1.0, max_drif
 		return true
 
 	return false
+
 
 func mark_path_recalculated(target_position: Vector3):
 	cached_target_position = target_position

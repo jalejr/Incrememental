@@ -135,9 +135,9 @@ func _connect_signals():
 	EventBus.building_sold.connect(_on_building_removed)
 
 
-func _on_building_placed(_building: Node3D, _grid_pos: Vector2i):
+func _on_building_placed(_building: Variant, _grid_pos: Vector2i):
 	_update_all_cells()
 
 
-func _on_building_removed(_building: Node3D, _grid_pos: Vector2i):
+func _on_building_removed(_building: Variant):
 	_update_all_cells()
