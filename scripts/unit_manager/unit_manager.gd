@@ -168,23 +168,6 @@ func get_unit(index: int) -> Unit:
 	return null
 
 
-func damage_unit(index: int, damage: float, source_position: Vector3 = Vector3.ZERO) -> bool:
-	var unit = get_unit(index)
-	if not unit:
-		return false
-	
-	if not unit.is_attackable:
-		return false
-	
-	unit.health -= damage
-	on_unit_damaged(unit, damage, source_position)
-	
-	if unit.health <= 0:
-		destroy_unit(index)
-	
-	return true
-
-
 func set_unit_path(unit: Unit, target: Vector3):
 	unit.nav_path = NavigationServer3D.map_get_path(
 		nav_map, 
@@ -421,7 +404,7 @@ func _create_logic_context(delta: float) -> Dictionary:
 		"nav_map": nav_map,
 
 		"set_path": set_unit_path,
-		"damage_unit": queue_damage_request  # For thread-safety later
+		"take_damage": queue_damage_request  # For thread-safety later
 	}
 
 
