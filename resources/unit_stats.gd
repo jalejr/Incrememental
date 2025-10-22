@@ -1,16 +1,16 @@
 class_name UnitStats
 extends Resource
 
-var radius: float = 0.5
-var move_speed: float = 4.0
-var max_health: float = 100.0
-var attack_damage: float = 500.0
-var armor: float = 0.0
-var attack_range: float = 15.0
-var has_splash_damage: bool = false
-var splash_radius: float = 0.0
-var attacks_per_second: float = 1.0
-var attack_cooldown_sec: float = 1.0
+@export var radius: float = 0.5
+@export var move_speed: float = 4.0
+@export var max_health: float = 100.0
+@export var attack_damage: float = 500.0
+@export var armor: float = 0.0
+@export var attack_range: float = 15.0
+@export var has_splash_damage: bool = false
+@export var splash_radius: float = 0.0
+@export var attacks_per_second: float = 1.0
+@export var attack_cooldown_sec: float = 1.0
 
 func _init():
 	_recalculate_attack_cooldown()

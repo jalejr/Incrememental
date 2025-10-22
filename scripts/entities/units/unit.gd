@@ -12,6 +12,7 @@ enum Type {
 }
 
 # Core data
+var manager_index: int
 var entity_data: EntityData
 var unit_type: Type
 var visual_position: Vector3
@@ -74,15 +75,11 @@ func update_logic(_delta: float, _context: Dictionary) -> void:
 func get_custom_visual_data() -> Color:
 	return Color()
 
-
-func take_damage(damage: float, source_pos: Vector3):
+# TODO Figure out how to queue this on manager
+func take_damage(damage: float, source_pos: Vector3, context: Dictionary):
 	health -= damage
 	if health <= 0:
-		unit_died()
-
-
-func unit_died():
-	pass
+		context.destroy_unit.call(manager_index)
 
 
 func needs_path_recalc(target_position: Vector3, max_age: float = -1.0, max_drift: float = 5.0) -> bool:

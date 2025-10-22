@@ -6,5 +6,5 @@
 script = ExtResource("1_sesrs")
 unit_type = 1
 max_units = 50
-spawn_cooldown = 2.0
+spawn_cooldown = 0.1
 metadata/_custom_type_script = "uid://caeg7fu6jnkh3"

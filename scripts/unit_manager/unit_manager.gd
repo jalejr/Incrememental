@@ -112,6 +112,8 @@ func spawn_unit(
 		index = _all_units.size()
 		_all_units.append(unit)
 	
+	unit.manager_index = index
+	
 	grid_manager.register_entity(unit.entity_data, unit)
 	
 	_alive_count_for_all += 1
@@ -132,11 +134,13 @@ func destroy_unit(index: int):
 	
 	var unit = _all_units[index]
 	var building: Node = unit.spawn_building
+	
 	if not unit.is_alive:
 		return
 		
 	unit.is_alive = false
 	
+	_free_indices.append(index)
 	grid_manager.unregister_entity(unit)
 	
 	if unit.agent_rid.is_valid():
@@ -168,7 +172,7 @@ func set_unit_path(unit: Unit, target: Vector3):
 	unit.cached_target_position = target
 	unit.path_age = 0.0
 
-
+# TODO Redo logic here to get damage requests setup by the unit
 func queue_damage_request(target_unit: Unit, damage: float, source_position: Vector3 = Vector3.ZERO):
 	if not target_unit or not target_unit.is_alive or not target_unit.is_attackable:
 		return
@@ -381,7 +385,9 @@ func _create_logic_context() -> Dictionary:
 		"find_nearest_enemy": find_nearest_enemy,
 		"find_nearest_ally": find_nearest_ally,
 		"find_nearby_enemies": find_nearby_enemies,
-		"find_nearby_allies": find_nearby_allies
+		"find_nearby_allies": find_nearby_allies,
+		"queue_damage_request": queue_damage_request,
+		"destroy_unit": destroy_unit
 	}
 
 
