@@ -11,6 +11,14 @@ enum Type {
 	TROLL,
 }
 
+enum LifecycleState {
+	SPAWNING,
+	ACTIVE,
+	DYING,
+	RETREATING,
+	DEAD
+}
+
 # Core data
 var manager_index: int
 var entity_data: EntityData
@@ -19,6 +27,8 @@ var visual_position: Vector3
 var velocity: Vector3
 var stats: UnitStats
 # In-process of cleaning up
+var spawn_timer: float = 0.0
+var spawn_protection_time: float = 1.5
 var is_dying: bool = false
 var death_timer: float = 0.0
 var death_duration: float = 1.5
@@ -36,6 +46,7 @@ var grid_data: SpatialGridUnit
 var spawn_building: Node = null
 # Caching for optimization
 var cached_runtime: UnitManager.UnitTypeRuntimeData = null
+var lifecycle_state: LifecycleState = LifecycleState.SPAWNING
 # Delegating to entity_data
 var position: Vector3:
 	get: return entity_data.position if entity_data else Vector3.ZERO
@@ -72,14 +83,17 @@ var is_attackable: bool:
 
 
 func update_logic(delta: float, context: Dictionary) -> void:
-	if is_dying:
-		death_timer += delta
-		
-		if death_timer >= death_duration:
-			context.destroy_queue.append(self)
-	
-	if not is_alive:
-		return
+	match lifecycle_state:
+		LifecycleState.SPAWNING:
+			update_spawning_state(delta, context)
+		LifecycleState.ACTIVE:
+			update_active_state(delta, context)
+		LifecycleState.DYING:
+			update_dying_state(delta, context)
+		LifecycleState.RETREATING:
+			update_retreating_state(delta, context)
+		LifecycleState.DEAD:
+			return
 
 
 func get_custom_visual_data() -> Color:
@@ -98,7 +112,31 @@ func show_hit_effect(_source_pos: Vector3):
 
 
 func start_dying():
-	is_dying = true
+	lifecycle_state = LifecycleState.DYING
+	_update_flags()
+
+
+#TODO actual logic here these updates should be overridden
+func update_spawning_state(delta: float, _context: Dictionary):
+	spawn_timer += delta
+	if spawn_timer >= spawn_protection_time:
+		lifecycle_state = LifecycleState.ACTIVE
+		_update_flags()
+
+
+func update_active_state(_delta: float, _context: Dictionary):
+	pass
+
+
+func update_dying_state(delta: float, context: Dictionary):
+	death_timer += delta
+	
+	if death_timer >= death_duration:
+		context.destroy_queue.append(self)
+
+
+func update_retreating_state(_delta: float, _context: Dictionary):
+	pass
 
 
 func needs_path_recalc(target_position: Vector3, max_age: float = -1.0, max_drift: float = 5.0) -> bool:
@@ -120,3 +158,13 @@ func needs_path_recalc(target_position: Vector3, max_age: float = -1.0, max_drif
 func mark_path_recalculated(target_position: Vector3):
 	cached_target_position = target_position
 	path_age = 0.0
+
+
+func _update_flags() -> void:
+	match lifecycle_state:
+		LifecycleState.SPAWNING, LifecycleState.DEAD, LifecycleState.DYING:
+			is_targetable = false
+			is_attackable = false
+		LifecycleState.ACTIVE:
+			is_targetable = true
+			is_attackable = true

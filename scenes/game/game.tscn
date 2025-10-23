@@ -124,6 +124,7 @@ size = Vector3(256, 1, 256)
 unit_type_configs = Array[ExtResource("11_8b66f")]([ExtResource("12_3jaai"), ExtResource("13_otnwt")])
 navigation_region = NodePath("../NavigationRegion3D")
 grid_manager = NodePath("../SpatialGridManager")
+max_units_updated_per_frame = 50
 
 [node name="MeshInstance3D14" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 mesh = SubResource("BoxMesh_5vw27")

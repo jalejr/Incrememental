@@ -1,18 +1,40 @@
 class_name MeleeUnit
 extends Unit
 
+enum BehaviorState {
+	IDLE,
+	PURSUE,
+	ATTACKING
+}
+
 ## private vars
 var _target_entity: Variant = null
 var attack_cooldown: float = 0.0
+var behavior_state: BehaviorState = BehaviorState.ATTACKING
 
 ## built-in override methods
 func _init() -> void:
 	path_recalc_interval = 0.5
 
 
-func update_logic(delta: float, context: Dictionary) -> void:
-	super.update_logic(delta, context)
-	
+func update_active_state(delta: float, context: Dictionary) -> void:
+	match behavior_state:
+		BehaviorState.IDLE:
+			pass
+		BehaviorState.PURSUE:
+			pass
+		BehaviorState.ATTACKING:
+			update_attacking_state(delta, context)
+
+func update_idle_state(delta: float, context: Dictionary):
+	pass
+
+
+func update_pursue_state(delta: float, context: Dictionary):
+	pass
+
+
+func update_attacking_state(delta: float, context: Dictionary):
 	path_age += delta
 	attack_cooldown = attack_cooldown - delta
 	
@@ -58,5 +80,7 @@ func update_logic(delta: float, context: Dictionary) -> void:
 			mark_path_recalculated(target_pos)
 
 
+# TODO this shouldn't exist. The spatial query shoould handle checking is_targetable/is_attackable
+# to determine if it should even be sent to the unit to do anything with
 func is_valid_target(target_entity) -> bool:
 	return target_entity and target_entity.is_alive and not target_entity.is_dying
