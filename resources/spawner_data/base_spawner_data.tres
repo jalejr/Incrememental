@@ -4,4 +4,7 @@
 
 [resource]
 script = ExtResource("1_ccqtr")
+unit_type = 4
+max_units = 25
+spawn_cooldown = 0.1
 metadata/_custom_type_script = "uid://caeg7fu6jnkh3"

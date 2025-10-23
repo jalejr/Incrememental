@@ -20,6 +20,8 @@ var velocity: Vector3
 var stats: UnitStats
 # In-process of cleaning up
 var is_dying: bool = false
+var death_timer: float = 0.0
+var death_duration: float = 1.5
 # Spawner building gone so disappearing
 var is_homeless: bool = false
 var cached_target_position: Vector3 = Vector3.ZERO
@@ -33,7 +35,7 @@ var path_index: int = 0
 var grid_data: SpatialGridUnit
 var spawn_building: Node = null
 # Caching for optimization
-var cached_runtime = null
+var cached_runtime: UnitManager.UnitTypeRuntimeData = null
 # Delegating to entity_data
 var position: Vector3:
 	get: return entity_data.position if entity_data else Vector3.ZERO
@@ -68,18 +70,35 @@ var is_attackable: bool:
 	set(value):
 		if entity_data: entity_data.is_attackable = value
 
-func update_logic(_delta: float, _context: Dictionary) -> void:
-	pass
+
+func update_logic(delta: float, context: Dictionary) -> void:
+	if is_dying:
+		death_timer += delta
+		
+		if death_timer >= death_duration:
+			context.destroy_queue.append(self)
+	
+	if not is_alive:
+		return
 
 
 func get_custom_visual_data() -> Color:
 	return Color()
 
-# TODO Figure out how to queue this on manager
+
 func take_damage(damage: float, source_pos: Vector3, context: Dictionary):
-	health -= damage
-	if health <= 0:
-		context.destroy_unit.call(manager_index)
+	@warning_ignore("narrowing_conversion")
+	context.damage_queue[self] = maxi(1, damage - stats.armor)
+	show_hit_effect(source_pos)
+
+
+# TODO create global particle emitter and calc "normal" or backside of object with this source_pos
+func show_hit_effect(_source_pos: Vector3):
+	pass
+
+
+func start_dying():
+	is_dying = true
 
 
 func needs_path_recalc(target_position: Vector3, max_age: float = -1.0, max_drift: float = 5.0) -> bool:

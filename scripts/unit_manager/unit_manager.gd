@@ -28,6 +28,12 @@ var _alive_count_for_all: int = 0
 
 var _thread_pool: Array[Thread] = []
 var _thread_count: int
+var _damage_queue: Dictionary[Variant, int]
+var _damage_queue_mutex: Mutex = Mutex.new()
+
+var _destroy_queue: Array[Variant]
+var _destroy_queue_mutex: Mutex = Mutex.new()
+
 var _result_queue: Array = []
 var _queue_mutex: Mutex = Mutex.new()
 
@@ -60,6 +66,8 @@ func _process(delta: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	_update_logic(delta)
+	_process_damage_queue()
+	_process_destroy_queue()
 	_update_navigation_sync()
 	_update_movement(delta)
 
@@ -90,6 +98,7 @@ func spawn_unit(
 	unit.spawn_building = building
 	unit.team_id = team_id
 	unit.is_alive = true
+	unit.is_dying = false
 	unit.is_targetable = targetable
 	unit.is_attackable = attackable
 	unit.cached_runtime = runtime
@@ -171,18 +180,6 @@ func set_unit_path(unit: Unit, target: Vector3):
 	unit.path_index = 0
 	unit.cached_target_position = target
 	unit.path_age = 0.0
-
-# TODO Redo logic here to get damage requests setup by the unit
-func queue_damage_request(target_unit: Unit, damage: float, source_position: Vector3 = Vector3.ZERO):
-	if not target_unit or not target_unit.is_alive or not target_unit.is_attackable:
-		return
-	
-	target_unit.health -= damage
-	
-	if target_unit.health <= 0:
-		var index = _all_units.find(target_unit)
-		if index >= 0:
-			destroy_unit(index)
 
 
 func find_nearest_ally(unit: Unit, search_range: float, find_entity_type: EntityData.Type = EntityData.Type.UNDEFINED) -> Variant:
@@ -309,23 +306,62 @@ func _update_logic(delta: float):
 		
 		updated += 1
 	
+	_damage_queue_mutex.lock()
+	for target in context.damage_queue:
+		var damage: int = context.damage_queue[target]
+		
+		if not _damage_queue.has(target):
+			_damage_queue[target] = 0
+		_damage_queue[target] += damage
+	_damage_queue_mutex.unlock()
+	
+	_destroy_queue_mutex.lock()
+	_destroy_queue += context.destroy_queue
+	_destroy_queue_mutex.unlock()
+	
 	update_index = (start_index + checked) % max(_all_units.size(), 1)
+
+
+func _process_damage_queue() -> void:
+	if _damage_queue.is_empty():
+		return
+	
+	for target in _damage_queue:
+		var damage: int = _damage_queue[target]
+		
+		target.health -= damage
+		
+		if target.health <= 0:
+			target.start_dying()
+		
+		_damage_queue.clear()
+
+
+func _process_destroy_queue() -> void:
+	if _destroy_queue.is_empty():
+		return
+	
+	# Only things that should manage to get in _destroy_queue are units
+	for target in _destroy_queue:
+		destroy_unit(target.manager_index)
+	
+	_destroy_queue.clear()
 
 
 func _update_visuals(delta: float):
 	for runtime in _unit_types_runtime.values():
 		runtime.visual_index = 0
 	
+	var lerp_weight = clampf(visual_lerp_speed * delta, 0.0, 1.0)
+	
 	for unit in _all_units:
 		if not unit.is_alive:
 			continue
 		
-		var lerp_weight = clampf(visual_lerp_speed * delta, 0.0, 1.0)
-		
 		unit.visual_position = unit.visual_position.lerp(unit.position, lerp_weight)
 
-		var runtime = unit.cached_runtime
-		var instance_idx = runtime.visual_index
+		var runtime: UnitTypeRuntimeData = unit.cached_runtime
+		var instance_idx: int = runtime.visual_index
 		runtime.visual_index += 1
 		
 		var transform = Transform3D(Basis(), unit.visual_position)
@@ -337,7 +373,7 @@ func _update_visuals(delta: float):
 
 func _update_navigation_sync():
 	for unit in _all_units:
-		if not unit.is_alive:
+		if not unit.is_alive or unit.is_dying:
 			continue
 		
 		NavigationServer3D.agent_set_position(unit.agent_rid, unit.position)
@@ -347,7 +383,7 @@ func _update_navigation_sync():
 func _update_movement(delta: float) -> void:
 	for i in range(_all_units.size()):
 		var unit = _all_units[i]
-		if not unit.is_alive:
+		if not unit.is_alive or unit.is_dying:
 			continue
 	
 		var safe_velocity = NavigationServer3D.agent_get_velocity(unit.agent_rid)
@@ -386,8 +422,8 @@ func _create_logic_context() -> Dictionary:
 		"find_nearest_ally": find_nearest_ally,
 		"find_nearby_enemies": find_nearby_enemies,
 		"find_nearby_allies": find_nearby_allies,
-		"queue_damage_request": queue_damage_request,
-		"destroy_unit": destroy_unit
+		"damage_queue": {},
+		"destroy_queue": []
 	}
 
 
