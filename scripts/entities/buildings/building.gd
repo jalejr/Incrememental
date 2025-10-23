@@ -11,6 +11,9 @@ var adjacent_aura_buffs: Array[Buff] = []
 var active_buffs: Dictionary[Building, Array] = {}
 var cached_buffs_calculated: Dictionary[Buff.Type, float] = {}
 
+# TODO hacky stuff should just use interface in C#
+var is_dying = false
+
 # Delegating to entity_data
 var radius: float:
 	get: return entity_data.radius if entity_data else 0.5
@@ -51,7 +54,7 @@ func set_data(data: BuildingData):
 	building_data = data
 
 
-func take_damage(amount: float):
+func take_damage(amount: float, _position: Vector3, _context: Dictionary):
 	health -= amount
 	health = max(0, health)
 	health_changed.emit(health, max_health)
@@ -108,6 +111,7 @@ func _killed():
 		remove_adjacency_buffs(self)
 	
 	# TODO do some anim work here
+	_destroy()
 
 
 func _destroy():

@@ -9,11 +9,13 @@ class_name BuildingGridManager
 var _unlocked_cells: Dictionary = {}
 var _occupied_cells: Dictionary = {}
 var _buildings: Array[PlacementGridData] = []
+var _building_to_placement_data: Dictionary[Building, PlacementGridData] = {}
 ## onready vars
 ## built-in override methods
 func _ready() -> void:
 	print("BuildingGridManager initalized - Cell size: ", grid_cell_size)
 	# TODO Have the unlock happen through some other way like the level starting event
+	EventBus.building_removed.connect(_on_building_removed)
 	unlock_starting_area(Vector3(0,0,0), 5)
 
 ## public methods
@@ -62,6 +64,7 @@ func place_building(building_node: Variant, grid_pos: Vector2i, building_size: V
 		_occupied_cells[cell] = building_data
 	
 	_buildings.append(building_data)
+	_building_to_placement_data[building_node] = building_data
 	
 	@warning_ignore("integer_division")
 	var center_cell = grid_pos + Vector2i(building_size.x / 2, building_size.y / 2)
@@ -72,8 +75,9 @@ func place_building(building_node: Variant, grid_pos: Vector2i, building_size: V
 	return building_data
 
 
-func remove_building(building_data: PlacementGridData):
-	var occupied_cells_list = _get_building_occupied_cells(building_data)
+func remove_building(building: Building):
+	var building_data: PlacementGridData = _building_to_placement_data[building]
+	var occupied_cells_list: Array[Vector2i] = _get_building_occupied_cells(building_data)
 	
 	for cell in occupied_cells_list:
 		_occupied_cells.erase(cell)
@@ -121,3 +125,7 @@ func _is_within_bounds(cell: Vector2i) -> bool:
 	var world_pos = grid_to_world(cell, false)
 	return (world_pos.x >= -grid_world_size.x and world_pos.x <= grid_world_size.x and
 			world_pos.z >= -grid_world_size.y and world_pos.z <= grid_world_size.y)
+
+
+func _on_building_removed(building: Building):
+	remove_building(building)

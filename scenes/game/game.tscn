@@ -119,8 +119,6 @@ use_collision = true
 size = Vector3(256, 1, 256)
 
 [node name="SpatialGridManager" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("9_pg2xm")]
-grid_world_size = null
-grid_cell_size = null
 
 [node name="UnitManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("10_gc57s")]
 unit_type_configs = Array[ExtResource("11_8b66f")]([ExtResource("12_3jaai"), ExtResource("13_otnwt")])
