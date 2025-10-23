@@ -1,18 +1,23 @@
 extends GridBase
 class_name SpatialGridManager
 
+## exports
+@export var grid_world_size: Vector2 = Vector2(512.0, 512.0)
+
 ## private vars
-var _unit_grid: Dictionary = {}
-var _building_grid: Dictionary = {}
+var _unit_grid: Array = []  # 2D array of Array[SpatialGridEntity]
+var _building_grid: Array = []  # 2D array of Array[SpatialGridEntity]
+var _grid_size: Vector2i = Vector2i.ZERO
 var _entity_id_to_entity_object: Dictionary[int, Variant] = {}
 var _entity_object_to_entity: Dictionary[Variant, SpatialGridEntity] = {}
 var _next_entity_id: int = 0
 
 ## built-in override methods
 func _ready() -> void:
+	_initialize_grids()
 	EventBus.building_placed.connect(_on_building_placed)
 	EventBus.building_removed.connect(_on_building_removed)
-	print("SpatialGridManager initialized")
+	print("SpatialGridManager initialized - Grid size: ", _grid_size.x, "x", _grid_size.y)
 
 
 ## public methods
@@ -94,11 +99,12 @@ func get_nearby_entities_by_type(
 	var target_grid = _find_grid_to_target(entity_type)
 	
 	for cell_to_check in cells_to_check:
-		if not target_grid.has(cell_to_check):
+		if not _is_cell_in_bounds(cell_to_check):
 			continue
 		
-		var cell_units = target_grid[cell_to_check]
-		for entity in cell_units.values():
+		var cell_entities = target_grid[cell_to_check.x][cell_to_check.y]
+		
+		for entity in cell_entities:
 			if seen_entities.has(entity.entity_id):
 				continue
 			
@@ -166,11 +172,12 @@ func get_nearest_entity_by_type(
 		var cells_in_ring = _get_cells_in_ring(center_cell, ring)
 		
 		for cell in cells_in_ring:
-			if not target_grid.has(cell):
+			if not _is_cell_in_bounds(cell):
 				continue
 			
-			var cell_units = target_grid[cell]
-			for entity in cell_units.values():
+			var cell_entities = target_grid[cell.x][cell.y]
+			
+			for entity in cell_entities:
 				if seen_entities.has(entity.entity_id):
 					continue
 				
@@ -199,45 +206,77 @@ func get_nearest_entity_by_type(
 
 
 func get_grid_stats() -> Dictionary:
+	var occupied_cells = 0
+	for x in range(_grid_size.x):
+		for y in range(_grid_size.y):
+			if _unit_grid[x][y].size() > 0 or _building_grid[x][y].size() > 0:
+				occupied_cells += 1
+	
 	return {
 		"total_entities": _entity_id_to_entity_object.size(),
-		"occupied_cells": _unit_grid.size(),
-		"cell_size": grid_cell_size
+		"occupied_cells": occupied_cells,
+		"cell_size": grid_cell_size,
+		"grid_dimensions": Vector2i(_grid_size.x, _grid_size.y)
 	}
 
 
 func print_stats():
 	var stats = get_grid_stats()
 	print("=== Grid Stats ===")
+	print("Grid dimensions: ", stats.grid_dimensions)
 	print("Occupied cells: ", stats.occupied_cells)
 	print("Total entities: ", stats.total_entities)
 	print("Avg entities per cell: ", float(stats.total_entities) / max(stats.occupied_cells, 1))
 
 ## private methods
+func _initialize_grids() -> void:
+	_grid_size.x = int(ceil(grid_world_size.x * 2.0 / grid_cell_size))
+	_grid_size.y = int(ceil(grid_world_size.y * 2.0 / grid_cell_size))
+	
+	_unit_grid.resize(_grid_size.x)
+	_building_grid.resize(_grid_size.x)
+	
+	for x in range(_grid_size.x):
+		_unit_grid[x] = []
+		_unit_grid[x].resize(_grid_size.y)
+		_building_grid[x] = []
+		_building_grid[x].resize(_grid_size.y)
+		
+		for y in range(_grid_size.y):
+			_unit_grid[x][y] = []
+			_building_grid[x][y] = []
+
+
+func _is_cell_in_bounds(grid_pos: Vector2i) -> bool:
+	return (grid_pos.x >= 0 and grid_pos.x < _grid_size.x and 
+			grid_pos.y >= 0 and grid_pos.y < _grid_size.y)
+
+
 func _add_to_grid(entity: SpatialGridEntity):
-	var target_grid: Dictionary = _find_grid_to_target(entity.entity_data.type)
+	var target_grid: Array = _find_grid_to_target(entity.entity_data.type)
 	
 	for cell in entity.occupied_cells:
-		if not target_grid.has(cell):
-			target_grid[cell] = {}
-		target_grid[cell][entity.entity_id] = entity
+		if not _is_cell_in_bounds(cell):
+			continue
+		
+		target_grid[cell.x][cell.y].append(entity)
 
 
 func _remove_from_grid(entity: SpatialGridEntity):
-	var target_grid: Dictionary = _find_grid_to_target(entity.entity_data.type)
+	var target_grid: Array = _find_grid_to_target(entity.entity_data.type)
 	
 	for cell in entity.occupied_cells:
-		if not target_grid.has(cell):
+		if not _is_cell_in_bounds(cell):
 			continue
 		
-		var cell_dict = target_grid[cell]
-		cell_dict.erase(entity.entity_id)
+		var cell_array: Array = target_grid[cell.x][cell.y]
+		var index = cell_array.find(entity)
 		
-		if cell_dict.is_empty():
-			target_grid.erase(cell)
+		if index != -1:
+			cell_array.remove_at(index)
 
 
-func _find_grid_to_target(entity_type: EntityData.Type) -> Dictionary:
+func _find_grid_to_target(entity_type: EntityData.Type) -> Array:
 	match entity_type:
 		EntityData.Type.UNIT:
 			return _unit_grid
@@ -245,7 +284,7 @@ func _find_grid_to_target(entity_type: EntityData.Type) -> Dictionary:
 			return _building_grid
 	
 	push_error("Trying to access Unknown unit type grid ID: %d" % entity_type)
-	return {}
+	return []
 
 
 func _get_entity_object(entity: SpatialGridEntity) -> Variant:
