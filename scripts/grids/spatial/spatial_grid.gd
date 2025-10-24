@@ -230,8 +230,9 @@ func print_stats():
 
 ## private methods
 func _initialize_grids() -> void:
-	_grid_size.x = int(ceil(grid_world_size.x * 2.0 / grid_cell_size))
-	_grid_size.y = int(ceil(grid_world_size.y * 2.0 / grid_cell_size))
+	# Grid covers world space from (0, 0) to (grid_world_size.x, grid_world_size.y)
+	_grid_size.x = int(ceil(grid_world_size.x / grid_cell_size))
+	_grid_size.y = int(ceil(grid_world_size.y / grid_cell_size))
 	
 	_unit_grid.resize(_grid_size.x)
 	_building_grid.resize(_grid_size.x)
@@ -248,7 +249,7 @@ func _initialize_grids() -> void:
 
 
 func _is_cell_in_bounds(grid_pos: Vector2i) -> bool:
-	return (grid_pos.x >= 0 and grid_pos.x < _grid_size.x and 
+	return (grid_pos.x >= 0 and grid_pos.x < _grid_size.x and
 			grid_pos.y >= 0 and grid_pos.y < _grid_size.y)
 
 

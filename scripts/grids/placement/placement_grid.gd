@@ -16,7 +16,7 @@ func _ready() -> void:
 	print("BuildingGridManager initalized - Cell size: ", grid_cell_size)
 	# TODO Have the unlock happen through some other way like the level starting event
 	EventBus.building_removed.connect(_on_building_removed)
-	unlock_starting_area(Vector3(0,0,0), 5)
+	unlock_starting_area(Vector3(256,0,256), 5)
 
 ## public methods
 func unlock_starting_area(starting_position: Vector3, radius: int = 2):

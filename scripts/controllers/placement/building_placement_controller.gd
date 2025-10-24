@@ -82,8 +82,8 @@ func _try_placing_building():
 	)
 	
 	var building = _selected_catalog_entry.scene.instantiate()
-	get_parent().add_child(building)
 	building.global_position = world_pos
+	get_parent().add_child(building)
 	
 	var building_data = placement_grid.place_building(
 		building,

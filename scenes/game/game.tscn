@@ -46,10 +46,10 @@ compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_1bvp
 albedo_color = Color(0.41568628, 0.49019608, 0.2, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_h2yge"]
-size = Vector2(256, 256)
+size = Vector2(512, 512)
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_kek77"]
-vertices = PackedVector3Array(-127.5, 0.39999998, -127.5, -127.5, 0.39999998, 127.5, 127.5, 0.39999998, 127.5, 127.5, 0.39999998, -127.5)
+vertices = PackedVector3Array(-255.5, 0.39999998, -255.5, -255.5, 0.39999998, 255.5, 255.5, 0.39999998, 255.5, 255.5, 0.39999998, -255.5)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 agent_height = 2.0
 
@@ -89,6 +89,7 @@ directional_shadow_mode = 0
 directional_shadow_max_distance = 250.0
 
 [node name="RtsCamera" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("3_ftsea")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256, 0, 256)
 
 [node name="BuildingGridManager" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("4_otnwt")]
 
@@ -102,6 +103,7 @@ test_scene = ExtResource("6_5v6r0")
 placement_grid = NodePath("../BuildingGridManager")
 
 [node name="Level" type="Node3D" parent="Node3D/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256, 0, 256)
 script = ExtResource("8_10c2w")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
@@ -116,7 +118,7 @@ navigation_mesh = SubResource("NavigationMesh_kek77")
 [node name="CSGBox3D" type="CSGBox3D" parent="Node3D/SubViewportContainer/SubViewport/Level/NavigationRegion3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, 0)
 use_collision = true
-size = Vector3(256, 1, 256)
+size = Vector3(512, 1, 512)
 
 [node name="SpatialGridManager" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("9_pg2xm")]
 

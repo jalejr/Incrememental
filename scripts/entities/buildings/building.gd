@@ -49,6 +49,7 @@ func _ready() -> void:
 	_initialize()
 	_placed()
 
+
 ## public methods
 func set_data(data: BuildingData):
 	building_data = data
