@@ -6,7 +6,7 @@ class_name BuildingGridManager
 @export var grid_world_size: Vector2 = Vector2(512.0, 512.0)
 
 ## private vars
-var _unlocked_cells: Dictionary = {}
+var _unlocked_cells: Dictionary = {}  # Cell -> int (reference count)
 var _occupied_cells: Dictionary = {}
 var _buildings: Array[PlacementGridData] = []
 var _building_to_placement_data: Dictionary[Building, PlacementGridData] = {}
@@ -25,7 +25,7 @@ func unlock_starting_area(starting_position: Vector3, radius: int = 2):
 
 
 func is_cell_unlocked(cell: Vector2i) -> bool:
-	return _unlocked_cells.has(cell)
+	return _unlocked_cells.get(cell, 0) > 0
 
 
 func is_cell_occupied(cell: Vector2i) -> bool:
@@ -66,9 +66,7 @@ func place_building(building_node: Variant, grid_pos: Vector2i, building_size: V
 	_buildings.append(building_data)
 	_building_to_placement_data[building_node] = building_data
 	
-	@warning_ignore("integer_division")
-	var center_cell = grid_pos + Vector2i(building_size.x / 2, building_size.y / 2)
-	_unlock_cells_around(center_cell, unlock_radius)
+	_unlock_area_around_building(building_data)
 	
 	EventBus.building_placed.emit(building_node, grid_pos)
 	
@@ -82,7 +80,10 @@ func remove_building(building: Building):
 	for cell in occupied_cells_list:
 		_occupied_cells.erase(cell)
 	
+	_lock_cells_around_building(building_data)
+	
 	_buildings.erase(building_data)
+	_building_to_placement_data.erase(building)
 
 
 func get_building_at_cell(cell: Vector2i) -> PlacementGridData:
@@ -110,15 +111,40 @@ func _get_building_occupied_cells(building_data: PlacementGridData) -> Array[Vec
 	return get_cells_for_area(building_data.grid_position, building_data.grid_size)
 
 
+func _unlock_area_around_building(building_data: PlacementGridData) -> void:
+	var cells_to_unlock = _get_unlock_cells_around_building(building_data)
+	for cell in cells_to_unlock:
+		if not _is_within_bounds(cell):
+			continue
+		_unlocked_cells[cell] = _unlocked_cells.get(cell, 0) + 1
+
+
 func _unlock_cells_around(center: Vector2i, radius: int) -> void:
 	var cells_to_unlock = get_cells_in_radius(center, radius)
 	
 	for cell in cells_to_unlock:
 		if not _is_within_bounds(cell):
-			return
-		
-		if not _unlocked_cells.has(cell):
-			_unlocked_cells[cell] = true
+			continue
+		_unlocked_cells[cell] = _unlocked_cells.get(cell, 0) + 1
+
+
+func _lock_cells_around_building(building_data: PlacementGridData) -> void:
+	var cells_to_lock = _get_unlock_cells_around_building(building_data)
+	for cell in cells_to_lock:
+		if not _is_within_bounds(cell):
+			continue
+		if _unlocked_cells.has(cell):
+			_unlocked_cells[cell] -= 1
+			if _unlocked_cells[cell] <= 0:
+				_unlocked_cells.erase(cell)
+
+
+func _get_unlock_cells_around_building(building_data: PlacementGridData) -> Array[Vector2i]:
+	var unlock_min = building_data.grid_position - Vector2i(building_data.unlock_radius, building_data.unlock_radius)
+	var unlock_max = building_data.grid_position + building_data.grid_size + Vector2i(building_data.unlock_radius, building_data.unlock_radius)
+	var unlock_size = unlock_max - unlock_min
+	
+	return get_cells_for_area(unlock_min, unlock_size)
 
 
 func _is_within_bounds(cell: Vector2i) -> bool:
