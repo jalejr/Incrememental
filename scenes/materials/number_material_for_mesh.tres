@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://gx7i1ocm6mm"]
+
+[ext_resource type="Shader" uid="uid://de54xgl8vq1qv" path="res://shaders/spatial/number_mesh_for_particle.gdshader" id="1_dmt4d"]
+[ext_resource type="Texture2D" uid="uid://lpxj6c8exu2y" path="res://assets/textures/number_atlas.png" id="2_hh7ui"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_dmt4d")
+shader_parameter/number_atlas = ExtResource("2_hh7ui")

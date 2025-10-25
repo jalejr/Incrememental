@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://dt1tk6puq23ed"
+path="res://.godot/imported/no_normal_edge_detection_shader.glsl-57c859affd09b8c3630c0344f24d8768.res"
+
+[deps]
+
+source_file="res://shaders/compositor/no_normal_edge_detection_shader.glsl"
+dest_files=["res://.godot/imported/no_normal_edge_detection_shader.glsl-57c859affd09b8c3630c0344f24d8768.res"]
+
+[params]
+

@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://btemnpwvklqy6"]
+
+[ext_resource type="Material" uid="uid://gx7i1ocm6mm" path="res://scenes/materials/number_material_for_mesh.tres" id="1_2lmsu"]
+[ext_resource type="Material" uid="uid://dwlfdnqxy0qg" path="res://scenes/materials/number_material_for_process.tres" id="1_aqkgl"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_23yu8"]
+material = ExtResource("1_2lmsu")
+size = Vector2(2.438, 1)
+
+[node name="NumberParticles" type="GPUParticles3D"]
+emitting = false
+amount = 200
+visibility_aabb = AABB(-1000, -100, -1000, 2000, 200, 2000)
+transform_align = 3
+process_material = ExtResource("1_aqkgl")
+draw_pass_1 = SubResource("QuadMesh_23yu8")

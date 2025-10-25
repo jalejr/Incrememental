@@ -103,6 +103,20 @@ func get_custom_visual_data() -> Color:
 func take_damage(damage: float, source_pos: Vector3, context: Dictionary):
 	@warning_ignore("narrowing_conversion")
 	context.damage_queue[self] = maxi(1, damage - stats.armor)
+	var custom_data = Color(
+		damage,
+		0.0,
+		0.0,
+		randf_range(-0.3, 0.3)
+	)
+	var transform = Transform3D(Basis(), position)
+	NumberParticles.emit_particle(
+		transform,
+		Vector3.ZERO,
+		Color.WHITE,
+		custom_data,
+		1 | 16
+	)
 	show_hit_effect(source_pos)
 
 
