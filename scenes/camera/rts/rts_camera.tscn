@@ -1,9 +1,9 @@
 [gd_scene load_steps=2 format=3 uid="uid://csssssdgdx5ml"]
 
-[ext_resource type="Script" uid="uid://cj8fn50het77" path="res://scripts/camera/rts/rts_camera.gd" id="1_r8bau"]
+[ext_resource type="Script" uid="uid://b36e7ib80j2dw" path="res://scripts/camera/rts/RtsCameraNew.cs" id="1_pfiko"]
 
 [node name="RtsCamera" type="Node3D"]
-script = ExtResource("1_r8bau")
+script = ExtResource("1_pfiko")
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
