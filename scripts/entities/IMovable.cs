@@ -1,4 +1,6 @@
-﻿namespace DefaultNamespace;
+﻿using Godot;
+
+namespace Incrememental.scripts.entities;
 
 public interface IMovable
 {

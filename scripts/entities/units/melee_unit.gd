@@ -45,6 +45,8 @@ func update_attacking_state(delta: float, context: Dictionary):
 			nav_path.clear()
 			
 			if attack_cooldown <= 0:
+				print("Attacker: ", self, " Defender: ", _target_entity)
+				print("Team Id: ", team_id)
 				_target_entity.take_damage(stats.attack_damage, position, context)
 				attack_cooldown = stats.attack_cooldown_sec
 			return

@@ -1,4 +1,4 @@
-﻿namespace DefaultNamespace;
+﻿namespace Incrememental.scripts.entities;
 
 public interface IDamageable
 {
