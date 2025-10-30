@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dnk5c7577fdlf"]
 
-[ext_resource type="Script" uid="uid://ddibjfbipu3c6" path="res://scripts/grids/spatial/spatial_grid.gd" id="1_v84c5"]
+[ext_resource type="Script" uid="uid://cpq1virvcsr1r" path="res://scripts/grids/spatial/SpatialGridManagerNew.cs" id="1_tvh63"]
 
 [node name="SpatialGrid" type="Node"]
-script = ExtResource("1_v84c5")
+script = ExtResource("1_tvh63")

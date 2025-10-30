@@ -2,6 +2,8 @@ using Godot;
 using Godot.Collections;
 using Incrememental.resources;
 using Incrememental.scripts.entities;
+using Incrememental.scripts.grids.spatial;
+using Incrememental.scripts.unit_manager;
 
 namespace Incrememental.scripts.entities.units;
 
@@ -38,12 +40,12 @@ public partial class UnitNew : RefCounted
     public Vector3[] NavPath { get; set; } = System.Array.Empty<Vector3>();
     public int PathIndex { get; set; } = 0;
 
-    // Grid tracking (stored as Variant to avoid circular dependency)
-    public Variant GridData { get; set; }
+    // Grid tracking - direct reference for performance
+    public SpatialGridEntity GridEntity { get; set; }
     public Node SpawnBuilding { get; set; }
 
-    // Caching (stored as Variant for GDScript interop)
-    public Variant CachedRuntime { get; set; }
+    // Caching - direct reference for performance
+    public UnitManagerNew.UnitTypeRuntimeData CachedRuntime { get; set; }
     public LifecycleState LifecycleState { get; set; } = LifecycleState.Spawning;
 
     // Delegated properties to EntityData
@@ -98,7 +100,7 @@ public partial class UnitNew : RefCounted
     /// <summary>
     /// Main update loop called by UnitManager.
     /// </summary>
-    public virtual void UpdateLogic(float delta, Dictionary context)
+    public virtual void UpdateLogic(float delta, UnitLogicContext context)
     {
         switch (LifecycleState)
         {
@@ -130,12 +132,11 @@ public partial class UnitNew : RefCounted
     /// <summary>
     /// Applies damage to the unit.
     /// </summary>
-    public virtual void TakeDamage(float damage, Vector3 sourcePos, Dictionary context)
+    public virtual void TakeDamage(float damage, Vector3 sourcePos, UnitLogicContext context)
     {
         // Add to damage queue
-        var damageQueue = context["damage_queue"].As<Dictionary>();
         var actualDamage = Mathf.Max(1, (int)(damage - Stats.Armor));
-        damageQueue[this] = actualDamage;
+        context.QueueDamage(this, actualDamage);
 
         // Emit damage number particle
         var customData = new Color(
@@ -147,18 +148,18 @@ public partial class UnitNew : RefCounted
         var transform = new Transform3D(Basis.Identity, Position);
         
         // Call global NumberParticles autoload
-        var numberParticles = Engine.GetSingleton("NumberParticles");
-        if (numberParticles != null)
-        {
-            numberParticles.Call(
-                "emit_particle",
-                transform,
-                Vector3.Zero,
-                Colors.White,
-                customData,
-                1 | 16
-            );
-        }
+        // var numberParticles = Engine.GetSingleton("NumberParticles");
+        // if (numberParticles != null)
+        // {
+        //     numberParticles.Call(
+        //         "emit_particle",
+        //         transform,
+        //         Vector3.Zero,
+        //         Colors.White,
+        //         customData,
+        //         1 | 16
+        //     );
+        // }
 
         ShowHitEffect(sourcePos);
     }
@@ -183,7 +184,7 @@ public partial class UnitNew : RefCounted
     /// <summary>
     /// Update during spawning protection period.
     /// </summary>
-    protected virtual void UpdateSpawningState(float delta, Dictionary context)
+    protected virtual void UpdateSpawningState(float delta, UnitLogicContext context)
     {
         SpawnTimer += delta;
         if (SpawnTimer >= SpawnProtectionTime)
@@ -196,7 +197,7 @@ public partial class UnitNew : RefCounted
     /// <summary>
     /// Update during active gameplay (override in derived classes).
     /// </summary>
-    protected virtual void UpdateActiveState(float delta, Dictionary context)
+    protected virtual void UpdateActiveState(float delta, UnitLogicContext context)
     {
         // Override in derived classes
     }
@@ -204,21 +205,20 @@ public partial class UnitNew : RefCounted
     /// <summary>
     /// Update during death animation.
     /// </summary>
-    protected virtual void UpdateDyingState(float delta, Dictionary context)
+    protected virtual void UpdateDyingState(float delta, UnitLogicContext context)
     {
         DeathTimer += delta;
 
         if (DeathTimer >= DeathDuration)
         {
-            var destroyQueue = context["destroy_queue"].As<Array>();
-            destroyQueue.Add(this);
+            context.QueueDestroy(this);
         }
     }
 
     /// <summary>
     /// Update during retreat to base (override in derived classes).
     /// </summary>
-    protected virtual void UpdateRetreatingState(float delta, Dictionary context)
+    protected virtual void UpdateRetreatingState(float delta, UnitLogicContext context)
     {
         // Override in derived classes
     }

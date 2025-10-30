@@ -3,6 +3,7 @@ using Godot.Collections;
 using Incrememental.resources;
 using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
+using Incrememental.scripts.grids.spatial;
 
 namespace Incrememental.scripts.unit_manager;
 
@@ -29,7 +30,7 @@ public partial class UnitManagerNew : Node
 
     [Export] public Array<UnitTypeConfigNew> UnitTypeConfigs { get; set; } = new();
     [Export] public NavigationRegion3D NavigationRegion { get; set; }
-    [Export] public Node GridManager { get; set; }
+    [Export] public SpatialGridManagerNew GridManager { get; set; }
     [Export] public int MaxUnitsUpdatedPerFrame { get; set; } = 100;
     [Export] public float VisualLerpSpeed { get; set; } = 10.0f;
 
@@ -43,9 +44,9 @@ public partial class UnitManagerNew : Node
 
     // Threading (not yet implemented, structure in place)
     private int _threadCount;
-    private Dictionary<Variant, int> _damageQueue = new();
+    private System.Collections.Generic.Dictionary<UnitNew, int> _damageQueue = new();
     private Mutex _damageQueueMutex = new();
-    private System.Collections.Generic.List<Variant> _destroyQueue = new();
+    private System.Collections.Generic.List<UnitNew> _destroyQueue = new();
     private Mutex _destroyQueueMutex = new();
 
     public override void _Ready()
@@ -113,7 +114,7 @@ public partial class UnitManagerNew : Node
         unit.Position = position;
         unit.VisualPosition = position;
         unit.SpawnBuilding = building;
-        unit.CachedRuntime = Variant.CreateFrom(runtime);
+        unit.CachedRuntime = runtime;
 
         unit.Stats = CalculateStatsWithBuffs(config.DefaultStats, buffs);
         unit.Health = unit.Stats.MaxHealth;
@@ -141,9 +142,9 @@ public partial class UnitManagerNew : Node
 
         unit.ManagerIndex = index;
 
-        // Register with grid manager (GDScript - for now we skip this, will need GDScript EntityData wrapper)
-        // TODO: Create GDScript EntityData wrapper or convert SpatialGridManager to C#
-        // GridManager.Call("register_entity", unit.EntityData, Variant.CreateFrom(unit));
+        // Register with C# grid manager
+        var gridEntity = GridManager.RegisterEntity(unit.EntityData, Variant.CreateFrom(unit));
+        unit.GridEntity = gridEntity;
 
         // Update MultiMesh
         _aliveCountForAll++;
@@ -186,8 +187,11 @@ public partial class UnitManagerNew : Node
 
         _freeIndices.Add(index);
         
-        // TODO: Unregister from GDScript grid manager when we have proper interop
-        // GridManager.Call("unregister_entity", Variant.CreateFrom(unit));
+        // Unregister from C# grid manager
+        if (unit.GridEntity != null)
+        {
+            GridManager.UnregisterEntity(unit.GridEntity);
+        }
 
         if (unit.AgentRid.IsValid)
         {
@@ -220,8 +224,24 @@ public partial class UnitManagerNew : Node
     /// </summary>
     public void SetUnitPath(UnitNew unit, Vector3 target)
     {
-        var path = NavigationServer3D.MapGetPath(_navMap, unit.Position, target, true);
-        unit.NavPath = path;
+        var godotPath = NavigationServer3D.MapGetPath(_navMap, unit.Position, target, true);
+        
+        // Convert Godot array to native C# array to avoid bridge overhead on every access
+        var pathLength = godotPath.Length;
+        if (pathLength > 0)
+        {
+            var nativePath = new Vector3[pathLength];
+            for (int i = 0; i < pathLength; i++)
+            {
+                nativePath[i] = godotPath[i];
+            }
+            unit.NavPath = nativePath;
+        }
+        else
+        {
+            unit.NavPath = System.Array.Empty<Vector3>();
+        }
+        
         unit.PathIndex = 0;
         unit.CachedTargetPosition = target;
         unit.PathAge = 0.0f;
@@ -234,11 +254,11 @@ public partial class UnitManagerNew : Node
     {
         if (findEntityType == EntityType.Undefined)
         {
-            return GridManager.Call("get_nearest_entity", unit.Position, searchRange, (int)unit.TeamId, true);
+            return GridManager.GetNearestEntity(unit.Position, searchRange, unit.TeamId, true);
         }
         else
         {
-            return GridManager.Call("get_nearest_entity_by_type", (int)findEntityType, unit.Position, searchRange, (int)unit.TeamId, true);
+            return GridManager.GetNearestEntityByType(findEntityType, unit.Position, searchRange, unit.TeamId, true);
         }
     }
 
@@ -249,11 +269,11 @@ public partial class UnitManagerNew : Node
     {
         if (findEntityType == EntityType.Undefined)
         {
-            return GridManager.Call("get_nearest_entity", unit.Position, searchRange, (int)unit.TeamId, false);
+            return GridManager.GetNearestEntity(unit.Position, searchRange, unit.TeamId, false);
         }
         else
         {
-            return GridManager.Call("get_nearest_entity_by_type", (int)findEntityType, unit.Position, searchRange, (int)unit.TeamId, false);
+            return GridManager.GetNearestEntityByType(findEntityType, unit.Position, searchRange, unit.TeamId, false);
         }
     }
 
@@ -264,11 +284,11 @@ public partial class UnitManagerNew : Node
     {
         if (findEntityType == EntityType.Undefined)
         {
-            return GridManager.Call("get_nearby_entities", unit.Position, searchRange, (int)unit.TeamId, true).As<Array<Variant>>();
+            return GridManager.GetNearbyEntities(unit.Position, searchRange, unit.TeamId, true);
         }
         else
         {
-            return GridManager.Call("get_nearby_entities_by_type", (int)findEntityType, unit.Position, searchRange, (int)unit.TeamId, true).As<Array<Variant>>();
+            return GridManager.GetNearbyEntitiesByType(findEntityType, unit.Position, searchRange, unit.TeamId, true);
         }
     }
 
@@ -279,11 +299,11 @@ public partial class UnitManagerNew : Node
     {
         if (findEntityType == EntityType.Undefined)
         {
-            return GridManager.Call("get_nearby_entities", unit.Position, searchRange, (int)unit.TeamId, false).As<Array<Variant>>();
+            return GridManager.GetNearbyEntities(unit.Position, searchRange, unit.TeamId, false);
         }
         else
         {
-            return GridManager.Call("get_nearby_entities_by_type", (int)findEntityType, unit.Position, searchRange, (int)unit.TeamId, false).As<Array<Variant>>();
+            return GridManager.GetNearbyEntitiesByType(findEntityType, unit.Position, searchRange, unit.TeamId, false);
         }
     }
 
@@ -392,24 +412,20 @@ public partial class UnitManagerNew : Node
 
         // Process context damage queue
         _damageQueueMutex.Lock();
-        var contextDamageQueue = context["damage_queue"].As<Dictionary>();
-        foreach (var targetKey in contextDamageQueue.Keys)
+        foreach (var kvp in context.DamageQueue)
         {
-            var damage = contextDamageQueue[targetKey].AsInt32();
-
-            if (!_damageQueue.ContainsKey(targetKey))
-                _damageQueue[targetKey] = 0;
-            _damageQueue[targetKey] += damage;
+            var targetUnit = kvp.Key;
+            var damage = kvp.Value;
+            
+            if (!_damageQueue.ContainsKey(targetUnit))
+                _damageQueue[targetUnit] = 0;
+            _damageQueue[targetUnit] += damage;
         }
         _damageQueueMutex.Unlock();
 
         // Process context destroy queue
         _destroyQueueMutex.Lock();
-        var contextDestroyQueue = context["destroy_queue"].As<Array>();
-        foreach (var item in contextDestroyQueue)
-        {
-            _destroyQueue.Add(item);
-        }
+        _destroyQueue.AddRange(context.DestroyQueue);
         _destroyQueueMutex.Unlock();
 
         _updateIndex = (startIndex + checkedCount) % Mathf.Max(_allUnits.Count, 1);
@@ -420,10 +436,10 @@ public partial class UnitManagerNew : Node
         if (_damageQueue.Count == 0)
             return;
 
-        foreach (var targetKey in _damageQueue.Keys)
+        foreach (var kvp in _damageQueue)
         {
-            var damage = _damageQueue[targetKey];
-            var target = targetKey.As<UnitNew>();
+            var target = kvp.Key;
+            var damage = kvp.Value;
 
             target.Health -= damage;
 
@@ -441,9 +457,8 @@ public partial class UnitManagerNew : Node
         if (_destroyQueue.Count == 0)
             return;
 
-        foreach (var target in _destroyQueue)
+        foreach (var unit in _destroyQueue)
         {
-            var unit = target.As<UnitNew>();
             DestroyUnit(unit.ManagerIndex);
         }
 
@@ -465,16 +480,20 @@ public partial class UnitManagerNew : Node
             if (!unit.IsAlive)
                 continue;
 
-            unit.VisualPosition = unit.VisualPosition.Lerp(unit.Position, lerpWeight);
+            // Cache to reduce property access overhead
+            var currentPos = unit.Position;
+            var visualPos = unit.VisualPosition;
+            unit.VisualPosition = visualPos.Lerp(currentPos, lerpWeight);
 
-            var runtime = unit.CachedRuntime.As<UnitTypeRuntimeData>();
+            var runtime = unit.CachedRuntime;
             var instanceIdx = runtime.VisualIndex;
             runtime.VisualIndex++;
 
             var transform = new Transform3D(Basis.Identity, unit.VisualPosition);
-            runtime.MultiMesh.SetInstanceTransform(instanceIdx, transform);
-
             var customData = unit.GetCustomVisualData();
+            
+            // Batch these calls together
+            runtime.MultiMesh.SetInstanceTransform(instanceIdx, transform);
             runtime.MultiMesh.SetInstanceCustomData(instanceIdx, customData);
         }
     }
@@ -486,8 +505,13 @@ public partial class UnitManagerNew : Node
             if (!unit.IsAlive || unit.IsDying)
                 continue;
 
-            NavigationServer3D.AgentSetPosition(unit.AgentRid, unit.Position);
-            NavigationServer3D.AgentSetVelocity(unit.AgentRid, unit.Velocity);
+            // Cache to reduce property getter overhead
+            var rid = unit.AgentRid;
+            var pos = unit.Position;
+            var vel = unit.Velocity;
+            
+            NavigationServer3D.AgentSetPosition(rid, pos);
+            NavigationServer3D.AgentSetVelocity(rid, vel);
         }
     }
 
@@ -500,62 +524,55 @@ public partial class UnitManagerNew : Node
                 continue;
 
             var safeVelocity = NavigationServer3D.AgentGetVelocity(unit.AgentRid);
+            var navPath = unit.NavPath;
+            var pathIndex = unit.PathIndex;
 
-            if (unit.NavPath.Length > 0 && unit.PathIndex < unit.NavPath.Length)
+            if (navPath.Length > 0 && pathIndex < navPath.Length)
             {
-                var target = unit.NavPath[unit.PathIndex];
-                var distance = unit.Position.DistanceTo(target);
+                var target = navPath[pathIndex];
+                var currentPos = unit.Position;
+                var distance = currentPos.DistanceTo(target);
 
                 if (distance < 0.5f)
                 {
-                    unit.PathIndex++;
-                    if (unit.PathIndex >= unit.NavPath.Length)
+                    pathIndex++;
+                    unit.PathIndex = pathIndex;
+                    
+                    if (pathIndex >= navPath.Length)
                     {
                         unit.Velocity = Vector3.Zero;
                         continue;
                     }
                     else
                     {
-                        target = unit.NavPath[unit.PathIndex];
+                        target = navPath[pathIndex];
                     }
                 }
 
-                var direction = (target - unit.Position).Normalized();
-                unit.Velocity = direction * unit.Stats.MoveSpeed;
+                var direction = (target - currentPos).Normalized();
+                var moveSpeed = unit.Stats.MoveSpeed;
+                unit.Velocity = direction * moveSpeed;
 
                 safeVelocity.Y = unit.Velocity.Y;
-                unit.Position += safeVelocity * delta;
+                var newPos = currentPos + safeVelocity * delta;
+                unit.Position = newPos;
+                
+                // Update grid position
+                if (unit.GridEntity != null)
+                {
+                    GridManager.UpdateEntityPosition(unit.GridEntity, newPos);
+                }
             }
             else
             {
                 unit.Velocity = Vector3.Zero;
             }
-
-            // TODO: Update grid position when we have proper GDScript interop
-            // if (unit.GridData.Obj != null)
-            // {
-            //     var newCell = GridManager.Call("world_to_grid", unit.Position);
-            //     var currentCell = unit.GridData.AsGodotObject().Get("grid_cell");
-            //     
-            //     if (!newCell.Equals(currentCell))
-            //     {
-            //         GridManager.Call("update_unit_position", unit.GridData, unit.Position);
-            //     }
-            // }
         }
     }
 
-    private Dictionary CreateLogicContext()
+    private UnitLogicContext CreateLogicContext()
     {
-        var context = new Dictionary();
-        context["set_path"] = Callable.From((UnitNew unit, Vector3 target) => SetUnitPath(unit, target));
-        context["find_nearest_enemy"] = Callable.From((UnitNew unit, float range) => FindNearestEnemy(unit, range));
-        context["find_nearest_ally"] = Callable.From((UnitNew unit, float range) => FindNearestAlly(unit, range));
-        context["find_nearby_enemies"] = Callable.From((UnitNew unit, float range) => FindNearbyEnemies(unit, range));
-        context["find_nearby_allies"] = Callable.From((UnitNew unit, float range) => FindNearbyAllies(unit, range));
-        context["damage_queue"] = new Dictionary();
-        context["destroy_queue"] = new Array();
-        return context;
+        return new UnitLogicContext(this);
     }
 
     private int CalculateOptimalThreadCount()
@@ -570,9 +587,9 @@ public partial class UnitManagerNew : Node
         {
             if (unit.IsAlive)
             {
-                if (unit.GridData.Obj != null)
+                if (unit.GridEntity != null)
                 {
-                    GridManager.Call("unregister_unit", unit.GridData);
+                    GridManager.UnregisterEntity(unit.GridEntity);
                 }
                 if (unit.AgentRid.IsValid)
                 {

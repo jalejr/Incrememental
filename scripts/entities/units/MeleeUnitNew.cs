@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using Incrememental.scripts.unit_manager;
 
 namespace Incrememental.scripts.entities.units;
 
@@ -17,7 +18,7 @@ public partial class MeleeUnitNew : UnitNew
         PathRecalcInterval = 0.5f;
     }
 
-    protected override void UpdateActiveState(float delta, Dictionary context)
+    protected override void UpdateActiveState(float delta, UnitLogicContext context)
     {
         switch (BehaviorState)
         {
@@ -36,7 +37,7 @@ public partial class MeleeUnitNew : UnitNew
     /// <summary>
     /// Update when unit is idle.
     /// </summary>
-    protected virtual void UpdateIdleState(float delta, Dictionary context)
+    protected virtual void UpdateIdleState(float delta, UnitLogicContext context)
     {
         // Override for custom idle behavior
     }
@@ -44,7 +45,7 @@ public partial class MeleeUnitNew : UnitNew
     /// <summary>
     /// Update when unit is pursuing a target.
     /// </summary>
-    protected virtual void UpdatePursueState(float delta, Dictionary context)
+    protected virtual void UpdatePursueState(float delta, UnitLogicContext context)
     {
         // Override for custom pursue behavior
     }
@@ -52,60 +53,62 @@ public partial class MeleeUnitNew : UnitNew
     /// <summary>
     /// Update when unit is in combat.
     /// </summary>
-    protected virtual void UpdateAttackingState(float delta, Dictionary context)
+    protected virtual void UpdateAttackingState(float delta, UnitLogicContext context)
     {
         PathAge += delta;
         AttackCooldown -= delta;
 
-        // Check if current target is still valid and in range
-        if (IsValidTarget(TargetEntity))
-        {
-            var targetEntityData = TargetEntity.AsGodotObject().Get("entity_data");
-            var targetPosition = targetEntityData.AsGodotObject().Get("position").AsVector3();
-            var currentDistance = Position.DistanceTo(targetPosition);
+        // Cache stats to reduce property access
+        var stats = Stats;
+        var attackRange = stats.AttackRange;
+        var attackDamage = stats.AttackDamage;
+        var attackCooldownSec = stats.AttackCooldownSec;
+        var currentPos = Position;
 
-            if (currentDistance <= Stats.AttackRange)
+        // Check if current target is still valid and in range
+        var targetUnit = TargetEntity.Obj != null ? TargetEntity.As<UnitNew>() : null;
+        if (targetUnit != null && targetUnit.IsAlive && !targetUnit.IsDying)
+        {
+            var currentDistance = currentPos.DistanceTo(targetUnit.Position);
+
+            if (currentDistance <= attackRange)
             {
                 NavPath = System.Array.Empty<Vector3>();
 
                 if (AttackCooldown <= 0)
                 {
-                    GD.Print($"Attacker: {this}, Defender: {TargetEntity}");
-                    GD.Print($"Team Id: {TeamId}");
-                    
-                    // Call take_damage on target
-                    TargetEntity.AsGodotObject().Call("take_damage", Stats.AttackDamage, Position, context);
-                    AttackCooldown = Stats.AttackCooldownSec;
+                    targetUnit.TakeDamage(attackDamage, currentPos, context);
+                    AttackCooldown = attackCooldownSec;
                 }
                 return;
             }
         }
 
         // Find new target in attack range
-        var findNearestEnemy = context["find_nearest_enemy"].AsCallable();
-        var nearbyEnemy = findNearestEnemy.Call(this, Stats.AttackRange);
+        var nearbyEnemyVariant = context.FindNearestEnemy(this, attackRange);
 
-        if (nearbyEnemy.Obj != null)
+        if (nearbyEnemyVariant.Obj != null)
         {
-            var isAlive = nearbyEnemy.AsGodotObject().Get("is_alive").AsBool();
-            if (isAlive)
+            var nearbyEnemy = nearbyEnemyVariant.As<UnitNew>();
+            if (nearbyEnemy != null && nearbyEnemy.IsAlive && !nearbyEnemy.IsDying)
             {
-                TargetEntity = nearbyEnemy;
+                TargetEntity = nearbyEnemyVariant;
                 NavPath = System.Array.Empty<Vector3>();
 
                 if (AttackCooldown <= 0)
                 {
-                    nearbyEnemy.AsGodotObject().Call("take_damage", Stats.AttackDamage, Position, context);
-                    AttackCooldown = Stats.AttackCooldownSec;
+                    nearbyEnemy.TakeDamage(attackDamage, currentPos, context);
+                    AttackCooldown = attackCooldownSec;
                 }
                 return;
             }
         }
 
         // No target in range, find distant target
-        if (!IsValidTarget(TargetEntity))
+        targetUnit = TargetEntity.Obj != null ? TargetEntity.As<UnitNew>() : null;
+        if (targetUnit == null || !targetUnit.IsAlive || targetUnit.IsDying)
         {
-            TargetEntity = findNearestEnemy.Call(this, 25);
+            TargetEntity = context.FindNearestEnemy(this, 25);
             if (TargetEntity.Obj != null)
             {
                 PathAge = 999.0f; // Force immediate path recalc
@@ -113,28 +116,26 @@ public partial class MeleeUnitNew : UnitNew
         }
 
         // Still no target, clear path and wait
-        if (!IsValidTarget(TargetEntity))
+        targetUnit = TargetEntity.Obj != null ? TargetEntity.As<UnitNew>() : null;
+        if (targetUnit == null || !targetUnit.IsAlive || targetUnit.IsDying)
         {
             NavPath = System.Array.Empty<Vector3>();
             return;
         }
 
         // Have target, update pathfinding
-        var targetEntityData2 = TargetEntity.AsGodotObject().Get("entity_data");
-        var targetPos = targetEntityData2.AsGodotObject().Get("position").AsVector3();
+        var targetPos = targetUnit.Position;
 
         if (NeedsPathRecalc(targetPos))
         {
-            var setPath = context["set_path"].AsCallable();
-            setPath.Call(this, targetPos);
+            context.SetPath(this, targetPos);
             MarkPathRecalculated(targetPos);
         }
         else if (NavPath.Length == 0 || PathIndex >= NavPath.Length)
         {
             if (PathAge > PathRecalcInterval)
             {
-                var setPath = context["set_path"].AsCallable();
-                setPath.Call(this, targetPos);
+                context.SetPath(this, targetPos);
                 MarkPathRecalculated(targetPos);
             }
         }
@@ -148,10 +149,10 @@ public partial class MeleeUnitNew : UnitNew
         if (targetEntity.Obj == null)
             return false;
 
-        var obj = targetEntity.AsGodotObject();
-        var isAlive = obj.Get("is_alive").AsBool();
-        var isDying = obj.Get("is_dying").AsBool();
+        var unit = targetEntity.As<UnitNew>();
+        if (unit == null)
+            return false;
 
-        return isAlive && !isDying;
+        return unit.IsAlive && !unit.IsDying;
     }
 }
