@@ -1,0 +1,274 @@
+using Godot;
+using Godot.Collections;
+using Incrememental.resources;
+using Incrememental.scripts.entities;
+
+namespace Incrememental.scripts.entities.units;
+
+/// <summary>
+/// Base class for all units in the game.
+/// </summary>
+public partial class UnitNew : RefCounted
+{
+    // Core data
+    public int ManagerIndex { get; set; }
+    public EntityDataNew EntityData { get; set; }
+    public UnitType UnitType { get; set; }
+    public Vector3 VisualPosition { get; set; }
+    public Vector3 Velocity { get; set; }
+    public UnitStatsNew Stats { get; set; }
+
+    // Spawning/Death state
+    public float SpawnTimer { get; set; } = 0.0f;
+    public float SpawnProtectionTime { get; set; } = 1.5f;
+    public bool IsDying { get; set; } = false;
+    public float DeathTimer { get; set; } = 0.0f;
+    public float DeathDuration { get; set; } = 1.5f;
+
+    // Homeless (spawner building destroyed)
+    public bool IsHomeless { get; set; } = false;
+
+    // Pathfinding
+    public Vector3 CachedTargetPosition { get; set; } = Vector3.Zero;
+    public float PathAge { get; set; } = 0.0f;
+    public float PathRecalcInterval { get; set; } = 0.5f;
+
+    // Navigation
+    public Rid AgentRid { get; set; }
+    public Vector3[] NavPath { get; set; } = System.Array.Empty<Vector3>();
+    public int PathIndex { get; set; } = 0;
+
+    // Grid tracking (stored as Variant to avoid circular dependency)
+    public Variant GridData { get; set; }
+    public Node SpawnBuilding { get; set; }
+
+    // Caching (stored as Variant for GDScript interop)
+    public Variant CachedRuntime { get; set; }
+    public LifecycleState LifecycleState { get; set; } = LifecycleState.Spawning;
+
+    // Delegated properties to EntityData
+    public Vector3 Position
+    {
+        get => EntityData?.Position ?? Vector3.Zero;
+        set { if (EntityData != null) EntityData.Position = value; }
+    }
+
+    public float Radius
+    {
+        get => EntityData?.Radius ?? 0.5f;
+        set { if (EntityData != null) EntityData.Radius = value; }
+    }
+
+    public float MaxHealth
+    {
+        get => EntityData?.MaxHealth ?? 0.0f;
+        set { if (EntityData != null) EntityData.MaxHealth = value; }
+    }
+
+    public float Health
+    {
+        get => EntityData?.Health ?? 0.0f;
+        set { if (EntityData != null) EntityData.Health = value; }
+    }
+
+    public Team TeamId
+    {
+        get => EntityData?.TeamId ?? Team.None;
+        set { if (EntityData != null) EntityData.TeamId = value; }
+    }
+
+    public bool IsAlive
+    {
+        get => EntityData?.IsAlive ?? false;
+        set { if (EntityData != null) EntityData.IsAlive = value; }
+    }
+
+    public bool IsTargetable
+    {
+        get => EntityData?.IsTargetable ?? true;
+        set { if (EntityData != null) EntityData.IsTargetable = value; }
+    }
+
+    public bool IsAttackable
+    {
+        get => EntityData?.IsAttackable ?? true;
+        set { if (EntityData != null) EntityData.IsAttackable = value; }
+    }
+
+    /// <summary>
+    /// Main update loop called by UnitManager.
+    /// </summary>
+    public virtual void UpdateLogic(float delta, Dictionary context)
+    {
+        switch (LifecycleState)
+        {
+            case LifecycleState.Spawning:
+                UpdateSpawningState(delta, context);
+                break;
+            case LifecycleState.Active:
+                UpdateActiveState(delta, context);
+                break;
+            case LifecycleState.Dying:
+                UpdateDyingState(delta, context);
+                break;
+            case LifecycleState.Retreating:
+                UpdateRetreatingState(delta, context);
+                break;
+            case LifecycleState.Dead:
+                return;
+        }
+    }
+
+    /// <summary>
+    /// Returns custom visual data for rendering (override in derived classes).
+    /// </summary>
+    public virtual Color GetCustomVisualData()
+    {
+        return new Color();
+    }
+
+    /// <summary>
+    /// Applies damage to the unit.
+    /// </summary>
+    public virtual void TakeDamage(float damage, Vector3 sourcePos, Dictionary context)
+    {
+        // Add to damage queue
+        var damageQueue = context["damage_queue"].As<Dictionary>();
+        var actualDamage = Mathf.Max(1, (int)(damage - Stats.Armor));
+        damageQueue[this] = actualDamage;
+
+        // Emit damage number particle
+        var customData = new Color(
+            damage,
+            0.0f,
+            0.0f,
+            GD.Randf() * 0.6f - 0.3f
+        );
+        var transform = new Transform3D(Basis.Identity, Position);
+        
+        // Call global NumberParticles autoload
+        var numberParticles = Engine.GetSingleton("NumberParticles");
+        if (numberParticles != null)
+        {
+            numberParticles.Call(
+                "emit_particle",
+                transform,
+                Vector3.Zero,
+                Colors.White,
+                customData,
+                1 | 16
+            );
+        }
+
+        ShowHitEffect(sourcePos);
+    }
+
+    /// <summary>
+    /// Shows hit effect (override for custom effects).
+    /// </summary>
+    protected virtual void ShowHitEffect(Vector3 sourcePos)
+    {
+        // TODO: Implement hit effect
+    }
+
+    /// <summary>
+    /// Transitions unit to dying state.
+    /// </summary>
+    public void StartDying()
+    {
+        LifecycleState = LifecycleState.Dying;
+        UpdateFlags();
+    }
+
+    /// <summary>
+    /// Update during spawning protection period.
+    /// </summary>
+    protected virtual void UpdateSpawningState(float delta, Dictionary context)
+    {
+        SpawnTimer += delta;
+        if (SpawnTimer >= SpawnProtectionTime)
+        {
+            LifecycleState = LifecycleState.Active;
+            UpdateFlags();
+        }
+    }
+
+    /// <summary>
+    /// Update during active gameplay (override in derived classes).
+    /// </summary>
+    protected virtual void UpdateActiveState(float delta, Dictionary context)
+    {
+        // Override in derived classes
+    }
+
+    /// <summary>
+    /// Update during death animation.
+    /// </summary>
+    protected virtual void UpdateDyingState(float delta, Dictionary context)
+    {
+        DeathTimer += delta;
+
+        if (DeathTimer >= DeathDuration)
+        {
+            var destroyQueue = context["destroy_queue"].As<Array>();
+            destroyQueue.Add(this);
+        }
+    }
+
+    /// <summary>
+    /// Update during retreat to base (override in derived classes).
+    /// </summary>
+    protected virtual void UpdateRetreatingState(float delta, Dictionary context)
+    {
+        // Override in derived classes
+    }
+
+    /// <summary>
+    /// Checks if the unit needs pathfinding recalculation.
+    /// </summary>
+    public bool NeedsPathRecalc(Vector3 targetPosition, float maxAge = -1.0f, float maxDrift = 5.0f)
+    {
+        if (maxAge < 0)
+            maxAge = PathRecalcInterval;
+
+        if (NavPath.Length == 0)
+            return true;
+
+        if (PathAge > maxAge)
+            return true;
+
+        if (CachedTargetPosition.DistanceTo(targetPosition) > maxDrift)
+            return true;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Marks that path was just recalculated.
+    /// </summary>
+    public void MarkPathRecalculated(Vector3 targetPosition)
+    {
+        CachedTargetPosition = targetPosition;
+        PathAge = 0.0f;
+    }
+
+    /// <summary>
+    /// Updates flags based on lifecycle state.
+    /// </summary>
+    private void UpdateFlags()
+    {
+        switch (LifecycleState)
+        {
+            case LifecycleState.Spawning:
+            case LifecycleState.Dead:
+            case LifecycleState.Dying:
+                IsTargetable = false;
+                IsAttackable = false;
+                break;
+            case LifecycleState.Active:
+                IsTargetable = true;
+                IsAttackable = true;
+                break;
+        }
+    }
+}

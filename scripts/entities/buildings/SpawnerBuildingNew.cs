@@ -1,6 +1,8 @@
 using Godot;
 using Godot.Collections;
 using Incrememental.resources;
+using Incrememental.scripts.entities.units;
+using Incrememental.scripts.unit_manager;
 
 namespace Incrememental.scripts.entities.buildings;
 
@@ -13,8 +15,8 @@ public partial class SpawnerBuildingNew : BuildingNew
     [Export] public SpawnerDataNew SpawnerData { get; set; }
     [Export] public Array<Node3D> SpawnPoints { get; set; } = new();
 
-    private Node _unitManager;
-    private Array<Variant> _spawnedUnits = new();
+    private UnitManagerNew _unitManager;
+    private Array<UnitNew> _spawnedUnits = new();
     private Timer _spawnTimer;
     private int _nextSpawnPointIndex = 0;
 
@@ -22,17 +24,16 @@ public partial class SpawnerBuildingNew : BuildingNew
     {
         base._Ready();
 
-        // Get UnitManager from parent (GDScript node)
-        _unitManager = GetNode<Node>("../UnitManager");
+        // Get UnitManagerNew from parent (C# node)
+        _unitManager = GetNode<UnitManagerNew>("../UnitManager");
         if (_unitManager == null)
         {
             GD.PushWarning($"No unit manager assigned to building: {Name}");
             return;
         }
 
-        // Connect to unit_died signal (GDScript signal)
-        _unitManager.Connect("unit_died", Callable.From((Variant unit, Variant building) => 
-            OnManagerSaysUnitDied(unit, building)));
+        // Connect to C# signal using typed delegate
+        _unitManager.UnitDied += OnManagerSaysUnitDied;
 
         // Create and configure spawn timer
         _spawnTimer = new Timer();
@@ -65,21 +66,11 @@ public partial class SpawnerBuildingNew : BuildingNew
     public void DespawnAllUnits()
     {
         // TODO: Change logic to units leaving
-        // Outdated unit_manager logic
         foreach (var unit in _spawnedUnits)
         {
-            if (unit.Obj != null)
+            if (unit != null && unit.IsAlive)
             {
-                // Call GDScript method
-                var units = _unitManager.Get("units");
-                if (units.Obj != null)
-                {
-                    var index = ((Array)units).IndexOf(unit);
-                    if (index >= 0)
-                    {
-                        _unitManager.Call("kill_unit", index);
-                    }
-                }
+                _unitManager.DestroyUnit(unit.ManagerIndex);
             }
         }
 
@@ -98,19 +89,27 @@ public partial class SpawnerBuildingNew : BuildingNew
             return;
         }
 
-        // Call GDScript UnitManager.spawn_unit method
-        // spawn_unit(unit_type, team_id, position, buffs, building)
-        var unitData = _unitManager.Call(
-            "spawn_unit",
-            (int)SpawnerData.UnitType,  // Convert enum to int for GDScript
-            (int)TeamId,
+        // Convert buffs dictionary to Variant-keyed dictionary
+        var buffsVariant = new Dictionary<Variant, float>();
+        foreach (var kvp in CachedBuffsCalculated)
+        {
+            buffsVariant[Variant.From((int)kvp.Key)] = kvp.Value;
+        }
+
+        // Call C# UnitManagerNew.SpawnUnit method
+        var unit = _unitManager.SpawnUnit(
+            SpawnerData.UnitType,
+            TeamId,
             spawnPos,
-            CachedBuffsCalculated,
+            buffsVariant,
             this
         );
 
-        _spawnedUnits.Add(unitData);
-        OnUnitSpawned(unitData, spawnPos);
+        if (unit != null)
+        {
+            _spawnedUnits.Add(unit);
+            OnUnitSpawned(unit, spawnPos);
+        }
     }
 
     private Vector3 GetNextSpawnPosition()
@@ -131,12 +130,13 @@ public partial class SpawnerBuildingNew : BuildingNew
         return spawnPoint.GlobalPosition;
     }
 
-    private void OnManagerSaysUnitDied(Variant unit, Variant building)
+    private void OnManagerSaysUnitDied(Variant unitVariant, Node building)
     {
         // Check if this building is the one that spawned the unit
-        if (building.AsGodotObject() != this)
+        if (building != this)
             return;
 
+        var unit = unitVariant.As<UnitNew>();
         _spawnedUnits.Remove(unit);
         OnUnitDied(unit);
     }
@@ -149,7 +149,7 @@ public partial class SpawnerBuildingNew : BuildingNew
     /// <summary>
     /// Called when a unit is spawned. Override for custom behavior.
     /// </summary>
-    protected virtual void OnUnitSpawned(Variant unitData, Vector3 position)
+    protected virtual void OnUnitSpawned(UnitNew unit, Vector3 position)
     {
         // Override in derived classes for custom logic
     }
@@ -157,7 +157,7 @@ public partial class SpawnerBuildingNew : BuildingNew
     /// <summary>
     /// Called when a unit dies. Override for custom behavior.
     /// </summary>
-    protected virtual void OnUnitDied(Variant unit)
+    protected virtual void OnUnitDied(UnitNew unit)
     {
         // Override in derived classes for custom logic
     }

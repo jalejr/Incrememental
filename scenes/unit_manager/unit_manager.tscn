@@ -1,6 +1,40 @@
-[gd_scene load_steps=2 format=3 uid="uid://c7bfkc5utn8jc"]
+[gd_scene load_steps=11 format=3 uid="uid://c7bfkc5utn8jc"]
 
-[ext_resource type="Script" uid="uid://c0x2v0omd30lf" path="res://scripts/unit_manager/unit_manager.gd" id="1_r73m7"]
+[ext_resource type="Script" uid="uid://s3utr0ivkwiy" path="res://scripts/unit_manager/UnitManagerNew.cs" id="1_ynf0h"]
+[ext_resource type="Script" uid="uid://b05ybkebntd0h" path="res://resources/UnitTypeConfigNew.cs" id="2_elx1o"]
+[ext_resource type="Script" uid="uid://cmviaggwuipny" path="res://resources/UnitStatsNew.cs" id="3_mhavh"]
+[ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="4_5skne"]
+
+[sub_resource type="Resource" id="Resource_xnabo"]
+script = ExtResource("3_mhavh")
+metadata/_custom_type_script = "uid://cmviaggwuipny"
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_yd45x"]
+
+[sub_resource type="Resource" id="Resource_17wjw"]
+script = ExtResource("2_elx1o")
+UnitType = 1
+DefaultStats = SubResource("Resource_xnabo")
+Icon = ExtResource("4_5skne")
+Mesh = SubResource("CylinderMesh_yd45x")
+MaxCount = 3000
+metadata/_custom_type_script = "uid://b05ybkebntd0h"
+
+[sub_resource type="Resource" id="Resource_ynf0h"]
+script = ExtResource("3_mhavh")
+metadata/_custom_type_script = "uid://cmviaggwuipny"
+
+[sub_resource type="BoxMesh" id="BoxMesh_elx1o"]
+
+[sub_resource type="Resource" id="Resource_mhavh"]
+script = ExtResource("2_elx1o")
+UnitType = 4
+DefaultStats = SubResource("Resource_ynf0h")
+Icon = ExtResource("4_5skne")
+Mesh = SubResource("BoxMesh_elx1o")
+MaxCount = 3000
+metadata/_custom_type_script = "uid://b05ybkebntd0h"
 
 [node name="UnitManager" type="Node"]
-script = ExtResource("1_r73m7")
+script = ExtResource("1_ynf0h")
+UnitTypeConfigs = Array[ExtResource("2_elx1o")]([SubResource("Resource_17wjw"), SubResource("Resource_mhavh")])

@@ -1,19 +1,30 @@
-[gd_scene load_steps=6 format=3 uid="uid://5k3hagwi4mhh"]
+[gd_scene load_steps=9 format=3 uid="uid://5k3hagwi4mhh"]
 
-[ext_resource type="Script" uid="uid://bimom22u84uvi" path="res://scripts/entities/buildings/spawner_building.gd" id="1_44o4v"]
-[ext_resource type="Resource" uid="uid://dpq2buwb1yqrl" path="res://resources/spawner_data/barracks_spawner_data.tres" id="2_bewf4"]
-[ext_resource type="Resource" uid="uid://dpoeuv3le7d6h" path="res://resources/building_data/barracks_data.tres" id="3_fqvl6"]
+[ext_resource type="Script" uid="uid://bv6l0dhtt5tg2" path="res://scripts/entities/buildings/SpawnerBuildingNew.cs" id="1_ex20l"]
+[ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerDataNew.cs" id="2_03amo"]
+[ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/BuffNew.cs" id="3_siab5"]
+[ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingDataNew.cs" id="4_66cot"]
+
+[sub_resource type="Resource" id="Resource_1v2oa"]
+script = ExtResource("2_03amo")
+UnitType = 1
+metadata/_custom_type_script = "uid://cs11amx2m81kf"
+
+[sub_resource type="Resource" id="Resource_icyva"]
+script = ExtResource("4_66cot")
+TeamId = 1
+metadata/_custom_type_script = "uid://d0q44pydcatip"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6ukg2"]
 albedo_color = Color(1, 0, 1, 1)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_6ukg2"]
 
-[node name="SpawnerBuilding" type="Node3D" node_paths=PackedStringArray("spawn_points")]
-script = ExtResource("1_44o4v")
-spawner_data = ExtResource("2_bewf4")
-spawn_points = [NodePath("FrontSpawn"), NodePath("LeftSpawn"), NodePath("RightSpawn")]
-building_data = ExtResource("3_fqvl6")
+[node name="SpawnerBuilding" type="Node3D" node_paths=PackedStringArray("SpawnPoints")]
+script = ExtResource("1_ex20l")
+SpawnerData = SubResource("Resource_1v2oa")
+SpawnPoints = [NodePath("FrontSpawn"), NodePath("LeftSpawn"), NodePath("RightSpawn")]
+BuildingData = SubResource("Resource_icyva")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

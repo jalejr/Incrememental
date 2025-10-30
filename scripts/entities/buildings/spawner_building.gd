@@ -6,7 +6,7 @@ class_name SpawnerBuilding
 @export var spawn_points: Array[Node3D] = []
 
 ## private vars
-var _unit_manager: UnitManager
+var _unit_manager: UnitManagerNew
 var _spawned_units: Array[Unit] = []
 var _spawn_timer: Timer
 var _next_spawn_point_index: int = 0
