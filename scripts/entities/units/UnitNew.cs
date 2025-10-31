@@ -9,11 +9,21 @@ namespace Incrememental.scripts.entities.units;
 /// <summary>
 /// Base class for all units in the game.
 /// </summary>
-public partial class UnitNew : RefCounted
+public partial class UnitNew : RefCounted, IEntity
 {
-    // Core data
+    // IEntity implementation - direct properties (no delegation!)
+    public EntityType Type => EntityType.Unit;
+    public Vector3 Position { get; set; }
+    public float Radius { get; set; }
+    public Team TeamId { get; set; }
+    public bool IsTargetable { get; set; } = true;
+    public bool IsAttackable { get; set; } = true;
+    public bool IsAlive { get; set; } = true;
+    public float Health { get; set; }
+    public float MaxHealth { get; set; }
+    
+    // Unit-specific data
     public int ManagerIndex { get; set; }
-    public EntityDataNew EntityData { get; set; }
     public UnitType UnitType { get; set; }
     public Vector3 VisualPosition { get; set; }
     public Vector3 Velocity { get; set; }
@@ -46,55 +56,6 @@ public partial class UnitNew : RefCounted
     // Caching - direct reference for performance
     public UnitManagerNew.UnitTypeRuntimeData CachedRuntime { get; set; }
     public LifecycleState LifecycleState { get; set; } = LifecycleState.Spawning;
-
-    // Delegated properties to EntityData
-    public Vector3 Position
-    {
-        get => EntityData?.Position ?? Vector3.Zero;
-        set { if (EntityData != null) EntityData.Position = value; }
-    }
-
-    public float Radius
-    {
-        get => EntityData?.Radius ?? 0.5f;
-        set { if (EntityData != null) EntityData.Radius = value; }
-    }
-
-    public float MaxHealth
-    {
-        get => EntityData?.MaxHealth ?? 0.0f;
-        set { if (EntityData != null) EntityData.MaxHealth = value; }
-    }
-
-    public float Health
-    {
-        get => EntityData?.Health ?? 0.0f;
-        set { if (EntityData != null) EntityData.Health = value; }
-    }
-
-    public Team TeamId
-    {
-        get => EntityData?.TeamId ?? Team.None;
-        set { if (EntityData != null) EntityData.TeamId = value; }
-    }
-
-    public bool IsAlive
-    {
-        get => EntityData?.IsAlive ?? false;
-        set { if (EntityData != null) EntityData.IsAlive = value; }
-    }
-
-    public bool IsTargetable
-    {
-        get => EntityData?.IsTargetable ?? true;
-        set { if (EntityData != null) EntityData.IsTargetable = value; }
-    }
-
-    public bool IsAttackable
-    {
-        get => EntityData?.IsAttackable ?? true;
-        set { if (EntityData != null) EntityData.IsAttackable = value; }
-    }
 
     /// <summary>
     /// Main update loop called by UnitManager.

@@ -29,23 +29,23 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Registers an entity in the spatial grid.
     /// </summary>
-    public SpatialGridEntity RegisterEntity(EntityDataNew entityData, Variant entityObject)
+    public SpatialGridEntity RegisterEntity(IEntity entity, Variant entityObject)
     {
-        var entity = new SpatialGridEntity
+        var gridEntity = new SpatialGridEntity
         {
-            EntityData = entityData,
+            Entity = entity,
             EntityObject = entityObject,
             EntityId = _nextEntityId++
         };
 
-        entity.GridCell = WorldToGrid(entityData.Position);
-        entity.OccupiedCells = GetPotentiallyOccupiedCells(entity.GridCell, entityData.Radius);
+        gridEntity.GridCell = WorldToGrid(entity.Position);
+        gridEntity.OccupiedCells = GetPotentiallyOccupiedCells(gridEntity.GridCell, entity.Radius);
 
-        AddToGrid(entity);
+        AddToGrid(gridEntity);
 
-        _entityIdToEntity[entity.EntityId] = entity;
+        _entityIdToEntity[gridEntity.EntityId] = gridEntity;
 
-        return entity;
+        return gridEntity;
     }
 
     /// <summary>
@@ -72,14 +72,14 @@ public partial class SpatialGridManagerNew : GridBaseNew
             RemoveFromGrid(entity);
 
             entity.GridCell = newCell;
-            entity.EntityData.Position = newPosition;
-            entity.OccupiedCells = GetPotentiallyOccupiedCells(entity.GridCell, entity.EntityData.Radius);
+            entity.Entity.Position = newPosition;
+            entity.OccupiedCells = GetPotentiallyOccupiedCells(entity.GridCell, entity.Entity.Radius);
 
             AddToGrid(entity);
         }
         else
         {
-            entity.EntityData.Position = newPosition;
+            entity.Entity.Position = newPosition;
         }
     }
 
@@ -129,13 +129,13 @@ public partial class SpatialGridManagerNew : GridBaseNew
 
                 seenEntities.Add(entity.EntityId);
 
-                var data = entity.EntityData;
+                var e = entity.Entity;
 
-                if (!data.IsAlive || !data.IsTargetable)
+                if (!e.IsAlive || !e.IsTargetable)
                     continue;
 
                 // Pattern matching for team filtering (C# 9+)
-                var shouldSkipEntity = (teamId, isTargetingAllies, data.TeamId) switch
+                var shouldSkipEntity = (teamId, isTargetingAllies, e.TeamId) switch
                 {
                     (Team.None, _, _) => false,                           // No team filter
                     (var myTeam, true, var entityTeam) => entityTeam != myTeam,   // Want allies, but is enemy
@@ -145,8 +145,8 @@ public partial class SpatialGridManagerNew : GridBaseNew
                 if (shouldSkipEntity)
                     continue;
 
-                var distanceSquared = position.DistanceSquaredTo(data.Position);
-                var effectiveRadius = radius + data.Radius;
+                var distanceSquared = position.DistanceSquaredTo(e.Position);
+                var effectiveRadius = radius + e.Radius;
 
                 if (distanceSquared <= effectiveRadius * effectiveRadius)
                 {
@@ -209,13 +209,13 @@ public partial class SpatialGridManagerNew : GridBaseNew
 
                     seenEntities.Add(entity.EntityId);
 
-                    var data = entity.EntityData;
+                    var e = entity.Entity;
 
-                    if (!data.IsAlive || !data.IsTargetable)
+                    if (!e.IsAlive || !e.IsTargetable)
                         continue;
 
                     // Pattern matching for team filtering (C# 9+)
-                    var shouldSkipEntity = (teamId, isTargetingAllies, data.TeamId) switch
+                    var shouldSkipEntity = (teamId, isTargetingAllies, e.TeamId) switch
                     {
                         (Team.None, _, _) => false,                           // No team filter
                         (var myTeam, true, var entityTeam) => entityTeam != myTeam,   // Want allies, but is enemy
@@ -225,8 +225,8 @@ public partial class SpatialGridManagerNew : GridBaseNew
                     if (shouldSkipEntity)
                         continue;
 
-                    var distanceSquared = position.DistanceSquaredTo(data.Position);
-                    var effectiveRadius = radius + data.Radius;
+                    var distanceSquared = position.DistanceSquaredTo(e.Position);
+                    var effectiveRadius = radius + e.Radius;
 
                     if (distanceSquared <= effectiveRadius * effectiveRadius)
                     {
@@ -308,7 +308,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
 
     private void AddToGrid(SpatialGridEntity entity)
     {
-        var targetGrid = FindGridToTarget(entity.EntityData.Type);
+        var targetGrid = FindGridToTarget(entity.Entity.Type);
 
         foreach (var cell in entity.OccupiedCells)
         {
@@ -321,7 +321,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
 
     private void RemoveFromGrid(SpatialGridEntity entity)
     {
-        var targetGrid = FindGridToTarget(entity.EntityData.Type);
+        var targetGrid = FindGridToTarget(entity.Entity.Type);
 
         foreach (var cell in entity.OccupiedCells)
         {

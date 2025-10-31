@@ -8,7 +8,7 @@ namespace Incrememental.scripts.entities.buildings;
 /// Base class for all buildings in the game.
 /// </summary>
 [GlobalClass]
-public partial class BuildingNew : Node3D
+public partial class BuildingNew : Node3D, IEntity
 {
     [Signal]
     public delegate void HealthChangedEventHandler(float newHealth, float maxHealth);
@@ -16,57 +16,30 @@ public partial class BuildingNew : Node3D
     // Export variables
     [Export] public BuildingDataNew BuildingData { get; set; }
 
-    // Public variables
-    public EntityDataNew EntityData { get; private set; }
+    // IEntity implementation - direct properties (no delegation!)
+    public EntityType Type => EntityType.Building;
+    
+    // Buildings sync Position with Godot's GlobalPosition
+    // Note: 'new' keyword explicitly hides Node3D.Position (which is Transform.Origin)
+    public new Vector3 Position
+    {
+        get => GlobalPosition;
+        set => GlobalPosition = value;
+    }
+    
+    public float Radius { get; set; }
+    public Team TeamId { get; set; }
+    public bool IsTargetable { get; set; } = true;
+    public bool IsAttackable { get; set; } = true;
+    public bool IsAlive { get; set; } = true;
+    public float Health { get; set; }
+    public float MaxHealth { get; set; }
+
+    // Building-specific data
     public List<BuffNew> AdjacentAuraBuffs { get; set; } = new();
     public Dictionary<BuildingNew, List<BuffNew>> ActiveBuffs { get; set; } = new();
     public Dictionary<BuffType, float> CachedBuffsCalculated { get; set; } = new();
-
-    // TODO: Hacky - should use interface
     public bool IsDying = false;
-
-    // Delegating properties to EntityData
-    public float Radius
-    {
-        get => EntityData?.Radius ?? 0.5f;
-        set { if (EntityData != null) EntityData.Radius = value; }
-    }
-
-    public float MaxHealth
-    {
-        get => EntityData?.MaxHealth ?? 0.0f;
-        set { if (EntityData != null) EntityData.MaxHealth = value; }
-    }
-
-    public float Health
-    {
-        get => EntityData?.Health ?? 0.0f;
-        set { if (EntityData != null) EntityData.Health = value; }
-    }
-
-    public Team TeamId
-    {
-        get => EntityData?.TeamId ?? Team.None;
-        set { if (EntityData != null) EntityData.TeamId = value; }
-    }
-
-    public bool IsAlive
-    {
-        get => EntityData?.IsAlive ?? false;
-        set { if (EntityData != null) EntityData.IsAlive = value; }
-    }
-
-    public bool IsTargetable
-    {
-        get => EntityData?.IsTargetable ?? true;
-        set { if (EntityData != null) EntityData.IsTargetable = value; }
-    }
-
-    public bool IsAttackable
-    {
-        get => EntityData?.IsAttackable ?? true;
-        set { if (EntityData != null) EntityData.IsAttackable = value; }
-    }
 
     public override void _Ready()
     {
@@ -128,18 +101,14 @@ public partial class BuildingNew : Node3D
     // Private methods
     private void Initialize()
     {
-        EntityData = new EntityDataNew
-        {
-            Type = EntityType.Building,
-            Position = GlobalPosition,
-            Radius = BuildingData.Radius,
-            MaxHealth = BuildingData.MaxHealth,
-            Health = BuildingData.MaxHealth,
-            TeamId = BuildingData.TeamId,
-            IsAlive = true,
-            IsAttackable = true,
-            IsTargetable = true
-        };
+        // Initialize IEntity properties directly
+        Radius = BuildingData.Radius;
+        MaxHealth = BuildingData.MaxHealth;
+        Health = BuildingData.MaxHealth;
+        TeamId = BuildingData.TeamId;
+        IsAlive = true;
+        IsAttackable = true;
+        IsTargetable = true;
 
         // Convert Godot.Collections.Array to List<T>
         AdjacentAuraBuffs.Clear();

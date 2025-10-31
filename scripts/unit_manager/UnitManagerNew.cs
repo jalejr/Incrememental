@@ -100,23 +100,24 @@ public partial class UnitManagerNew : Node
 
         // Use factory to create correct unit type
         var unit = config.CreateUnit();
-        unit.EntityData = new EntityDataNew
-        {
-            Type = EntityType.Unit,
-            Position = position,
-            TeamId = teamId,
-            IsAlive = true,
-            IsTargetable = targetable,
-            IsAttackable = attackable
-        };
-
-        unit.UnitType = config.UnitType;
+        
+        // Initialize IEntity properties directly (no EntityData wrapper!)
         unit.Position = position;
+        unit.TeamId = teamId;
+        unit.IsAlive = true;
+        unit.IsTargetable = targetable;
+        unit.IsAttackable = attackable;
+        
+        // Unit-specific initialization
+        unit.UnitType = config.UnitType;
         unit.VisualPosition = position;
         unit.SpawnBuilding = building;
         unit.CachedRuntime = runtime;
 
+        // Calculate stats with buffs and set health
         unit.Stats = CalculateStatsWithBuffs(config.DefaultStats, buffs);
+        unit.Radius = unit.Stats.Radius;
+        unit.MaxHealth = unit.Stats.MaxHealth;
         unit.Health = unit.Stats.MaxHealth;
 
         // Setup navigation agent
@@ -142,8 +143,8 @@ public partial class UnitManagerNew : Node
 
         unit.ManagerIndex = index;
 
-        // Register with C# grid manager
-        var gridEntity = GridManager.RegisterEntity(unit.EntityData, Variant.CreateFrom(unit));
+        // Register with spatial grid using interface
+        var gridEntity = GridManager.RegisterEntity(unit, Variant.CreateFrom(unit));
         unit.GridEntity = gridEntity;
 
         // Update MultiMesh
