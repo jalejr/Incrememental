@@ -134,19 +134,16 @@ public partial class SpatialGridManagerNew : GridBaseNew
                 if (!data.IsAlive || !data.IsTargetable)
                     continue;
 
-                if (teamId != Team.None)
+                // Pattern matching for team filtering (C# 9+)
+                var shouldSkipEntity = (teamId, isTargetingAllies, data.TeamId) switch
                 {
-                    if (isTargetingAllies)
-                    {
-                        if (data.TeamId != teamId)
-                            continue;
-                    }
-                    else
-                    {
-                        if (data.TeamId == teamId)
-                            continue;
-                    }
-                }
+                    (Team.None, _, _) => false,                           // No team filter
+                    (var myTeam, true, var entityTeam) => entityTeam != myTeam,   // Want allies, but is enemy
+                    (var myTeam, false, var entityTeam) => entityTeam == myTeam,  // Want enemies, but is ally
+                };
+
+                if (shouldSkipEntity)
+                    continue;
 
                 var distanceSquared = position.DistanceSquaredTo(data.Position);
                 var effectiveRadius = radius + data.Radius;
@@ -217,19 +214,16 @@ public partial class SpatialGridManagerNew : GridBaseNew
                     if (!data.IsAlive || !data.IsTargetable)
                         continue;
 
-                    if (teamId != Team.None)
+                    // Pattern matching for team filtering (C# 9+)
+                    var shouldSkipEntity = (teamId, isTargetingAllies, data.TeamId) switch
                     {
-                        if (isTargetingAllies)
-                        {
-                            if (data.TeamId != teamId)
-                                continue;
-                        }
-                        else
-                        {
-                            if (data.TeamId == teamId)
-                                continue;
-                        }
-                    }
+                        (Team.None, _, _) => false,                           // No team filter
+                        (var myTeam, true, var entityTeam) => entityTeam != myTeam,   // Want allies, but is enemy
+                        (var myTeam, false, var entityTeam) => entityTeam == myTeam,  // Want enemies, but is ally
+                    };
+
+                    if (shouldSkipEntity)
+                        continue;
 
                     var distanceSquared = position.DistanceSquaredTo(data.Position);
                     var effectiveRadius = radius + data.Radius;

@@ -223,7 +223,7 @@ public partial class PlacementGridNew : GridBaseNew
                cell.Y >= 0 && cell.Y < _gridSize.Y;
     }
 
-    private Vector2I[] GetBuildingOccupiedCells(PlacementGridDataNew buildingData)
+    private CellsForAreaEnumerator GetBuildingOccupiedCells(PlacementGridDataNew buildingData)
     {
         return GetCellsForArea(buildingData.GridPosition, buildingData.GridSize);
     }
@@ -268,7 +268,7 @@ public partial class PlacementGridNew : GridBaseNew
         }
     }
 
-    private Vector2I[] GetUnlockCellsAroundBuilding(PlacementGridDataNew buildingData)
+    private CellsForAreaEnumerator GetUnlockCellsAroundBuilding(PlacementGridDataNew buildingData)
     {
         var unlockMin = buildingData.GridPosition - new Vector2I(buildingData.UnlockRadius, buildingData.UnlockRadius);
         var unlockMax = buildingData.GridPosition + buildingData.GridSize + new Vector2I(buildingData.UnlockRadius, buildingData.UnlockRadius);

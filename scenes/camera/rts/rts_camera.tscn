@@ -4,6 +4,7 @@
 
 [node name="RtsCamera" type="Node3D"]
 script = ExtResource("1_pfiko")
+CameraRotateSpeed = 15.0
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)

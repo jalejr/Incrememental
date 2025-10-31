@@ -48,8 +48,8 @@ public partial class PlacementGridVisualizerNew : Node3D
         var gridPos = PlacementGrid.WorldToGrid(worldPos);
         var color = isValid ? ValidPlacementColor : InvalidPlacementColor;
 
-        // Get cells to preview
-        var cells = PlacementGrid.GetCellsForArea(gridPos, buildingSize);
+        // Get cells to preview (needs array for indexing)
+        var cells = PlacementGrid.GetCellsForAreaArray(gridPos, buildingSize);
 
         for (int i = 0; i < cells.Length; i++)
         {
