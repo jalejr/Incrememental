@@ -37,15 +37,20 @@ public partial class GridBaseNew : Node
 
     /// <summary>
     /// Gets all cells within a radius of a center cell.
+    /// Returns native C# array for performance.
     /// </summary>
-    public Array<Vector2I> GetCellsInRadius(Vector2I center, int radius)
+    public Vector2I[] GetCellsInRadius(Vector2I center, int radius)
     {
-        var cells = new Array<Vector2I>();
+        var diameter = radius * 2 + 1;
+        var totalCells = diameter * diameter;
+        var cells = new Vector2I[totalCells];
+        var index = 0;
+        
         for (int x = -radius; x <= radius; x++)
         {
             for (int y = -radius; y <= radius; y++)
             {
-                cells.Add(center + new Vector2I(x, y));
+                cells[index++] = center + new Vector2I(x, y);
             }
         }
         return cells;
@@ -53,15 +58,19 @@ public partial class GridBaseNew : Node
 
     /// <summary>
     /// Gets all cells for a rectangular area.
+    /// Returns native C# array for performance.
     /// </summary>
-    public Array<Vector2I> GetCellsForArea(Vector2I gridPos, Vector2I size)
+    public Vector2I[] GetCellsForArea(Vector2I gridPos, Vector2I size)
     {
-        var cells = new Array<Vector2I>();
+        var totalCells = size.X * size.Y;
+        var cells = new Vector2I[totalCells];
+        var index = 0;
+        
         for (int x = 0; x < size.X; x++)
         {
             for (int y = 0; y < size.Y; y++)
             {
-                cells.Add(gridPos + new Vector2I(x, y));
+                cells[index++] = gridPos + new Vector2I(x, y);
             }
         }
         return cells;

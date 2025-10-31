@@ -120,8 +120,8 @@ grid_visualizer = NodePath("../BuildingGridVisualizer")
 camera = NodePath("../RtsCamera/Camera3D")
 test_scene = ExtResource("6_5v6r0")
 
-[node name="BuildingGridVisualizer" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("placement_grid") instance=ExtResource("7_uyinl")]
-placement_grid = NodePath("../BuildingGridManager")
+[node name="BuildingGridVisualizer" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("PlacementGrid") instance=ExtResource("7_uyinl")]
+PlacementGrid = NodePath("../BuildingGridManager")
 
 [node name="Level" type="Node3D" parent="Node3D/SubViewportContainer/SubViewport"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256, 0, 256)
