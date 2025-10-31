@@ -280,7 +280,7 @@ public partial class UnitManagerNew : Node
     /// <summary>
     /// Finds nearby allies to a unit.
     /// </summary>
-    public Godot.Collections.Array<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
+    public List<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
     {
         if (findEntityType == EntityType.Undefined)
         {
@@ -295,7 +295,7 @@ public partial class UnitManagerNew : Node
     /// <summary>
     /// Finds nearby enemies to a unit.
     /// </summary>
-    public Godot.Collections.Array<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
+    public List<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
     {
         if (findEntityType == EntityType.Undefined)
         {

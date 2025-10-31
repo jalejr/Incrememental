@@ -58,7 +58,7 @@ public class UnitLogicContext
     /// <summary>
     /// Finds all nearby enemies within search range.
     /// </summary>
-    public Godot.Collections.Array<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
+    public List<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
     {
         return _manager.FindNearbyEnemies(unit, searchRange, entityType);
     }
@@ -66,7 +66,7 @@ public class UnitLogicContext
     /// <summary>
     /// Finds all nearby allies within search range.
     /// </summary>
-    public Godot.Collections.Array<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
+    public List<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
     {
         return _manager.FindNearbyAllies(unit, searchRange, entityType);
     }

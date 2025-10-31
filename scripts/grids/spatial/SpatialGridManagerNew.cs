@@ -86,14 +86,14 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Gets all nearby entities (units and buildings) within radius.
     /// </summary>
-    public Godot.Collections.Array<Variant> GetNearbyEntities(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
+    public List<Variant> GetNearbyEntities(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
     {
         var nearbyUnits = GetNearbyEntitiesByType(EntityType.Unit, position, radius, teamId, isTargetingAllies);
         var nearbyBuildings = GetNearbyEntitiesByType(EntityType.Building, position, radius, teamId, isTargetingAllies);
 
-        var result = new Godot.Collections.Array<Variant>();
-        foreach (var unit in nearbyUnits) result.Add(unit);
-        foreach (var building in nearbyBuildings) result.Add(building);
+        var result = new List<Variant>(nearbyUnits.Count + nearbyBuildings.Count);
+        result.AddRange(nearbyUnits);
+        result.AddRange(nearbyBuildings);
 
         return result;
     }
@@ -101,14 +101,14 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Gets nearby entities of a specific type within radius.
     /// </summary>
-    public Godot.Collections.Array<Variant> GetNearbyEntitiesByType(
+    public List<Variant> GetNearbyEntitiesByType(
         EntityType entityType,
         Vector3 position,
         float radius,
         Team teamId,
         bool isTargetingAllies = false)
     {
-        var nearbyEntities = new Godot.Collections.Array<Variant>();
+        var nearbyEntities = new List<Variant>();
         var seenEntities = new HashSet<int>();
         var centerCell = WorldToGrid(position);
         var cellDistanceToCheck = Mathf.CeilToInt(radius / GridCellSize) + 1;
@@ -248,7 +248,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Gets debug statistics about the grid.
     /// </summary>
-    public Godot.Collections.Dictionary GetGridStats()
+    public Dictionary<string, object> GetGridStats()
     {
         var occupiedCells = 0;
         for (int x = 0; x < _gridSize.X; x++)
@@ -260,7 +260,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
             }
         }
 
-        return new Godot.Collections.Dictionary
+        return new Dictionary<string, object>
         {
             ["total_entities"] = _entityIdToEntity.Count,
             ["occupied_cells"] = occupiedCells,
@@ -279,8 +279,8 @@ public partial class SpatialGridManagerNew : GridBaseNew
         GD.Print($"Grid dimensions: {stats["grid_dimensions"]}");
         GD.Print($"Occupied cells: {stats["occupied_cells"]}");
         GD.Print($"Total entities: {stats["total_entities"]}");
-        var occupiedCells = stats["occupied_cells"].AsInt32();
-        var totalEntities = stats["total_entities"].AsInt32();
+        var occupiedCells = (int)stats["occupied_cells"];
+        var totalEntities = (int)stats["total_entities"];
         var avg = occupiedCells > 0 ? (float)totalEntities / occupiedCells : 0;
         GD.Print($"Avg entities per cell: {avg}");
     }
