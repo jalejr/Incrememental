@@ -15,8 +15,8 @@ public partial class RtsCameraNew : Node3D
     private const float SpringStrength = 55.0f;
 
     // Exports
-    [Export] public float CameraPanSpeed { get; set; } = 10.0f;
-    [Export] public float CameraRotateSpeed { get; set; } = 1.0f;
+    [Export] public float CameraPanSpeed { get; set; } = 100.0f;
+    [Export] public float CameraRotateSpeed { get; set; } = 10.0f;
     [Export] public float CameraZoomSpeed { get; set; } = 4.0f;
     [Export] public float CameraPanLerpSpeed { get; set; } = 10.0f;
     [Export] public Vector2 CameraPanRemappedRange { get; set; } = new(0.4f, 1.0f);
@@ -27,8 +27,10 @@ public partial class RtsCameraNew : Node3D
 
     // Private vars
     private Vector3 _cameraPanDirection = Vector3.Zero;
+    private Vector3 _cameraPanTargetDirection = Vector3.Zero;
     private Vector3 _cameraZoomDirection = Vector3.Zero;
     private Vector3 _cameraRotateDirection = Vector3.Zero;
+    private Vector3 _cameraRotateTargetDirection = Vector3.Zero;
     private float _initialCameraY;
     private float _initialCameraZ;
     private Camera3D _camera3D;
@@ -44,9 +46,16 @@ public partial class RtsCameraNew : Node3D
 
     public override void _Process(double delta)
     {
+        // Reset target directions each frame (prevents accumulation)
+        _cameraPanTargetDirection = Vector3.Zero;
+        _cameraRotateTargetDirection = Vector3.Zero;
+        
+        // Sample input to set target directions
         GetCameraPanMouseDirection();
         GetCameraPanKeyboardDirection();
         GetCameraRotateDirection();
+        
+        // Apply with lerping for smooth acceleration/deceleration
         ApplyVelocity((float)delta);
     }
 
@@ -74,13 +83,13 @@ public partial class RtsCameraNew : Node3D
         var viewportSize = GetViewport().GetVisibleRect().Size;
 
         if (mousePos.X < CameraPanMargin)
-            _cameraPanDirection.X += -1;
+            _cameraPanTargetDirection.X = -1;
         if (mousePos.Y < CameraPanMargin)
-            _cameraPanDirection.Z += -1;
+            _cameraPanTargetDirection.Z = -1;
         if (mousePos.X > viewportSize.X - CameraPanMargin)
-            _cameraPanDirection.X += 1;
+            _cameraPanTargetDirection.X = 1;
         if (mousePos.Y > viewportSize.Y - CameraPanMargin)
-            _cameraPanDirection.Z += 1;
+            _cameraPanTargetDirection.Z = 1;
     }
 
     /// <summary>
@@ -89,7 +98,12 @@ public partial class RtsCameraNew : Node3D
     public void GetCameraPanKeyboardDirection()
     {
         var inputDirection = Input.GetVector("left", "right", "forward", "backward");
-        _cameraPanDirection += new Vector3(inputDirection.X, 0.0f, inputDirection.Y);
+        // Override or combine with mouse direction (keyboard takes priority)
+        if (inputDirection != Vector2.Zero)
+        {
+            _cameraPanTargetDirection.X = inputDirection.X;
+            _cameraPanTargetDirection.Z = inputDirection.Y;
+        }
     }
 
     /// <summary>
@@ -98,9 +112,9 @@ public partial class RtsCameraNew : Node3D
     public void GetCameraRotateDirection()
     {
         if (Input.IsActionPressed("rotate_left"))
-            _cameraRotateDirection -= new Vector3(0.0f, 1.0f, 0.0f);
+            _cameraRotateTargetDirection.Y = -1.0f;
         if (Input.IsActionPressed("rotate_right"))
-            _cameraRotateDirection += new Vector3(0.0f, 1.0f, 0.0f);
+            _cameraRotateTargetDirection.Y = 1.0f;
     }
 
     /// <summary>
@@ -205,10 +219,10 @@ public partial class RtsCameraNew : Node3D
 
         CorrectCameraZoom(delta);
 
-        // Lerp directions back to zero for smooth deceleration
-        _cameraPanDirection = _cameraPanDirection.Lerp(Vector3.Zero, CameraPanLerpSpeed * delta);
+        // Lerp actual directions toward targets for smooth acceleration/deceleration
+        _cameraPanDirection = _cameraPanDirection.Lerp(_cameraPanTargetDirection, CameraPanLerpSpeed * delta);
         _cameraZoomDirection = _cameraZoomDirection.Lerp(Vector3.Zero, CameraZoomLerpSpeed * delta);
-        _cameraRotateDirection = _cameraRotateDirection.Lerp(Vector3.Zero, CameraRotateLerpSpeed * delta);
+        _cameraRotateDirection = _cameraRotateDirection.Lerp(_cameraRotateTargetDirection, CameraRotateLerpSpeed * delta);
     }
 
     private bool CameraCanZoomIn()
