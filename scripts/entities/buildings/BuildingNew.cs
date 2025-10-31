@@ -1,6 +1,6 @@
 using Godot;
-using Godot.Collections;
 using Incrememental.resources;
+using System.Collections.Generic;
 
 namespace Incrememental.scripts.entities.buildings;
 
@@ -18,8 +18,8 @@ public partial class BuildingNew : Node3D
 
     // Public variables
     public EntityDataNew EntityData { get; private set; }
-    public Array<BuffNew> AdjacentAuraBuffs { get; set; } = new();
-    public Dictionary<BuildingNew, Array<BuffNew>> ActiveBuffs { get; set; } = new();
+    public List<BuffNew> AdjacentAuraBuffs { get; set; } = new();
+    public Dictionary<BuildingNew, List<BuffNew>> ActiveBuffs { get; set; } = new();
     public Dictionary<BuffType, float> CachedBuffsCalculated { get; set; } = new();
 
     // TODO: Hacky - should use interface
@@ -85,7 +85,7 @@ public partial class BuildingNew : Node3D
     /// <summary>
     /// Applies damage to the building.
     /// </summary>
-    public void TakeDamage(float amount, Vector3 position, Dictionary context)
+    public void TakeDamage(float amount, Vector3 position, object context)
     {
         Health -= amount;
         Health = Mathf.Max(0, Health);
@@ -110,7 +110,7 @@ public partial class BuildingNew : Node3D
     /// <summary>
     /// Adds adjacency buffs from another building.
     /// </summary>
-    public void AddAdjacencyBuffs(BuildingNew sourceBuilding, Array<BuffNew> adjacencyBuffs)
+    public void AddAdjacencyBuffs(BuildingNew sourceBuilding, List<BuffNew> adjacencyBuffs)
     {
         ActiveBuffs[sourceBuilding] = adjacencyBuffs;
         UpdateActiveBuffs();
@@ -141,12 +141,17 @@ public partial class BuildingNew : Node3D
             IsTargetable = true
         };
 
-        AdjacentAuraBuffs = new Array<BuffNew>(BuildingData.AdjacentAuraBuffs);
+        // Convert Godot.Collections.Array to List<T>
+        AdjacentAuraBuffs.Clear();
+        foreach (var buff in BuildingData.AdjacentAuraBuffs)
+        {
+            AdjacentAuraBuffs.Add(buff);
+        }
     }
 
-    private Array<BuildingNew> FindNearbyBuildings(int cellRadius)
+    private List<BuildingNew> FindNearbyBuildings(int cellRadius)
     {
-        var foundBuildings = new Array<BuildingNew>();
+        var foundBuildings = new List<BuildingNew>();
         // TODO: Logic here - probably need to rework placement grid
         return foundBuildings;
     }

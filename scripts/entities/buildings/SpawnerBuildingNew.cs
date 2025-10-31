@@ -1,8 +1,8 @@
 using Godot;
-using Godot.Collections;
 using Incrememental.resources;
 using Incrememental.scripts.entities.units;
 using Incrememental.scripts.unit_manager;
+using System.Collections.Generic;
 
 namespace Incrememental.scripts.entities.buildings;
 
@@ -13,10 +13,10 @@ namespace Incrememental.scripts.entities.buildings;
 public partial class SpawnerBuildingNew : BuildingNew
 {
     [Export] public SpawnerDataNew SpawnerData { get; set; }
-    [Export] public Array<Node3D> SpawnPoints { get; set; } = new();
+    [Export] public Godot.Collections.Array<Node3D> SpawnPoints { get; set; } = new();
 
     private UnitManagerNew _unitManager;
-    private Array<UnitNew> _spawnedUnits = new();
+    private List<UnitNew> _spawnedUnits = new();  // C# List for performance
     private Timer _spawnTimer;
     private int _nextSpawnPointIndex = 0;
 

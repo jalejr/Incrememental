@@ -1,9 +1,9 @@
 using Godot;
-using Godot.Collections;
 using Incrememental.resources;
 using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
 using Incrememental.scripts.grids.spatial;
+using System.Collections.Generic;
 
 namespace Incrememental.scripts.unit_manager;
 
@@ -28,7 +28,7 @@ public partial class UnitManagerNew : Node
         public int VisualIndex { get; set; } = 0;
     }
 
-    [Export] public Array<UnitTypeConfigNew> UnitTypeConfigs { get; set; } = new();
+    [Export] public Godot.Collections.Array<UnitTypeConfigNew> UnitTypeConfigs { get; set; } = new();
     [Export] public NavigationRegion3D NavigationRegion { get; set; }
     [Export] public SpatialGridManagerNew GridManager { get; set; }
     [Export] public int MaxUnitsUpdatedPerFrame { get; set; } = 100;
@@ -38,15 +38,15 @@ public partial class UnitManagerNew : Node
     private int _updateIndex = 0;
 
     private Dictionary<UnitType, UnitTypeRuntimeData> _unitTypesRuntime = new();
-    private System.Collections.Generic.List<UnitNew> _allUnits = new();
-    private System.Collections.Generic.List<int> _freeIndices = new();
+    private List<UnitNew> _allUnits = new();
+    private List<int> _freeIndices = new();
     private int _aliveCountForAll = 0;
 
     // Threading (not yet implemented, structure in place)
     private int _threadCount;
-    private System.Collections.Generic.Dictionary<UnitNew, int> _damageQueue = new();
+    private Dictionary<UnitNew, int> _damageQueue = new();
     private Mutex _damageQueueMutex = new();
-    private System.Collections.Generic.List<UnitNew> _destroyQueue = new();
+    private List<UnitNew> _destroyQueue = new();
     private Mutex _destroyQueueMutex = new();
 
     public override void _Ready()
@@ -280,7 +280,7 @@ public partial class UnitManagerNew : Node
     /// <summary>
     /// Finds nearby allies to a unit.
     /// </summary>
-    public Array<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
+    public Godot.Collections.Array<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
     {
         if (findEntityType == EntityType.Undefined)
         {
@@ -295,7 +295,7 @@ public partial class UnitManagerNew : Node
     /// <summary>
     /// Finds nearby enemies to a unit.
     /// </summary>
-    public Array<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
+    public Godot.Collections.Array<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
     {
         if (findEntityType == EntityType.Undefined)
         {

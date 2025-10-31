@@ -1,5 +1,6 @@
 using Godot;
 using Incrememental.scripts.global;
+using System.Collections.Generic;
 
 namespace Incrememental.scripts.grids.placement;
 
@@ -17,7 +18,7 @@ public partial class PlacementGridVisualizerNew : Node3D
     [Export] public Color InvalidPlacementColor { get; set; } = new(1.0f, 0.2f, 0.2f, 0.5f);
 
     private MultiMeshInstance3D _cellMesh;
-    private System.Collections.Generic.List<MeshInstance3D> _previewMeshes = new();
+    private List<MeshInstance3D> _previewMeshes = new();
     private Vector2I _currentPreviewSize = Vector2I.Zero;
 
     public override void _Ready()

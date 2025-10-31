@@ -1,5 +1,6 @@
 using Godot;
 using Godot.Collections;
+using System.Collections.Generic;
 
 namespace Incrememental.resources;
 
@@ -10,7 +11,7 @@ namespace Incrememental.resources;
 [GlobalClass]
 public partial class BuildingCatalogNew : Resource
 {
-    [Export] public Dictionary<string, BuildingCatalogEntryNew> Entries { get; set; } = new();
+    [Export] public Godot.Collections.Dictionary<string, BuildingCatalogEntryNew> Entries { get; set; } = new();
 
     /// <summary>
     /// Gets a building catalog entry by its ID.
@@ -30,9 +31,9 @@ public partial class BuildingCatalogNew : Resource
     /// Gets all available building entries.
     /// Returns native C# list for performance.
     /// </summary>
-    public System.Collections.Generic.List<BuildingCatalogEntryNew> GetAvailableEntries()
+    public List<BuildingCatalogEntryNew> GetAvailableEntries()
     {
-        var available = new System.Collections.Generic.List<BuildingCatalogEntryNew>(Entries.Count);
+        var available = new List<BuildingCatalogEntryNew>(Entries.Count);
         
         foreach (var entry in Entries.Values)
         {
@@ -45,9 +46,9 @@ public partial class BuildingCatalogNew : Resource
     /// <summary>
     /// Gets all unlocked building entries based on research requirements.
     /// </summary>
-    public System.Collections.Generic.List<BuildingCatalogEntryNew> GetUnlockedEntries()
+    public List<BuildingCatalogEntryNew> GetUnlockedEntries()
     {
-        var unlocked = new System.Collections.Generic.List<BuildingCatalogEntryNew>();
+        var unlocked = new List<BuildingCatalogEntryNew>();
         
         foreach (var entry in Entries.Values)
         {

@@ -1,7 +1,7 @@
 using Godot;
-using Godot.Collections;
 using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
+using System.Collections.Generic;
 
 namespace Incrememental.scripts.unit_manager;
 
@@ -17,18 +17,18 @@ public class UnitLogicContext
     /// Queue for accumulated damage to be applied at end of frame.
     /// Key: Target unit, Value: Total damage amount.
     /// </summary>
-    public System.Collections.Generic.Dictionary<UnitNew, int> DamageQueue { get; }
+    public Dictionary<UnitNew, int> DamageQueue { get; }
     
     /// <summary>
     /// Queue for units to be destroyed at end of frame.
     /// </summary>
-    public System.Collections.Generic.List<UnitNew> DestroyQueue { get; }
+    public List<UnitNew> DestroyQueue { get; }
 
     public UnitLogicContext(UnitManagerNew manager)
     {
         _manager = manager;
-        DamageQueue = new System.Collections.Generic.Dictionary<UnitNew, int>();
-        DestroyQueue = new System.Collections.Generic.List<UnitNew>();
+        DamageQueue = new Dictionary<UnitNew, int>();
+        DestroyQueue = new List<UnitNew>();
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public class UnitLogicContext
     /// <summary>
     /// Finds all nearby enemies within search range.
     /// </summary>
-    public Array<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
+    public Godot.Collections.Array<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
     {
         return _manager.FindNearbyEnemies(unit, searchRange, entityType);
     }
@@ -66,7 +66,7 @@ public class UnitLogicContext
     /// <summary>
     /// Finds all nearby allies within search range.
     /// </summary>
-    public Array<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
+    public Godot.Collections.Array<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
     {
         return _manager.FindNearbyAllies(unit, searchRange, entityType);
     }

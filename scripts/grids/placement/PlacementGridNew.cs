@@ -1,5 +1,6 @@
 using Godot;
 using Incrememental.scripts.global;
+using System.Collections.Generic;
 
 namespace Incrememental.scripts.grids.placement;
 
@@ -18,8 +19,8 @@ public partial class PlacementGridNew : GridBaseNew
     private Vector2I _gridSize = Vector2I.Zero;
     
     // Native C# collections
-    private System.Collections.Generic.List<PlacementGridDataNew> _buildings = new();
-    private System.Collections.Generic.Dictionary<Node3D, PlacementGridDataNew> _buildingToPlacementData = new();
+    private List<PlacementGridDataNew> _buildings = new();
+    private Dictionary<Node3D, PlacementGridDataNew> _buildingToPlacementData = new();
 
     public override void _Ready()
     {
@@ -161,9 +162,9 @@ public partial class PlacementGridNew : GridBaseNew
     /// Gets all unlocked cells.
     /// Returns native C# list for performance.
     /// </summary>
-    public System.Collections.Generic.List<Vector2I> GetUnlockedCells()
+    public List<Vector2I> GetUnlockedCells()
     {
-        var cells = new System.Collections.Generic.List<Vector2I>();
+        var cells = new List<Vector2I>();
         
         for (int x = 0; x < _gridSize.X; x++)
         {

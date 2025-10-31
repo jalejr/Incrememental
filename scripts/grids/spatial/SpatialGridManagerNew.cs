@@ -1,6 +1,6 @@
 using Godot;
-using Godot.Collections;
 using Incrememental.scripts.entities;
+using System.Collections.Generic;
 
 namespace Incrememental.scripts.grids.spatial;
 
@@ -13,11 +13,11 @@ public partial class SpatialGridManagerNew : GridBaseNew
     [Export] public Vector2 GridWorldSize { get; set; } = new(512.0f, 512.0f);
 
     // 2D array of lists of entities per cell
-    private System.Collections.Generic.List<SpatialGridEntity>[][] _unitGrid;
-    private System.Collections.Generic.List<SpatialGridEntity>[][] _buildingGrid;
+    private List<SpatialGridEntity>[][] _unitGrid;
+    private List<SpatialGridEntity>[][] _buildingGrid;
     private Vector2I _gridSize = Vector2I.Zero;
     
-    private System.Collections.Generic.Dictionary<int, SpatialGridEntity> _entityIdToEntity = new();
+    private Dictionary<int, SpatialGridEntity> _entityIdToEntity = new();
     private int _nextEntityId = 0;
 
     public override void _Ready()
@@ -86,12 +86,12 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Gets all nearby entities (units and buildings) within radius.
     /// </summary>
-    public Array<Variant> GetNearbyEntities(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
+    public Godot.Collections.Array<Variant> GetNearbyEntities(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
     {
         var nearbyUnits = GetNearbyEntitiesByType(EntityType.Unit, position, radius, teamId, isTargetingAllies);
         var nearbyBuildings = GetNearbyEntitiesByType(EntityType.Building, position, radius, teamId, isTargetingAllies);
 
-        var result = new Array<Variant>();
+        var result = new Godot.Collections.Array<Variant>();
         foreach (var unit in nearbyUnits) result.Add(unit);
         foreach (var building in nearbyBuildings) result.Add(building);
 
@@ -101,15 +101,15 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Gets nearby entities of a specific type within radius.
     /// </summary>
-    public Array<Variant> GetNearbyEntitiesByType(
+    public Godot.Collections.Array<Variant> GetNearbyEntitiesByType(
         EntityType entityType,
         Vector3 position,
         float radius,
         Team teamId,
         bool isTargetingAllies = false)
     {
-        var nearbyEntities = new Array<Variant>();
-        var seenEntities = new System.Collections.Generic.HashSet<int>();
+        var nearbyEntities = new Godot.Collections.Array<Variant>();
+        var seenEntities = new HashSet<int>();
         var centerCell = WorldToGrid(position);
         var cellDistanceToCheck = Mathf.CeilToInt(radius / GridCellSize) + 1;
         var cellsToCheck = GetCellsInRadius(centerCell, cellDistanceToCheck);
@@ -190,7 +190,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     {
         var centerCell = WorldToGrid(position);
         var maxCellRadius = Mathf.CeilToInt(radius / GridCellSize) + 1;
-        var seenEntities = new System.Collections.Generic.HashSet<int>();
+        var seenEntities = new HashSet<int>();
         var targetGrid = FindGridToTarget(entityType);
 
         // Search in expanding rings for early exit
@@ -248,7 +248,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Gets debug statistics about the grid.
     /// </summary>
-    public Dictionary GetGridStats()
+    public Godot.Collections.Dictionary GetGridStats()
     {
         var occupiedCells = 0;
         for (int x = 0; x < _gridSize.X; x++)
@@ -260,7 +260,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
             }
         }
 
-        return new Dictionary
+        return new Godot.Collections.Dictionary
         {
             ["total_entities"] = _entityIdToEntity.Count,
             ["occupied_cells"] = occupiedCells,
@@ -290,18 +290,18 @@ public partial class SpatialGridManagerNew : GridBaseNew
         _gridSize.X = Mathf.CeilToInt(GridWorldSize.X / GridCellSize);
         _gridSize.Y = Mathf.CeilToInt(GridWorldSize.Y / GridCellSize);
 
-        _unitGrid = new System.Collections.Generic.List<SpatialGridEntity>[_gridSize.X][];
-        _buildingGrid = new System.Collections.Generic.List<SpatialGridEntity>[_gridSize.X][];
+        _unitGrid = new List<SpatialGridEntity>[_gridSize.X][];
+        _buildingGrid = new List<SpatialGridEntity>[_gridSize.X][];
 
         for (int x = 0; x < _gridSize.X; x++)
         {
-            _unitGrid[x] = new System.Collections.Generic.List<SpatialGridEntity>[_gridSize.Y];
-            _buildingGrid[x] = new System.Collections.Generic.List<SpatialGridEntity>[_gridSize.Y];
+            _unitGrid[x] = new List<SpatialGridEntity>[_gridSize.Y];
+            _buildingGrid[x] = new List<SpatialGridEntity>[_gridSize.Y];
 
             for (int y = 0; y < _gridSize.Y; y++)
             {
-                _unitGrid[x][y] = new System.Collections.Generic.List<SpatialGridEntity>();
-                _buildingGrid[x][y] = new System.Collections.Generic.List<SpatialGridEntity>();
+                _unitGrid[x][y] = new List<SpatialGridEntity>();
+                _buildingGrid[x][y] = new List<SpatialGridEntity>();
             }
         }
     }
@@ -338,7 +338,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
         }
     }
 
-    private System.Collections.Generic.List<SpatialGridEntity>[][] FindGridToTarget(EntityType entityType)
+    private List<SpatialGridEntity>[][] FindGridToTarget(EntityType entityType)
     {
         return entityType switch
         {
