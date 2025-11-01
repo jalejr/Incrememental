@@ -261,18 +261,6 @@ public class SpatialQuery
         return results;
     }
     
-    /// <summary>
-    /// Execute the query and return the first result, or default if none found.
-    /// Convenience method for FindNearest().Execute().
-    /// Auto-returns query to pool after execution.
-    /// </summary>
-    public Variant ExecuteFirst()
-    {
-        FindNearest();
-        var results = Execute();  // Execute handles pool return
-        return results.Count > 0 ? results[0] : default;
-    }
-    
     #endregion
     
     #region Internal Access (for GridManager)

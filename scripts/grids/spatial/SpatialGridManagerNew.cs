@@ -105,21 +105,31 @@ public partial class SpatialGridManagerNew : GridBaseNew
 
     /// <summary>
     /// Gets all nearby entities (units and buildings) within radius.
+    /// Uses Query Builder internally.
     /// </summary>
     public List<Variant> GetNearbyEntities(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
     {
-        var nearbyUnits = GetNearbyEntitiesByType(EntityType.Unit, position, radius, teamId, isTargetingAllies);
-        var nearbyBuildings = GetNearbyEntitiesByType(EntityType.Building, position, radius, teamId, isTargetingAllies);
-
-        var result = new List<Variant>(nearbyUnits.Count + nearbyBuildings.Count);
-        result.AddRange(nearbyUnits);
-        result.AddRange(nearbyBuildings);
-
-        return result;
+        var query = Query()
+            .At(position)
+            .Within(radius)
+            .OfTypes(EntityType.Unit, EntityType.Building)
+            .ThatAreAlive()
+            .ThatAreTargetable();
+        
+        if (teamId != Team.None)
+        {
+            if (isTargetingAllies)
+                query.AlliesOf(teamId);
+            else
+                query.EnemiesOf(teamId);
+        }
+        
+        return query.Execute();
     }
 
     /// <summary>
     /// Gets nearby entities of a specific type within radius.
+    /// Uses Query Builder internally.
     /// </summary>
     public List<Variant> GetNearbyEntitiesByType(
         EntityType entityType,
@@ -128,82 +138,53 @@ public partial class SpatialGridManagerNew : GridBaseNew
         Team teamId,
         bool isTargetingAllies = false)
     {
-        var nearbyEntities = new List<Variant>();
-        var seenEntities = new HashSet<int>();
-        var centerCell = WorldToGrid(position);
-        var cellDistanceToCheck = Mathf.CeilToInt(radius / GridCellSize) + 1;
-        var cellsToCheck = GetCellsInRadius(centerCell, cellDistanceToCheck);
+        var query = Query()
+            .At(position)
+            .Within(radius)
+            .OfType(entityType)
+            .ThatAreAlive()
+            .ThatAreTargetable();
         
-        // Get type filter set for fast checking
-        if (!_entitiesByType.TryGetValue(entityType, out var typeSet))
-            return nearbyEntities;  // No entities of this type exist
-
-        foreach (var cellToCheck in cellsToCheck)
+        if (teamId != Team.None)
         {
-            if (!IsCellInBounds(cellToCheck))
-                continue;
-
-            var cellEntities = _entityGrid[cellToCheck.X][cellToCheck.Y];
-
-            foreach (var entity in cellEntities)
-            {
-                // Fast type check using HashSet
-                if (!typeSet.Contains(entity))
-                    continue;
-                
-                if (seenEntities.Contains(entity.EntityId))
-                    continue;
-
-                seenEntities.Add(entity.EntityId);
-
-                var e = entity.Entity;
-
-                if (!e.IsAlive || !e.IsTargetable)
-                    continue;
-
-                // Pattern matching for team filtering (C# 9+)
-                var shouldSkipEntity = (teamId, isTargetingAllies, e.TeamId) switch
-                {
-                    (Team.None, _, _) => false,                           // No team filter
-                    (var myTeam, true, var entityTeam) => entityTeam != myTeam,   // Want allies, but is enemy
-                    (var myTeam, false, var entityTeam) => entityTeam == myTeam,  // Want enemies, but is ally
-                };
-
-                if (shouldSkipEntity)
-                    continue;
-
-                var distanceSquared = position.DistanceSquaredTo(e.Position);
-                var effectiveRadius = radius + e.Radius;
-
-                if (distanceSquared <= effectiveRadius * effectiveRadius)
-                {
-                    nearbyEntities.Add(GetEntityObject(entity));
-                }
-            }
+            if (isTargetingAllies)
+                query.AlliesOf(teamId);
+            else
+                query.EnemiesOf(teamId);
         }
-
-        return nearbyEntities;
+        
+        return query.Execute();
     }
 
     /// <summary>
     /// Gets the nearest entity (unit or building) within radius.
+    /// Uses Query Builder internally.
     /// </summary>
     public Variant GetNearestEntity(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
     {
-        var nearbyUnit = GetNearestEntityByType(EntityType.Unit, position, radius, teamId, isTargetingAllies);
-        if (nearbyUnit.Obj != null)
-            return nearbyUnit;
-
-        var nearbyBuilding = GetNearestEntityByType(EntityType.Building, position, radius, teamId, isTargetingAllies);
-        if (nearbyBuilding.Obj != null)
-            return nearbyBuilding;
-
-        return default;
+        var query = Query()
+            .At(position)
+            .Within(radius)
+            .OfTypes(EntityType.Unit, EntityType.Building)
+            .ThatAreAlive()
+            .ThatAreTargetable()
+            .Limit(1);
+        
+        if (teamId != Team.None)
+        {
+            if (isTargetingAllies)
+                query.AlliesOf(teamId);
+            else
+                query.EnemiesOf(teamId);
+        }
+        
+        var results = query.Execute();
+        return results.Count > 0 ? results[0] : default;
     }
 
     /// <summary>
     /// Gets the nearest entity of a specific type within radius.
-    /// Uses ring-based search for optimal performance.
+    /// Uses Query Builder internally.
     /// </summary>
     public Variant GetNearestEntityByType(
         EntityType entityType,
@@ -212,65 +193,24 @@ public partial class SpatialGridManagerNew : GridBaseNew
         Team teamId,
         bool isTargetingAllies = false)
     {
-        var centerCell = WorldToGrid(position);
-        var maxCellRadius = Mathf.CeilToInt(radius / GridCellSize) + 1;
-        var seenEntities = new HashSet<int>();
+        var query = Query()
+            .At(position)
+            .Within(radius)
+            .OfType(entityType)
+            .ThatAreAlive()
+            .ThatAreTargetable()
+            .Limit(1);
         
-        // Get type filter set for fast checking
-        if (!_entitiesByType.TryGetValue(entityType, out var typeSet))
-            return default;  // No entities of this type exist
-
-        // Search in expanding rings for early exit
-        for (int ring = 0; ring <= maxCellRadius; ring++)
+        if (teamId != Team.None)
         {
-            var cellsInRing = GetCellsInRing(centerCell, ring);
-
-            foreach (var cell in cellsInRing)
-            {
-                if (!IsCellInBounds(cell))
-                    continue;
-
-                var cellEntities = _entityGrid[cell.X][cell.Y];
-
-                foreach (var entity in cellEntities)
-                {
-                    // Fast type check using HashSet
-                    if (!typeSet.Contains(entity))
-                        continue;
-                    
-                    if (seenEntities.Contains(entity.EntityId))
-                        continue;
-
-                    seenEntities.Add(entity.EntityId);
-
-                    var e = entity.Entity;
-
-                    if (!e.IsAlive || !e.IsTargetable)
-                        continue;
-
-                    // Pattern matching for team filtering (C# 9+)
-                    var shouldSkipEntity = (teamId, isTargetingAllies, e.TeamId) switch
-                    {
-                        (Team.None, _, _) => false,                           // No team filter
-                        (var myTeam, true, var entityTeam) => entityTeam != myTeam,   // Want allies, but is enemy
-                        (var myTeam, false, var entityTeam) => entityTeam == myTeam,  // Want enemies, but is ally
-                    };
-
-                    if (shouldSkipEntity)
-                        continue;
-
-                    var distanceSquared = position.DistanceSquaredTo(e.Position);
-                    var effectiveRadius = radius + e.Radius;
-
-                    if (distanceSquared <= effectiveRadius * effectiveRadius)
-                    {
-                        return GetEntityObject(entity);
-                    }
-                }
-            }
+            if (isTargetingAllies)
+                query.AlliesOf(teamId);
+            else
+                query.EnemiesOf(teamId);
         }
-
-        return default;
+        
+        var results = query.Execute();
+        return results.Count > 0 ? results[0] : default;
     }
 
     /// <summary>
@@ -370,6 +310,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Creates a new fluent query builder (from object pool for zero allocations).
     /// Example: grid.Query().At(pos).Within(10f).OfType(EntityType.Unit).Execute()
+    /// Thread-safe for queries when all Register/Unregister/Update operations are queued to main thread.
     /// </summary>
     public SpatialQuery Query()
     {
@@ -414,21 +355,21 @@ public partial class SpatialGridManagerNew : GridBaseNew
         var centerCell = WorldToGrid(query.Position);
         var maxCellRadius = Mathf.CeilToInt(query.Radius / GridCellSize) + 1;
         
-        // Pre-build type filter set if types are specified
-        HashSet<SpatialGridEntity> typeFilterSet = null;
+        // Build list of type sets to check (no UnionWith - just direct references!)
+        List<HashSet<SpatialGridEntity>> typeSets = null;
         if (query.TypeFilter != null && query.TypeFilter.Count > 0)
         {
-            typeFilterSet = new HashSet<SpatialGridEntity>();
+            typeSets = new List<HashSet<SpatialGridEntity>>(query.TypeFilter.Count);
             foreach (var type in query.TypeFilter)
             {
                 if (_entitiesByType.TryGetValue(type, out var typeSet))
                 {
-                    typeFilterSet.UnionWith(typeSet);
+                    typeSets.Add(typeSet);  // Just store reference, no copying!
                 }
             }
             
             // Early exit if no entities of requested types exist
-            if (typeFilterSet.Count == 0)
+            if (typeSets.Count == 0)
                 return results;
         }
         
@@ -447,7 +388,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
                 foreach (var entity in cellEntities)
                 {
                     // Apply all filters
-                    if (!PassesFilters(entity, query, typeFilterSet, seenEntities))
+                    if (!PassesFilters(entity, query, typeSets, seenEntities))
                         continue;
                     
                     // Entity passed all filters!
@@ -469,12 +410,24 @@ public partial class SpatialGridManagerNew : GridBaseNew
     private bool PassesFilters(
         SpatialGridEntity entity,
         SpatialQuery query,
-        HashSet<SpatialGridEntity> typeFilterSet,
+        List<HashSet<SpatialGridEntity>> typeSets,
         HashSet<int> seenEntities)
     {
-        // Type filter (if specified)
-        if (typeFilterSet != null && !typeFilterSet.Contains(entity))
-            return false;
+        // Type filter: Check if entity is in ANY of the type sets
+        if (typeSets != null)
+        {
+            bool matchedType = false;
+            for (int i = 0; i < typeSets.Count; i++)
+            {
+                if (typeSets[i].Contains(entity))
+                {
+                    matchedType = true;
+                    break;
+                }
+            }
+            if (!matchedType)
+                return false;
+        }
         
         // Deduplication
         if (seenEntities.Contains(entity.EntityId))
