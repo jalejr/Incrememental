@@ -12,13 +12,19 @@ public partial class SpatialGridManagerNew : GridBaseNew
 {
     [Export] public Vector2 GridWorldSize { get; set; } = new(512.0f, 512.0f);
 
-    // 2D array of lists of entities per cell
-    private List<SpatialGridEntity>[][] _unitGrid;
-    private List<SpatialGridEntity>[][] _buildingGrid;
+    // Unified grid - all entities in one place
+    private List<SpatialGridEntity>[][] _entityGrid;
     private Vector2I _gridSize = Vector2I.Zero;
+    
+    // Type indexing for fast filtering
+    private Dictionary<EntityType, HashSet<SpatialGridEntity>> _entitiesByType = new();
     
     private Dictionary<int, SpatialGridEntity> _entityIdToEntity = new();
     private int _nextEntityId = 0;
+    
+    // Object pooling for queries (zero allocations!)
+    private readonly Stack<SpatialQuery> _queryPool = new();
+    private const int MaxPooledQueries = 20;  // Prevents unbounded growth
 
     public override void _Ready()
     {
@@ -42,6 +48,11 @@ public partial class SpatialGridManagerNew : GridBaseNew
         gridEntity.OccupiedCells = GetPotentiallyOccupiedCells(gridEntity.GridCell, entity.Radius);
 
         AddToGrid(gridEntity);
+        
+        // Add to type index for fast filtering
+        if (!_entitiesByType.ContainsKey(entity.Type))
+            _entitiesByType[entity.Type] = new HashSet<SpatialGridEntity>();
+        _entitiesByType[entity.Type].Add(gridEntity);
 
         _entityIdToEntity[gridEntity.EntityId] = gridEntity;
 
@@ -57,6 +68,15 @@ public partial class SpatialGridManagerNew : GridBaseNew
             return;
 
         RemoveFromGrid(entity);
+        
+        // Remove from type index
+        if (_entitiesByType.TryGetValue(entity.Entity.Type, out var typeSet))
+        {
+            typeSet.Remove(entity);
+            if (typeSet.Count == 0)
+                _entitiesByType.Remove(entity.Entity.Type);
+        }
+        
         _entityIdToEntity.Remove(entity.EntityId);
     }
 
@@ -113,17 +133,24 @@ public partial class SpatialGridManagerNew : GridBaseNew
         var centerCell = WorldToGrid(position);
         var cellDistanceToCheck = Mathf.CeilToInt(radius / GridCellSize) + 1;
         var cellsToCheck = GetCellsInRadius(centerCell, cellDistanceToCheck);
-        var targetGrid = FindGridToTarget(entityType);
+        
+        // Get type filter set for fast checking
+        if (!_entitiesByType.TryGetValue(entityType, out var typeSet))
+            return nearbyEntities;  // No entities of this type exist
 
         foreach (var cellToCheck in cellsToCheck)
         {
             if (!IsCellInBounds(cellToCheck))
                 continue;
 
-            var cellEntities = targetGrid[cellToCheck.X][cellToCheck.Y];
+            var cellEntities = _entityGrid[cellToCheck.X][cellToCheck.Y];
 
             foreach (var entity in cellEntities)
             {
+                // Fast type check using HashSet
+                if (!typeSet.Contains(entity))
+                    continue;
+                
                 if (seenEntities.Contains(entity.EntityId))
                     continue;
 
@@ -188,7 +215,10 @@ public partial class SpatialGridManagerNew : GridBaseNew
         var centerCell = WorldToGrid(position);
         var maxCellRadius = Mathf.CeilToInt(radius / GridCellSize) + 1;
         var seenEntities = new HashSet<int>();
-        var targetGrid = FindGridToTarget(entityType);
+        
+        // Get type filter set for fast checking
+        if (!_entitiesByType.TryGetValue(entityType, out var typeSet))
+            return default;  // No entities of this type exist
 
         // Search in expanding rings for early exit
         for (int ring = 0; ring <= maxCellRadius; ring++)
@@ -200,10 +230,14 @@ public partial class SpatialGridManagerNew : GridBaseNew
                 if (!IsCellInBounds(cell))
                     continue;
 
-                var cellEntities = targetGrid[cell.X][cell.Y];
+                var cellEntities = _entityGrid[cell.X][cell.Y];
 
                 foreach (var entity in cellEntities)
                 {
+                    // Fast type check using HashSet
+                    if (!typeSet.Contains(entity))
+                        continue;
+                    
                     if (seenEntities.Contains(entity.EntityId))
                         continue;
 
@@ -249,7 +283,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
         {
             for (int y = 0; y < _gridSize.Y; y++)
             {
-                if (_unitGrid[x][y].Count > 0 || _buildingGrid[x][y].Count > 0)
+                if (_entityGrid[x][y].Count > 0)
                     occupiedCells++;
             }
         }
@@ -284,18 +318,15 @@ public partial class SpatialGridManagerNew : GridBaseNew
         _gridSize.X = Mathf.CeilToInt(GridWorldSize.X / GridCellSize);
         _gridSize.Y = Mathf.CeilToInt(GridWorldSize.Y / GridCellSize);
 
-        _unitGrid = new List<SpatialGridEntity>[_gridSize.X][];
-        _buildingGrid = new List<SpatialGridEntity>[_gridSize.X][];
+        _entityGrid = new List<SpatialGridEntity>[_gridSize.X][];
 
         for (int x = 0; x < _gridSize.X; x++)
         {
-            _unitGrid[x] = new List<SpatialGridEntity>[_gridSize.Y];
-            _buildingGrid[x] = new List<SpatialGridEntity>[_gridSize.Y];
+            _entityGrid[x] = new List<SpatialGridEntity>[_gridSize.Y];
 
             for (int y = 0; y < _gridSize.Y; y++)
             {
-                _unitGrid[x][y] = new List<SpatialGridEntity>();
-                _buildingGrid[x][y] = new List<SpatialGridEntity>();
+                _entityGrid[x][y] = new List<SpatialGridEntity>();
             }
         }
     }
@@ -308,45 +339,201 @@ public partial class SpatialGridManagerNew : GridBaseNew
 
     private void AddToGrid(SpatialGridEntity entity)
     {
-        var targetGrid = FindGridToTarget(entity.Entity.Type);
-
         foreach (var cell in entity.OccupiedCells)
         {
             if (!IsCellInBounds(cell))
                 continue;
 
-            targetGrid[cell.X][cell.Y].Add(entity);
+            _entityGrid[cell.X][cell.Y].Add(entity);
         }
     }
 
     private void RemoveFromGrid(SpatialGridEntity entity)
     {
-        var targetGrid = FindGridToTarget(entity.Entity.Type);
-
         foreach (var cell in entity.OccupiedCells)
         {
             if (!IsCellInBounds(cell))
                 continue;
 
-            targetGrid[cell.X][cell.Y].Remove(entity);
+            _entityGrid[cell.X][cell.Y].Remove(entity);
         }
     }
 
-    private List<SpatialGridEntity>[][] FindGridToTarget(EntityType entityType)
-    {
-        return entityType switch
-        {
-            EntityType.Unit => _unitGrid,
-            EntityType.Building => _buildingGrid,
-            _ => throw new System.ArgumentException($"Unknown entity type: {entityType}")
-        };
-    }
 
     private Variant GetEntityObject(SpatialGridEntity entity)
     {
         return entity.EntityObject;
     }
-
+    
+    #region Query Builder API
+    
+    /// <summary>
+    /// Creates a new fluent query builder (from object pool for zero allocations).
+    /// Example: grid.Query().At(pos).Within(10f).OfType(EntityType.Unit).Execute()
+    /// </summary>
+    public SpatialQuery Query()
+    {
+        // Try to get from pool
+        SpatialQuery query;
+        
+        if (_queryPool.Count > 0)
+        {
+            query = _queryPool.Pop();  // Reuse existing object! ✅
+        }
+        else
+        {
+            query = new SpatialQuery();  // Create new if pool is empty
+        }
+        
+        // Reset for reuse
+        query.Reset(this);
+        
+        return query;
+    }
+    
+    /// <summary>
+    /// Returns a query to the pool for reuse (called automatically by Execute()).
+    /// </summary>
+    internal void ReturnQueryToPool(SpatialQuery query)
+    {
+        if (_queryPool.Count < MaxPooledQueries)
+        {
+            _queryPool.Push(query);  // Store for reuse
+        }
+        // If pool is full, let query be garbage collected (prevents unbounded growth)
+    }
+    
+    /// <summary>
+    /// Internal method to execute a query built by SpatialQuery.
+    /// Uses ring-based search for optimal performance (early exit on limits).
+    /// </summary>
+    internal List<Variant> ExecuteQuery(SpatialQuery query)
+    {
+        var results = new List<Variant>();
+        var seenEntities = new HashSet<int>();
+        var centerCell = WorldToGrid(query.Position);
+        var maxCellRadius = Mathf.CeilToInt(query.Radius / GridCellSize) + 1;
+        
+        // Pre-build type filter set if types are specified
+        HashSet<SpatialGridEntity> typeFilterSet = null;
+        if (query.TypeFilter != null && query.TypeFilter.Count > 0)
+        {
+            typeFilterSet = new HashSet<SpatialGridEntity>();
+            foreach (var type in query.TypeFilter)
+            {
+                if (_entitiesByType.TryGetValue(type, out var typeSet))
+                {
+                    typeFilterSet.UnionWith(typeSet);
+                }
+            }
+            
+            // Early exit if no entities of requested types exist
+            if (typeFilterSet.Count == 0)
+                return results;
+        }
+        
+        // Ring-based search for early exit and natural distance ordering
+        for (int ring = 0; ring <= maxCellRadius; ring++)
+        {
+            var cellsInRing = GetCellsInRing(centerCell, ring);
+            
+            foreach (var cell in cellsInRing)
+            {
+                if (!IsCellInBounds(cell))
+                    continue;
+                
+                var cellEntities = _entityGrid[cell.X][cell.Y];
+                
+                foreach (var entity in cellEntities)
+                {
+                    // Apply all filters
+                    if (!PassesFilters(entity, query, typeFilterSet, seenEntities))
+                        continue;
+                    
+                    // Entity passed all filters!
+                    results.Add(GetEntityObject(entity));
+                    
+                    // Early exit if limit reached (works for FindNearest too!)
+                    if (query.ResultLimit.HasValue && results.Count >= query.ResultLimit.Value)
+                        return results;
+                }
+            }
+        }
+        
+        return results;
+    }
+    
+    /// <summary>
+    /// Checks if an entity passes all query filters.
+    /// </summary>
+    private bool PassesFilters(
+        SpatialGridEntity entity,
+        SpatialQuery query,
+        HashSet<SpatialGridEntity> typeFilterSet,
+        HashSet<int> seenEntities)
+    {
+        // Type filter (if specified)
+        if (typeFilterSet != null && !typeFilterSet.Contains(entity))
+            return false;
+        
+        // Deduplication
+        if (seenEntities.Contains(entity.EntityId))
+            return false;
+        
+        seenEntities.Add(entity.EntityId);
+        
+        var e = entity.Entity;
+        
+        // Alive filter (if specified)
+        if (query.MustBeAlive.HasValue && query.MustBeAlive.Value && !e.IsAlive)
+            return false;
+        
+        // Targetable filter (if specified)
+        if (query.MustBeTargetable.HasValue && query.MustBeTargetable.Value && !e.IsTargetable)
+            return false;
+        
+        // Attackable filter (if specified)
+        if (query.MustBeAttackable.HasValue && query.MustBeAttackable.Value && !e.IsAttackable)
+            return false;
+        
+        // Team filter (if specified)
+        if (query.TeamFilter.HasValue)
+        {
+            var teamId = query.TeamFilter.Value;
+            
+            if (query.IsTargetingAllies.HasValue)
+            {
+                // Allies/Enemies filter
+                var shouldSkipEntity = (teamId, query.IsTargetingAllies.Value, e.TeamId) switch
+                {
+                    (Team.None, _, _) => false,
+                    (var myTeam, true, var entityTeam) => entityTeam != myTeam,
+                    (var myTeam, false, var entityTeam) => entityTeam == myTeam,
+                };
+                
+                if (shouldSkipEntity)
+                    return false;
+            }
+            else
+            {
+                // Exact team match
+                if (e.TeamId != teamId)
+                    return false;
+            }
+        }
+        
+        // Distance check
+        var distanceSquared = query.Position.DistanceSquaredTo(e.Position);
+        var effectiveRadius = query.Radius + e.Radius;
+        
+        if (distanceSquared > effectiveRadius * effectiveRadius)
+            return false;
+        
+        return true;  // Passed all filters!
+    }
+    
+    #endregion
+    
     private Vector2I[] GetPotentiallyOccupiedCells(Vector2I centerCell, float radius)
     {
         if (radius < GridCellSize * 0.5f)
