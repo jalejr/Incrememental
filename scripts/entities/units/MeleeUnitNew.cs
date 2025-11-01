@@ -84,7 +84,17 @@ public partial class MeleeUnitNew : UnitNew
         }
 
         // Find new target in attack range
-        var nearbyEnemyVariant = context.FindNearestEnemy(this, attackRange);
+        var nearbyEnemies = context.SpatialGrid.Query()
+            .At(currentPos)
+            .Within(attackRange)
+            .OfTypes(EntityType.Unit, EntityType.Building)
+            .ThatAreAlive()
+            .ThatAreTargetable()
+            .EnemiesOf(TeamId)
+            .Limit(1)
+            .Execute();
+        
+        var nearbyEnemyVariant = nearbyEnemies.Count > 0 ? nearbyEnemies[0] : default;
 
         if (nearbyEnemyVariant.Obj != null)
         {
@@ -107,7 +117,17 @@ public partial class MeleeUnitNew : UnitNew
         targetUnit = TargetEntity.Obj != null ? TargetEntity.As<UnitNew>() : null;
         if (targetUnit == null || !targetUnit.IsAlive || targetUnit.IsDying)
         {
-            TargetEntity = context.FindNearestEnemy(this, 25);
+            var distantEnemies = context.SpatialGrid.Query()
+                .At(currentPos)
+                .Within(25)
+                .OfTypes(EntityType.Unit, EntityType.Building)
+                .ThatAreAlive()
+                .ThatAreTargetable()
+                .EnemiesOf(TeamId)
+                .Limit(1)
+                .Execute();
+            
+            TargetEntity = distantEnemies.Count > 0 ? distantEnemies[0] : default;
             if (TargetEntity.Obj != null)
             {
                 PathAge = 999.0f; // Force immediate path recalc

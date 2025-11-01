@@ -69,6 +69,71 @@ public partial class GridBaseNew : Node
         
         return cells;
     }
+    
+    /// <summary>
+    /// Gets all cells in a ring at a specific distance from center.
+    /// Ring 0 returns center cell only. Ring 1 returns 8 surrounding cells, etc.
+    /// Used for ring-based spatial searches with early exit optimization.
+    /// </summary>
+    public Vector2I[] GetCellsInRing(Vector2I center, int ringRadius)
+    {
+        if (ringRadius == 0)
+        {
+            return new Vector2I[] { center };
+        }
+
+        // Calculate size: perimeter of square ring
+        var ringSize = (ringRadius * 2 + 1) * 4 - 4; // 4 sides minus 4 corners counted twice
+        var cells = new Vector2I[ringSize];
+        var index = 0;
+
+        // Top and bottom edges
+        for (int x = -ringRadius; x <= ringRadius; x++)
+        {
+            cells[index++] = new Vector2I(center.X + x, center.Y - ringRadius);
+            cells[index++] = new Vector2I(center.X + x, center.Y + ringRadius);
+        }
+
+        // Left and right edges (excluding corners already added)
+        for (int z = -ringRadius + 1; z < ringRadius; z++)
+        {
+            cells[index++] = new Vector2I(center.X - ringRadius, center.Y + z);
+            cells[index++] = new Vector2I(center.X + ringRadius, center.Y + z);
+        }
+
+        return cells;
+    }
+    
+    /// <summary>
+    /// Gets all cells potentially occupied by an entity with given radius.
+    /// Entities larger than half a cell size occupy multiple cells.
+    /// </summary>
+    public Vector2I[] GetPotentiallyOccupiedCells(Vector2I centerCell, float entityRadius)
+    {
+        if (entityRadius < GridCellSize * 0.5f)
+        {
+            return new Vector2I[] { centerCell };
+        }
+
+        var cellRadius = Mathf.CeilToInt(entityRadius / GridCellSize);
+        var cellDiameter = cellRadius * 2 + 1;
+        var totalCells = cellDiameter * cellDiameter;
+        var occupiedCells = new Vector2I[totalCells];
+        var index = 0;
+
+        for (int xOffset = -cellRadius; xOffset <= cellRadius; xOffset++)
+        {
+            for (int zOffset = -cellRadius; zOffset <= cellRadius; zOffset++)
+            {
+                occupiedCells[index++] = new Vector2I(
+                    centerCell.X + xOffset,
+                    centerCell.Y + zOffset
+                );
+            }
+        }
+
+        return occupiedCells;
+    }
 }
 
 /// <summary>

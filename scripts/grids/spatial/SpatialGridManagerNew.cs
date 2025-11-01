@@ -25,10 +25,19 @@ public partial class SpatialGridManagerNew : GridBaseNew
     // Object pooling for queries (zero allocations!)
     private readonly Stack<SpatialQuery> _queryPool = new();
     private const int MaxPooledQueries = 20;  // Prevents unbounded growth
+    
+    // Query executor (separated for better organization)
+    private SpatialQueryExecutor _queryExecutor;
+    
+    // Internal accessors for query executor
+    internal Dictionary<EntityType, HashSet<SpatialGridEntity>> EntitiesByType => _entitiesByType;
+    internal List<SpatialGridEntity> GetCellEntities(Vector2I cell) => _entityGrid[cell.X][cell.Y];
+    internal Variant GetEntityObject(SpatialGridEntity entity) => entity.EntityObject;
 
     public override void _Ready()
     {
         InitializeGrids();
+        _queryExecutor = new SpatialQueryExecutor(this);
         GD.Print($"SpatialGridManagerNew initialized - Grid size: {_gridSize.X}x{_gridSize.Y}");
     }
 
@@ -103,115 +112,6 @@ public partial class SpatialGridManagerNew : GridBaseNew
         }
     }
 
-    /// <summary>
-    /// Gets all nearby entities (units and buildings) within radius.
-    /// Uses Query Builder internally.
-    /// </summary>
-    public List<Variant> GetNearbyEntities(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
-    {
-        var query = Query()
-            .At(position)
-            .Within(radius)
-            .OfTypes(EntityType.Unit, EntityType.Building)
-            .ThatAreAlive()
-            .ThatAreTargetable();
-        
-        if (teamId != Team.None)
-        {
-            if (isTargetingAllies)
-                query.AlliesOf(teamId);
-            else
-                query.EnemiesOf(teamId);
-        }
-        
-        return query.Execute();
-    }
-
-    /// <summary>
-    /// Gets nearby entities of a specific type within radius.
-    /// Uses Query Builder internally.
-    /// </summary>
-    public List<Variant> GetNearbyEntitiesByType(
-        EntityType entityType,
-        Vector3 position,
-        float radius,
-        Team teamId,
-        bool isTargetingAllies = false)
-    {
-        var query = Query()
-            .At(position)
-            .Within(radius)
-            .OfType(entityType)
-            .ThatAreAlive()
-            .ThatAreTargetable();
-        
-        if (teamId != Team.None)
-        {
-            if (isTargetingAllies)
-                query.AlliesOf(teamId);
-            else
-                query.EnemiesOf(teamId);
-        }
-        
-        return query.Execute();
-    }
-
-    /// <summary>
-    /// Gets the nearest entity (unit or building) within radius.
-    /// Uses Query Builder internally.
-    /// </summary>
-    public Variant GetNearestEntity(Vector3 position, float radius, Team teamId, bool isTargetingAllies)
-    {
-        var query = Query()
-            .At(position)
-            .Within(radius)
-            .OfTypes(EntityType.Unit, EntityType.Building)
-            .ThatAreAlive()
-            .ThatAreTargetable()
-            .Limit(1);
-        
-        if (teamId != Team.None)
-        {
-            if (isTargetingAllies)
-                query.AlliesOf(teamId);
-            else
-                query.EnemiesOf(teamId);
-        }
-        
-        var results = query.Execute();
-        return results.Count > 0 ? results[0] : default;
-    }
-
-    /// <summary>
-    /// Gets the nearest entity of a specific type within radius.
-    /// Uses Query Builder internally.
-    /// </summary>
-    public Variant GetNearestEntityByType(
-        EntityType entityType,
-        Vector3 position,
-        float radius,
-        Team teamId,
-        bool isTargetingAllies = false)
-    {
-        var query = Query()
-            .At(position)
-            .Within(radius)
-            .OfType(entityType)
-            .ThatAreAlive()
-            .ThatAreTargetable()
-            .Limit(1);
-        
-        if (teamId != Team.None)
-        {
-            if (isTargetingAllies)
-                query.AlliesOf(teamId);
-            else
-                query.EnemiesOf(teamId);
-        }
-        
-        var results = query.Execute();
-        return results.Count > 0 ? results[0] : default;
-    }
 
     /// <summary>
     /// Gets debug statistics about the grid.
@@ -271,7 +171,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
         }
     }
 
-    private bool IsCellInBounds(Vector2I gridPos)
+    internal bool IsCellInBounds(Vector2I gridPos)
     {
         return gridPos.X >= 0 && gridPos.X < _gridSize.X &&
                gridPos.Y >= 0 && gridPos.Y < _gridSize.Y;
@@ -300,11 +200,6 @@ public partial class SpatialGridManagerNew : GridBaseNew
     }
 
 
-    private Variant GetEntityObject(SpatialGridEntity entity)
-    {
-        return entity.EntityObject;
-    }
-    
     #region Query Builder API
     
     /// <summary>
@@ -346,200 +241,13 @@ public partial class SpatialGridManagerNew : GridBaseNew
     
     /// <summary>
     /// Internal method to execute a query built by SpatialQuery.
-    /// Uses ring-based search for optimal performance (early exit on limits).
+    /// Delegates to the query executor.
     /// </summary>
     internal List<Variant> ExecuteQuery(SpatialQuery query)
     {
-        var results = new List<Variant>();
-        var seenEntities = new HashSet<int>();
-        var centerCell = WorldToGrid(query.Position);
-        var maxCellRadius = Mathf.CeilToInt(query.Radius / GridCellSize) + 1;
-        
-        // Build list of type sets to check (no UnionWith - just direct references!)
-        List<HashSet<SpatialGridEntity>> typeSets = null;
-        if (query.TypeFilter != null && query.TypeFilter.Count > 0)
-        {
-            typeSets = new List<HashSet<SpatialGridEntity>>(query.TypeFilter.Count);
-            foreach (var type in query.TypeFilter)
-            {
-                if (_entitiesByType.TryGetValue(type, out var typeSet))
-                {
-                    typeSets.Add(typeSet);  // Just store reference, no copying!
-                }
-            }
-            
-            // Early exit if no entities of requested types exist
-            if (typeSets.Count == 0)
-                return results;
-        }
-        
-        // Ring-based search for early exit and natural distance ordering
-        for (int ring = 0; ring <= maxCellRadius; ring++)
-        {
-            var cellsInRing = GetCellsInRing(centerCell, ring);
-            
-            foreach (var cell in cellsInRing)
-            {
-                if (!IsCellInBounds(cell))
-                    continue;
-                
-                var cellEntities = _entityGrid[cell.X][cell.Y];
-                
-                foreach (var entity in cellEntities)
-                {
-                    // Apply all filters
-                    if (!PassesFilters(entity, query, typeSets, seenEntities))
-                        continue;
-                    
-                    // Entity passed all filters!
-                    results.Add(GetEntityObject(entity));
-                    
-                    // Early exit if limit reached (works for FindNearest too!)
-                    if (query.ResultLimit.HasValue && results.Count >= query.ResultLimit.Value)
-                        return results;
-                }
-            }
-        }
-        
-        return results;
-    }
-    
-    /// <summary>
-    /// Checks if an entity passes all query filters.
-    /// </summary>
-    private bool PassesFilters(
-        SpatialGridEntity entity,
-        SpatialQuery query,
-        List<HashSet<SpatialGridEntity>> typeSets,
-        HashSet<int> seenEntities)
-    {
-        // Type filter: Check if entity is in ANY of the type sets
-        if (typeSets != null)
-        {
-            bool matchedType = false;
-            for (int i = 0; i < typeSets.Count; i++)
-            {
-                if (typeSets[i].Contains(entity))
-                {
-                    matchedType = true;
-                    break;
-                }
-            }
-            if (!matchedType)
-                return false;
-        }
-        
-        // Deduplication
-        if (seenEntities.Contains(entity.EntityId))
-            return false;
-        
-        seenEntities.Add(entity.EntityId);
-        
-        var e = entity.Entity;
-        
-        // Alive filter (if specified)
-        if (query.MustBeAlive.HasValue && query.MustBeAlive.Value && !e.IsAlive)
-            return false;
-        
-        // Targetable filter (if specified)
-        if (query.MustBeTargetable.HasValue && query.MustBeTargetable.Value && !e.IsTargetable)
-            return false;
-        
-        // Attackable filter (if specified)
-        if (query.MustBeAttackable.HasValue && query.MustBeAttackable.Value && !e.IsAttackable)
-            return false;
-        
-        // Team filter (if specified)
-        if (query.TeamFilter.HasValue)
-        {
-            var teamId = query.TeamFilter.Value;
-            
-            if (query.IsTargetingAllies.HasValue)
-            {
-                // Allies/Enemies filter
-                var shouldSkipEntity = (teamId, query.IsTargetingAllies.Value, e.TeamId) switch
-                {
-                    (Team.None, _, _) => false,
-                    (var myTeam, true, var entityTeam) => entityTeam != myTeam,
-                    (var myTeam, false, var entityTeam) => entityTeam == myTeam,
-                };
-                
-                if (shouldSkipEntity)
-                    return false;
-            }
-            else
-            {
-                // Exact team match
-                if (e.TeamId != teamId)
-                    return false;
-            }
-        }
-        
-        // Distance check
-        var distanceSquared = query.Position.DistanceSquaredTo(e.Position);
-        var effectiveRadius = query.Radius + e.Radius;
-        
-        if (distanceSquared > effectiveRadius * effectiveRadius)
-            return false;
-        
-        return true;  // Passed all filters!
+        return _queryExecutor.Execute(query);
     }
     
     #endregion
     
-    private Vector2I[] GetPotentiallyOccupiedCells(Vector2I centerCell, float radius)
-    {
-        if (radius < GridCellSize * 0.5f)
-        {
-            return new Vector2I[] { centerCell };
-        }
-
-        var cellRadius = Mathf.CeilToInt(radius / GridCellSize);
-        var cellDiameter = cellRadius * 2 + 1;
-        var totalCells = cellDiameter * cellDiameter;
-        var occupiedCells = new Vector2I[totalCells];
-        var index = 0;
-
-        for (int xOffset = -cellRadius; xOffset <= cellRadius; xOffset++)
-        {
-            for (int zOffset = -cellRadius; zOffset <= cellRadius; zOffset++)
-            {
-                occupiedCells[index++] = new Vector2I(
-                    centerCell.X + xOffset,
-                    centerCell.Y + zOffset
-                );
-            }
-        }
-
-        return occupiedCells;
-    }
-
-    private Vector2I[] GetCellsInRing(Vector2I center, int ringRadius)
-    {
-        if (ringRadius == 0)
-        {
-            return new Vector2I[] { center };
-        }
-
-        // Calculate size: perimeter of square ring
-        var ringSize = (ringRadius * 2 + 1) * 4 - 4; // 4 sides minus 4 corners counted twice
-        var cells = new Vector2I[ringSize];
-        var index = 0;
-
-        // Top and bottom edges
-        for (int x = -ringRadius; x <= ringRadius; x++)
-        {
-            cells[index++] = new Vector2I(center.X + x, center.Y - ringRadius);
-            cells[index++] = new Vector2I(center.X + x, center.Y + ringRadius);
-        }
-
-        // Left and right edges (excluding corners already added)
-        for (int z = -ringRadius + 1; z < ringRadius; z++)
-        {
-            cells[index++] = new Vector2I(center.X - ringRadius, center.Y + z);
-            cells[index++] = new Vector2I(center.X + ringRadius, center.Y + z);
-        }
-
-        return cells;
-    }
 }

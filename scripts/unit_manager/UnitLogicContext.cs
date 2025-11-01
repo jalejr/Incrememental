@@ -1,6 +1,7 @@
 using Godot;
 using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
+using Incrememental.scripts.grids.spatial;
 using System.Collections.Generic;
 
 namespace Incrememental.scripts.unit_manager;
@@ -12,6 +13,12 @@ namespace Incrememental.scripts.unit_manager;
 public class UnitLogicContext
 {
     private readonly UnitManagerNew _manager;
+    
+    /// <summary>
+    /// Direct access to spatial grid for Query Builder pattern.
+    /// Example: context.SpatialGrid.Query().At(pos).Within(range).OfType(EntityType.Unit).EnemiesOf(team).Execute()
+    /// </summary>
+    public SpatialGridManagerNew SpatialGrid { get; }
     
     /// <summary>
     /// Queue for accumulated damage to be applied at end of frame.
@@ -27,6 +34,7 @@ public class UnitLogicContext
     public UnitLogicContext(UnitManagerNew manager)
     {
         _manager = manager;
+        SpatialGrid = manager.GridManager;
         DamageQueue = new Dictionary<UnitNew, int>();
         DestroyQueue = new List<UnitNew>();
     }
@@ -39,37 +47,6 @@ public class UnitLogicContext
         _manager.SetUnitPath(unit, target);
     }
 
-    /// <summary>
-    /// Finds the nearest enemy within search range.
-    /// </summary>
-    public Variant FindNearestEnemy(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
-    {
-        return _manager.FindNearestEnemy(unit, searchRange, entityType);
-    }
-
-    /// <summary>
-    /// Finds the nearest ally within search range.
-    /// </summary>
-    public Variant FindNearestAlly(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
-    {
-        return _manager.FindNearestAlly(unit, searchRange, entityType);
-    }
-
-    /// <summary>
-    /// Finds all nearby enemies within search range.
-    /// </summary>
-    public List<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
-    {
-        return _manager.FindNearbyEnemies(unit, searchRange, entityType);
-    }
-
-    /// <summary>
-    /// Finds all nearby allies within search range.
-    /// </summary>
-    public List<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType entityType = EntityType.Undefined)
-    {
-        return _manager.FindNearbyAllies(unit, searchRange, entityType);
-    }
 
     /// <summary>
     /// Queues damage to be applied to a target unit.

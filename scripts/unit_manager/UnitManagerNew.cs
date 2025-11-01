@@ -248,65 +248,6 @@ public partial class UnitManagerNew : Node
         unit.PathAge = 0.0f;
     }
 
-    /// <summary>
-    /// Finds the nearest ally to a unit.
-    /// </summary>
-    public Variant FindNearestAlly(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
-    {
-        if (findEntityType == EntityType.Undefined)
-        {
-            return GridManager.GetNearestEntity(unit.Position, searchRange, unit.TeamId, true);
-        }
-        else
-        {
-            return GridManager.GetNearestEntityByType(findEntityType, unit.Position, searchRange, unit.TeamId, true);
-        }
-    }
-
-    /// <summary>
-    /// Finds the nearest enemy to a unit.
-    /// </summary>
-    public Variant FindNearestEnemy(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
-    {
-        if (findEntityType == EntityType.Undefined)
-        {
-            return GridManager.GetNearestEntity(unit.Position, searchRange, unit.TeamId, false);
-        }
-        else
-        {
-            return GridManager.GetNearestEntityByType(findEntityType, unit.Position, searchRange, unit.TeamId, false);
-        }
-    }
-
-    /// <summary>
-    /// Finds nearby allies to a unit.
-    /// </summary>
-    public List<Variant> FindNearbyAllies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
-    {
-        if (findEntityType == EntityType.Undefined)
-        {
-            return GridManager.GetNearbyEntities(unit.Position, searchRange, unit.TeamId, true);
-        }
-        else
-        {
-            return GridManager.GetNearbyEntitiesByType(findEntityType, unit.Position, searchRange, unit.TeamId, true);
-        }
-    }
-
-    /// <summary>
-    /// Finds nearby enemies to a unit.
-    /// </summary>
-    public List<Variant> FindNearbyEnemies(UnitNew unit, float searchRange, EntityType findEntityType = EntityType.Undefined)
-    {
-        if (findEntityType == EntityType.Undefined)
-        {
-            return GridManager.GetNearbyEntities(unit.Position, searchRange, unit.TeamId, false);
-        }
-        else
-        {
-            return GridManager.GetNearbyEntitiesByType(findEntityType, unit.Position, searchRange, unit.TeamId, false);
-        }
-    }
 
     private void SetupUnitTypes()
     {
