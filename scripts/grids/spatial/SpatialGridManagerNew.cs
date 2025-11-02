@@ -27,7 +27,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     private SpatialQueryExecutor _queryExecutor;
     
     // Internal accessors for query executor
-    internal List<SpatialGridEntity> GetCellEntities(Vector2I cell) => _entityGrid[cell.X][cell.Y];
+    internal IReadOnlyList<SpatialGridEntity> GetCellEntities(Vector2I cell) => _entityGrid[cell.X][cell.Y];
 
     public override void _Ready()
     {
@@ -70,6 +70,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
 
     /// <summary>
     /// Updates an entity's position in the grid.
+    /// Note: This only updates grid tracking. The entity's position should already be updated by the caller.
     /// </summary>
     public void UpdateEntityPosition(SpatialGridEntity entity, Vector3 newPosition)
     {
@@ -80,15 +81,11 @@ public partial class SpatialGridManagerNew : GridBaseNew
             RemoveFromGrid(entity);
 
             entity.GridCell = newCell;
-            entity.Entity.Position = newPosition;
             entity.OccupiedCells = GetPotentiallyOccupiedCells(entity.GridCell, entity.Entity.Radius);
 
             AddToGrid(entity);
         }
-        else
-        {
-            entity.Entity.Position = newPosition;
-        }
+        // If same cell, no grid update needed (position changes within cell are fine)
     }
 
 

@@ -5,8 +5,9 @@ namespace Incrememental.scripts.grids.spatial;
 
 /// <summary>
 /// Represents an entity tracked in the spatial grid.
+/// Pure C# data structure - not added to scene tree.
 /// </summary>
-public partial class SpatialGridEntity : RefCounted
+public class SpatialGridEntity
 {
     public int EntityId { get; set; }
     public IEntity Entity { get; set; }
