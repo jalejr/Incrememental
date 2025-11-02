@@ -4,7 +4,7 @@ namespace Incrememental.scripts.entities;
 
 /// <summary>
 /// Core interface for all game entities (units, buildings, etc.).
-/// Defines the common contract for spatial queries, combat, and game systems.
+/// Defines the common contract for spatial queries and game systems.
 /// </summary>
 public interface IEntity
 {
@@ -18,12 +18,18 @@ public interface IEntity
     
     // Targeting
     bool IsTargetable { get; set; }
-    bool IsAttackable { get; set; }
     
     // Lifecycle
     bool IsAlive { get; set; }
-    
-    // Combat
+}
+
+/// <summary>
+/// Interface for entities that can participate in combat.
+/// </summary>
+public interface ICombatEntity : IEntity
+{
+    bool IsAttackable { get; set; }
     float Health { get; set; }
     float MaxHealth { get; set; }
+    void TakeDamage(float damage, Vector3 position, object context);
 }

@@ -243,7 +243,7 @@ public class SpatialQuery
     /// Execute the query and return matching entities.
     /// Auto-returns query to pool after execution.
     /// </summary>
-    public List<Variant> Execute()
+    public List<IEntity> Execute()
     {
         // Validate required parameters
         if (!_hasPosition)

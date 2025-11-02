@@ -7,5 +7,7 @@ public enum EntityType
 {
     Undefined,
     Unit,
-    Building
+    Building,
+    Resource,
+    PowerUp
 }

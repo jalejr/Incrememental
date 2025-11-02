@@ -24,18 +24,25 @@ public struct EntityData
     /// </summary>
     public static EntityData FromEntity(IEntity entity)
     {
-        return new EntityData
+        var data = new EntityData
         {
             Position = entity.Position,
             Radius = entity.Radius,
             TeamId = entity.TeamId,
             Type = entity.Type,
             IsTargetable = entity.IsTargetable,
-            IsAttackable = entity.IsAttackable,
-            IsAlive = entity.IsAlive,
-            Health = entity.Health,
-            MaxHealth = entity.MaxHealth
+            IsAlive = entity.IsAlive
         };
+        
+        // Combat properties only exist on ICombatEntity
+        if (entity is ICombatEntity combatEntity)
+        {
+            data.IsAttackable = combatEntity.IsAttackable;
+            data.Health = combatEntity.Health;
+            data.MaxHealth = combatEntity.MaxHealth;
+        }
+        
+        return data;
     }
     
     /// <summary>

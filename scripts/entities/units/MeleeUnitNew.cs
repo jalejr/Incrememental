@@ -9,7 +9,7 @@ namespace Incrememental.scripts.entities.units;
 public partial class MeleeUnitNew : UnitNew
 {
     public BehaviorState BehaviorState { get; set; } = BehaviorState.Attacking;
-    public Variant TargetEntity { get; set; }
+    public IEntity TargetEntity { get; set; }
     public float AttackCooldown { get; set; } = 0.0f;
 
     public MeleeUnitNew()
@@ -65,18 +65,17 @@ public partial class MeleeUnitNew : UnitNew
         var currentPos = Position;
 
         // Check if current target is still valid and in range
-        var targetUnit = TargetEntity.Obj != null ? TargetEntity.As<UnitNew>() : null;
-        if (targetUnit != null && targetUnit.IsAlive && !targetUnit.IsDying)
+        if (TargetEntity != null && TargetEntity.IsAlive)
         {
-            var currentDistance = currentPos.DistanceTo(targetUnit.Position);
+            var currentDistance = currentPos.DistanceTo(TargetEntity.Position);
 
             if (currentDistance <= attackRange)
             {
                 NavPath = System.Array.Empty<Vector3>();
 
-                if (AttackCooldown <= 0)
+                if (AttackCooldown <= 0 && TargetEntity is ICombatEntity combatTarget)
                 {
-                    targetUnit.TakeDamage(attackDamage, currentPos, context);
+                    combatTarget.TakeDamage(attackDamage, currentPos, context);
                     AttackCooldown = attackCooldownSec;
                 }
                 return;
@@ -94,28 +93,23 @@ public partial class MeleeUnitNew : UnitNew
             .Limit(1)
             .Execute();
         
-        var nearbyEnemyVariant = nearbyEnemies.Count > 0 ? nearbyEnemies[0] : default;
+        var nearbyEnemy = nearbyEnemies.Count > 0 ? nearbyEnemies[0] : null;
 
-        if (nearbyEnemyVariant.Obj != null)
+        if (nearbyEnemy != null && nearbyEnemy.IsAlive)
         {
-            var nearbyEnemy = nearbyEnemyVariant.As<UnitNew>();
-            if (nearbyEnemy != null && nearbyEnemy.IsAlive && !nearbyEnemy.IsDying)
-            {
-                TargetEntity = nearbyEnemyVariant;
-                NavPath = System.Array.Empty<Vector3>();
+            TargetEntity = nearbyEnemy;
+            NavPath = System.Array.Empty<Vector3>();
 
-                if (AttackCooldown <= 0)
-                {
-                    nearbyEnemy.TakeDamage(attackDamage, currentPos, context);
-                    AttackCooldown = attackCooldownSec;
-                }
-                return;
+            if (AttackCooldown <= 0 && nearbyEnemy is ICombatEntity combatEnemy)
+            {
+                combatEnemy.TakeDamage(attackDamage, currentPos, context);
+                AttackCooldown = attackCooldownSec;
             }
+            return;
         }
 
         // No target in range, find distant target
-        targetUnit = TargetEntity.Obj != null ? TargetEntity.As<UnitNew>() : null;
-        if (targetUnit == null || !targetUnit.IsAlive || targetUnit.IsDying)
+        if (TargetEntity == null || !TargetEntity.IsAlive)
         {
             var distantEnemies = context.SpatialGrid.Query()
                 .At(currentPos)
@@ -127,23 +121,22 @@ public partial class MeleeUnitNew : UnitNew
                 .Limit(1)
                 .Execute();
             
-            TargetEntity = distantEnemies.Count > 0 ? distantEnemies[0] : default;
-            if (TargetEntity.Obj != null)
+            TargetEntity = distantEnemies.Count > 0 ? distantEnemies[0] : null;
+            if (TargetEntity != null)
             {
                 PathAge = 999.0f; // Force immediate path recalc
             }
         }
 
         // Still no target, clear path and wait
-        targetUnit = TargetEntity.Obj != null ? TargetEntity.As<UnitNew>() : null;
-        if (targetUnit == null || !targetUnit.IsAlive || targetUnit.IsDying)
+        if (TargetEntity == null || !TargetEntity.IsAlive)
         {
             NavPath = System.Array.Empty<Vector3>();
             return;
         }
 
         // Have target, update pathfinding
-        var targetPos = targetUnit.Position;
+        var targetPos = TargetEntity.Position;
 
         if (NeedsPathRecalc(targetPos))
         {
@@ -163,15 +156,11 @@ public partial class MeleeUnitNew : UnitNew
     /// <summary>
     /// Checks if a target entity is valid for attacking.
     /// </summary>
-    protected bool IsValidTarget(Variant targetEntity)
+    protected bool IsValidTarget(IEntity targetEntity)
     {
-        if (targetEntity.Obj == null)
+        if (targetEntity == null)
             return false;
 
-        var unit = targetEntity.As<UnitNew>();
-        if (unit == null)
-            return false;
-
-        return unit.IsAlive && !unit.IsDying;
+        return targetEntity.IsAlive;
     }
 }

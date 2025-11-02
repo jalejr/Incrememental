@@ -21,30 +21,12 @@ internal class SpatialQueryExecutor
     /// Executes a spatial query built by SpatialQuery.
     /// Uses ring-based search for optimal performance (early exit on limits).
     /// </summary>
-    public List<Variant> Execute(SpatialQuery query)
+    public List<IEntity> Execute(SpatialQuery query)
     {
-        var results = new List<Variant>();
+        var results = new List<IEntity>();
         var seenEntities = new HashSet<int>();
         var centerCell = _gridManager.WorldToGrid(query.Position);
         var maxCellRadius = Mathf.CeilToInt(query.Radius / _gridManager.GridCellSize) + 1;
-        
-        // Build list of type sets to check (no UnionWith - just direct references!)
-        List<HashSet<SpatialGridEntity>> typeSets = null;
-        if (query.TypeFilter != null && query.TypeFilter.Count > 0)
-        {
-            typeSets = new List<HashSet<SpatialGridEntity>>(query.TypeFilter.Count);
-            foreach (var type in query.TypeFilter)
-            {
-                if (_gridManager.EntitiesByType.TryGetValue(type, out var typeSet))
-                {
-                    typeSets.Add(typeSet);  // Just store reference, no copying!
-                }
-            }
-            
-            // Early exit if no entities of requested types exist
-            if (typeSets.Count == 0)
-                return results;
-        }
         
         // Ring-based search for early exit and natural distance ordering
         for (int ring = 0; ring <= maxCellRadius; ring++)
@@ -61,11 +43,11 @@ internal class SpatialQueryExecutor
                 foreach (var entity in cellEntities)
                 {
                     // Apply all filters
-                    if (!PassesFilters(entity, query, typeSets, seenEntities))
+                    if (!PassesFilters(entity, query, seenEntities))
                         continue;
                     
                     // Entity passed all filters!
-                    results.Add(_gridManager.GetEntityObject(entity));
+                    results.Add(entity.Entity);
                     
                     // Early exit if limit reached (works for FindNearest too!)
                     if (query.ResultLimit.HasValue && results.Count >= query.ResultLimit.Value)
@@ -83,22 +65,12 @@ internal class SpatialQueryExecutor
     private bool PassesFilters(
         SpatialGridEntity entity,
         SpatialQuery query,
-        List<HashSet<SpatialGridEntity>> typeSets,
         HashSet<int> seenEntities)
     {
-        // Type filter: Check if entity is in ANY of the type sets
-        if (typeSets != null)
+        // Type filter: Direct enum comparison (fast!)
+        if (query.TypeFilter != null && query.TypeFilter.Count > 0)
         {
-            bool matchedType = false;
-            for (int i = 0; i < typeSets.Count; i++)
-            {
-                if (typeSets[i].Contains(entity))
-                {
-                    matchedType = true;
-                    break;
-                }
-            }
-            if (!matchedType)
+            if (!query.TypeFilter.Contains(entity.Entity.Type))
                 return false;
         }
         
@@ -119,8 +91,11 @@ internal class SpatialQueryExecutor
             return false;
         
         // Attackable filter (if specified)
-        if (query.MustBeAttackable.HasValue && query.MustBeAttackable.Value && !e.IsAttackable)
-            return false;
+        if (query.MustBeAttackable.HasValue && query.MustBeAttackable.Value)
+        {
+            if (e is not ICombatEntity combatEntity || !combatEntity.IsAttackable)
+                return false;
+        }
         
         // Team filter (if specified)
         if (query.TeamFilter.HasValue)

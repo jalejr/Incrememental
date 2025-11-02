@@ -16,9 +16,6 @@ public partial class SpatialGridManagerNew : GridBaseNew
     private List<SpatialGridEntity>[][] _entityGrid;
     private Vector2I _gridSize = Vector2I.Zero;
     
-    // Type indexing for fast filtering
-    private Dictionary<EntityType, HashSet<SpatialGridEntity>> _entitiesByType = new();
-    
     private Dictionary<int, SpatialGridEntity> _entityIdToEntity = new();
     private int _nextEntityId = 0;
     
@@ -30,9 +27,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     private SpatialQueryExecutor _queryExecutor;
     
     // Internal accessors for query executor
-    internal Dictionary<EntityType, HashSet<SpatialGridEntity>> EntitiesByType => _entitiesByType;
     internal List<SpatialGridEntity> GetCellEntities(Vector2I cell) => _entityGrid[cell.X][cell.Y];
-    internal Variant GetEntityObject(SpatialGridEntity entity) => entity.EntityObject;
 
     public override void _Ready()
     {
@@ -44,12 +39,11 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// <summary>
     /// Registers an entity in the spatial grid.
     /// </summary>
-    public SpatialGridEntity RegisterEntity(IEntity entity, Variant entityObject)
+    public SpatialGridEntity RegisterEntity(IEntity entity)
     {
         var gridEntity = new SpatialGridEntity
         {
             Entity = entity,
-            EntityObject = entityObject,
             EntityId = _nextEntityId++
         };
 
@@ -57,12 +51,6 @@ public partial class SpatialGridManagerNew : GridBaseNew
         gridEntity.OccupiedCells = GetPotentiallyOccupiedCells(gridEntity.GridCell, entity.Radius);
 
         AddToGrid(gridEntity);
-        
-        // Add to type index for fast filtering
-        if (!_entitiesByType.ContainsKey(entity.Type))
-            _entitiesByType[entity.Type] = new HashSet<SpatialGridEntity>();
-        _entitiesByType[entity.Type].Add(gridEntity);
-
         _entityIdToEntity[gridEntity.EntityId] = gridEntity;
 
         return gridEntity;
@@ -77,15 +65,6 @@ public partial class SpatialGridManagerNew : GridBaseNew
             return;
 
         RemoveFromGrid(entity);
-        
-        // Remove from type index
-        if (_entitiesByType.TryGetValue(entity.Entity.Type, out var typeSet))
-        {
-            typeSet.Remove(entity);
-            if (typeSet.Count == 0)
-                _entitiesByType.Remove(entity.Entity.Type);
-        }
-        
         _entityIdToEntity.Remove(entity.EntityId);
     }
 
@@ -243,7 +222,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     /// Internal method to execute a query built by SpatialQuery.
     /// Delegates to the query executor.
     /// </summary>
-    internal List<Variant> ExecuteQuery(SpatialQuery query)
+    internal List<IEntity> ExecuteQuery(SpatialQuery query)
     {
         return _queryExecutor.Execute(query);
     }

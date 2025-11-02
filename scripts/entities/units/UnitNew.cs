@@ -9,7 +9,7 @@ namespace Incrememental.scripts.entities.units;
 /// <summary>
 /// Base class for all units in the game.
 /// </summary>
-public partial class UnitNew : RefCounted, IEntity
+public partial class UnitNew : RefCounted, ICombatEntity
 {
     // IEntity implementation - direct properties (no delegation!)
     public EntityType Type => EntityType.Unit;
@@ -92,11 +92,13 @@ public partial class UnitNew : RefCounted, IEntity
     /// <summary>
     /// Applies damage to the unit.
     /// </summary>
-    public virtual void TakeDamage(float damage, Vector3 sourcePos, UnitLogicContext context)
+    public virtual void TakeDamage(float damage, Vector3 sourcePos, object context)
     {
         // Add to damage queue
         var actualDamage = Mathf.Max(1, (int)(damage - Stats.Armor));
-        context.QueueDamage(this, actualDamage);
+        
+        if (context is UnitLogicContext logicContext)
+            logicContext.QueueDamage(this, actualDamage);
 
         // Emit damage number particle
         var customData = new Color(

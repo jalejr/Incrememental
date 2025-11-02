@@ -8,7 +8,7 @@ namespace Incrememental.scripts.entities.buildings;
 /// Base class for all buildings in the game.
 /// </summary>
 [GlobalClass]
-public partial class BuildingNew : Node3D, IEntity
+public partial class BuildingNew : Node3D, ICombatEntity
 {
     [Signal]
     public delegate void HealthChangedEventHandler(float newHealth, float maxHealth);

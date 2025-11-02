@@ -144,7 +144,7 @@ public partial class UnitManagerNew : Node
         unit.ManagerIndex = index;
 
         // Register with spatial grid using interface
-        var gridEntity = GridManager.RegisterEntity(unit, Variant.CreateFrom(unit));
+        var gridEntity = GridManager.RegisterEntity(unit);
         unit.GridEntity = gridEntity;
 
         // Update MultiMesh
