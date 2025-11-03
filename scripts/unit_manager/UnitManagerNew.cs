@@ -36,8 +36,8 @@ public partial class UnitManagerNew : Node
     private Mutex _destroyQueueMutex = new();
 
     // Subsystems
-    private UnitLifecycleManager _lifecycleManager;
-    private UnitLogicUpdater _logicUpdater;
+    private UnitLifecycleSystem _lifecycleSystem;
+    private UnitLogicSystem _logicSystem;
     private UnitMovementSystem _movementSystem;
     private UnitRenderSystem _renderSystem;
 
@@ -55,8 +55,8 @@ public partial class UnitManagerNew : Node
         
         // Initialize subsystems
         _renderSystem = new UnitRenderSystem(this, UnitTypeConfigs, _unitTypesRuntime, VisualLerpSpeed);
-        _lifecycleManager = new UnitLifecycleManager(_navMap, GridManager, _unitTypesRuntime, _allUnits, _freeIndices);
-        _logicUpdater = new UnitLogicUpdater(this);
+        _lifecycleSystem = new UnitLifecycleSystem(_navMap, GridManager, _unitTypesRuntime, _allUnits, _freeIndices);
+        _logicSystem = new UnitLogicSystem(this);
         _movementSystem = new UnitMovementSystem(_navMap, GridManager);
     }
 
@@ -67,7 +67,7 @@ public partial class UnitManagerNew : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        _logicUpdater.Update((float)delta, _allUnits, _lifecycleManager.AliveCount, MaxUnitsUpdatedPerFrame, 
+        _logicSystem.Update((float)delta, _allUnits, _lifecycleSystem.AliveCount, MaxUnitsUpdatedPerFrame, 
             _damageQueue, _destroyQueue, _damageQueueMutex, _destroyQueueMutex);
         ProcessDamageQueue();
         ProcessDestroyQueue();
@@ -87,7 +87,7 @@ public partial class UnitManagerNew : Node
         bool targetable = true,
         bool attackable = true)
     {
-        return _lifecycleManager.SpawnUnit(unitType, teamId, position, buffs, building, targetable, attackable);
+        return _lifecycleSystem.SpawnUnit(unitType, teamId, position, buffs, building, targetable, attackable);
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public partial class UnitManagerNew : Node
     /// </summary>
     public void DestroyUnit(int index)
     {
-        _lifecycleManager.DestroyUnit(index, (unit, building) => 
+        _lifecycleSystem.DestroyUnit(index, (unit, building) => 
         {
             EmitSignal(SignalName.UnitDied, unit, building);
         });

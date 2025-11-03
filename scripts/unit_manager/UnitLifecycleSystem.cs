@@ -10,7 +10,7 @@ namespace Incrememental.scripts.unit_manager;
 /// <summary>
 /// Handles unit spawning, destruction, and lifecycle management.
 /// </summary>
-internal class UnitLifecycleManager
+internal class UnitLifecycleSystem
 {
     private readonly Rid _navMap;
     private readonly SpatialGridManagerNew _gridManager;
@@ -22,7 +22,7 @@ internal class UnitLifecycleManager
 
     public int AliveCount => _aliveCountForAll;
 
-    public UnitLifecycleManager(
+    public UnitLifecycleSystem(
         Rid navMap,
         SpatialGridManagerNew gridManager,
         Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime,

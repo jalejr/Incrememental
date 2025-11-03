@@ -7,12 +7,12 @@ namespace Incrememental.scripts.unit_manager;
 /// <summary>
 /// Handles unit AI logic updates with compensated delta for staggered updates.
 /// </summary>
-internal class UnitLogicUpdater
+internal class UnitLogicSystem
 {
     private readonly UnitManagerNew _manager;
     private int _updateIndex = 0;
 
-    public UnitLogicUpdater(UnitManagerNew manager)
+    public UnitLogicSystem(UnitManagerNew manager)
     {
         _manager = manager;
     }
