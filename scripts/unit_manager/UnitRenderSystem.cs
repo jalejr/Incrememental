@@ -99,8 +99,8 @@ internal class UnitRenderSystem
             runtime.VisualIndex = 0;
         }
 
-        var lerpWeight = Mathf.Clamp(_lerpSpeed * delta, 0.0f, 1.0f);
-
+        var lerpWeight = System.Math.Clamp(_lerpSpeed * delta, 0.0f, 1.0f);
+        
         foreach (var unit in allUnits)
         {
             if (!unit.IsAlive)

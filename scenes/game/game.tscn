@@ -1,7 +1,6 @@
-[gd_scene load_steps=30 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=27 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://scripts/game/game.gd" id="1_5jirj"]
-[ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://scripts/compositor/edge_detection_compositor.gd" id="2_vaxfo"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://scenes/camera/rts/rts_camera.tscn" id="3_ftsea"]
 [ext_resource type="PackedScene" uid="uid://b5w4dwx16567k" path="res://scenes/grids/placement/placement_grid.tscn" id="4_otnwt"]
 [ext_resource type="PackedScene" uid="uid://cll5aue32ry52" path="res://scenes/controllers/placement/building_placement_controller.tscn" id="5_3xj4h"]
@@ -27,19 +26,6 @@ background_mode = 2
 sky = SubResource("Sky_0xm2m")
 tonemap_mode = 2
 glow_enabled = true
-
-[sub_resource type="CompositorEffect" id="CompositorEffect_1bvp3"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = false
-needs_normal_roughness = true
-script = ExtResource("2_vaxfo")
-metadata/_custom_type_script = "uid://wlibnqq7ntfj"
-
-[sub_resource type="Compositor" id="Compositor_lquwl"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_1bvp3")])
 
 [sub_resource type="Resource" id="Resource_uyinl"]
 script = ExtResource("12_vaxfo")
@@ -113,7 +99,6 @@ render_target_update_mode = 4
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Node3D/SubViewportContainer/SubViewport"]
 environment = SubResource("Environment_h2yge")
-compositor = SubResource("Compositor_lquwl")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Node3D/SubViewportContainer/SubViewport"]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, -96.97221, 127.69307, 0)
