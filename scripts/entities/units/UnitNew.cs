@@ -54,8 +54,8 @@ public partial class UnitNew : RefCounted, ICombatEntity
     public Node SpawnBuilding { get; set; }
 
     // Caching - direct reference for performance
-    public UnitManagerNew.UnitTypeRuntimeData CachedRuntime { get; set; }
-    public LifecycleState LifecycleState { get; set; } = LifecycleState.Spawning;
+    public UnitTypeRuntimeData CachedRuntime { get; set; }
+    private LifecycleState LifecycleState { get; set; } = LifecycleState.Spawning;
 
     /// <summary>
     /// Main update loop called by UnitManager.

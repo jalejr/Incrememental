@@ -152,15 +152,4 @@ public partial class MeleeUnitNew : UnitNew
             }
         }
     }
-
-    /// <summary>
-    /// Checks if a target entity is valid for attacking.
-    /// </summary>
-    protected bool IsValidTarget(IEntity targetEntity)
-    {
-        if (targetEntity == null)
-            return false;
-
-        return targetEntity.IsAlive;
-    }
 }
