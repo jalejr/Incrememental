@@ -1,6 +1,7 @@
 using Godot;
 using Incrememental.resources;
 using Incrememental.scripts.entities.units;
+using Incrememental.scripts.global;
 using Incrememental.scripts.unit_manager;
 using System.Collections.Generic;
 
@@ -32,8 +33,8 @@ public partial class SpawnerBuildingNew : BuildingNew
             return;
         }
 
-        // Connect to C# signal using typed delegate
-        _unitManager.UnitDied += OnManagerSaysUnitDied;
+        // Subscribe to global unit death events via EventBus
+        EventBusNew.Instance.UnitDied += OnUnitDiedFromEventBus;
 
         // Create and configure spawn timer
         _spawnTimer = new Timer();
@@ -130,13 +131,13 @@ public partial class SpawnerBuildingNew : BuildingNew
         return spawnPoint.GlobalPosition;
     }
 
-    private void OnManagerSaysUnitDied(Variant unitVariant, Node building)
+    private void OnUnitDiedFromEventBus(UnitNew unit, Node building)
     {
         // Check if this building is the one that spawned the unit
         if (building != this)
             return;
-
-        var unit = unitVariant.As<UnitNew>();
+        
+        //TODO alter to be stable List to avoid GC
         _spawnedUnits.Remove(unit);
         OnUnitDied(unit);
     }

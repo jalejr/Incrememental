@@ -4,12 +4,13 @@ namespace Incrememental.scripts.levels;
 
 /// <summary>
 /// Manages level state including economy and timers.
+/// Uses C# events instead of Godot signals to avoid marshalling overhead.
 /// </summary>
 [GlobalClass]
 public partial class LevelNew : Node
 {
-    [Signal]
-    public delegate void MoneyUpdatedEventHandler(int money);
+    // C# event instead of Godot signal
+    public event System.Action<int> MoneyUpdated;
 
     [Export] public float MoneyInterval { get; set; } = 0.2f;
 
@@ -47,6 +48,6 @@ public partial class LevelNew : Node
     private void OnMoneyTimerTimeout()
     {
         MoneyCount++;
-        EmitSignal(SignalName.MoneyUpdated, MoneyCount);
+        MoneyUpdated?.Invoke(MoneyCount);
     }
 }

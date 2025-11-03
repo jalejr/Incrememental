@@ -28,8 +28,7 @@ public partial class PlacementGridNew : GridBaseNew
         GD.Print($"PlacementGridNew initialized - Cell size: {GridCellSize}, Grid size: {_gridSize}");
         
         // Connect to EventBus
-        var eventBus = GetNode<EventBusNew>("/root/EventBusNew");
-        eventBus.BuildingRemoved += OnBuildingRemoved;
+        EventBusNew.Instance.BuildingRemoved += OnBuildingRemoved;
         
         // TODO: Have the unlock happen through level start event
         UnlockStartingArea(new Vector3(256, 0, 256), 5);
@@ -117,9 +116,8 @@ public partial class PlacementGridNew : GridBaseNew
         
         UnlockAreaAroundBuilding(buildingData);
         
-        // Emit event
-        var eventBus = GetNode<EventBusNew>("/root/EventBusNew");
-        eventBus.EmitSignal(EventBusNew.SignalName.BuildingPlaced, Variant.CreateFrom(buildingNode), gridPos);
+        // Emit event using C# event
+        EventBusNew.Instance.OnBuildingPlaced(buildingNode, gridPos);
         
         return buildingData;
     }
@@ -277,11 +275,8 @@ public partial class PlacementGridNew : GridBaseNew
         return GetCellsForArea(unlockMin, unlockSize);
     }
 
-    private void OnBuildingRemoved(Variant building)
+    private void OnBuildingRemoved(Node3D building)
     {
-        if (building.Obj is Node3D buildingNode)
-        {
-            RemoveBuilding(buildingNode);
-        }
+        RemoveBuilding(building);
     }
 }

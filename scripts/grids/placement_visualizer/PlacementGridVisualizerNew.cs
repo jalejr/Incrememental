@@ -182,12 +182,11 @@ public partial class PlacementGridVisualizerNew : Node3D
     private void ConnectSignals()
     {
         // Listen to EventBus - single source of truth
-        var eventBus = GetNode<EventBusNew>("/root/EventBusNew");
-        eventBus.BuildingPlaced += OnBuildingPlaced;
-        eventBus.BuildingSold += OnBuildingRemoved;
+        EventBusNew.Instance.BuildingPlaced += OnBuildingPlaced;
+        EventBusNew.Instance.BuildingSold += OnBuildingRemoved;
     }
 
-    private void OnBuildingPlaced(Variant building, Vector2I gridPos)
+    private void OnBuildingPlaced(Node3D building, Vector2I gridPos)
     {
         UpdateAllCells();
     }

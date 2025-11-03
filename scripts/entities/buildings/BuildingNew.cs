@@ -1,17 +1,19 @@
 using Godot;
 using Incrememental.resources;
 using System.Collections.Generic;
+using Incrememental.scripts.global;
 
 namespace Incrememental.scripts.entities.buildings;
 
 /// <summary>
 /// Base class for all buildings in the game.
+/// Uses C# events instead of Godot signals to avoid marshalling overhead.
 /// </summary>
 [GlobalClass]
 public partial class BuildingNew : Node3D, ICombatEntity
 {
-    [Signal]
-    public delegate void HealthChangedEventHandler(float newHealth, float maxHealth);
+    // C# event instead of Godot signal
+    public event System.Action<float, float> HealthChanged;
 
     // Export variables
     [Export] public BuildingDataNew BuildingData { get; set; }
@@ -62,7 +64,7 @@ public partial class BuildingNew : Node3D, ICombatEntity
     {
         Health -= amount;
         Health = Mathf.Max(0, Health);
-        EmitSignal(SignalName.HealthChanged, Health, MaxHealth);
+        HealthChanged?.Invoke(Health, MaxHealth);
 
         if (Health <= 0)
         {
@@ -77,7 +79,7 @@ public partial class BuildingNew : Node3D, ICombatEntity
     {
         Health += amount;
         Health = Mathf.Min(Health, MaxHealth);
-        EmitSignal(SignalName.HealthChanged, Health, MaxHealth);
+        HealthChanged?.Invoke(Health, MaxHealth);
     }
 
     /// <summary>
@@ -149,7 +151,7 @@ public partial class BuildingNew : Node3D, ICombatEntity
     private void Destroy()
     {
         // TODO: Other necessary cleanup
-        // EventBusNew.BuildingRemoved.Emit(this); // Uncomment when EventBusNew is set up as autoload
+        EventBusNew.Instance.OnBuildingRemoved(this);
         QueueFree();
     }
 

@@ -1,6 +1,7 @@
 using Godot;
 using Incrememental.resources;
 using Incrememental.scripts.entities;
+using Incrememental.scripts.global;
 using Incrememental.scripts.grids.spatial;
 using Incrememental.scripts.unit_manager;
 
@@ -110,18 +111,13 @@ public partial class UnitNew : RefCounted, ICombatEntity
         var transform = new Transform3D(Basis.Identity, Position);
         
         // Call global NumberParticles autoload
-        // var numberParticles = Engine.GetSingleton("NumberParticles");
-        // if (numberParticles != null)
-        // {
-        //     numberParticles.Call(
-        //         "emit_particle",
-        //         transform,
-        //         Vector3.Zero,
-        //         Colors.White,
-        //         customData,
-        //         1 | 16
-        //     );
-        // }
+        NumberParticlesNew.Instance?.EmitParticle(
+            transform,
+            Vector3.Zero,
+            Colors.White,
+            customData,
+            1 | 16
+        );
 
         ShowHitEffect(sourcePos);
     }

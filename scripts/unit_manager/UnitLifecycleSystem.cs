@@ -4,6 +4,7 @@ using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
 using Incrememental.scripts.grids.spatial;
 using System.Collections.Generic;
+using global::Incrememental.scripts.global;
 
 namespace Incrememental.scripts.unit_manager;
 
@@ -120,7 +121,7 @@ internal class UnitLifecycleSystem
     /// <summary>
     /// Destroys a unit at the specified index.
     /// </summary>
-    public void DestroyUnit(int index, System.Action<Variant, Node> onUnitDied)
+    public void DestroyUnit(int index)
     {
         if (index < 0 || index >= _allUnits.Count)
             return;
@@ -153,8 +154,8 @@ internal class UnitLifecycleSystem
         runtime.AliveCount--;
         runtime.MultiMesh.VisibleInstanceCount = runtime.AliveCount;
 
-        // Notify via callback
-        onUnitDied?.Invoke(Variant.CreateFrom(unit), building);
+        // Notify
+        EventBusNew.Instance.OnUnitDied(unit, building);
     }
 
     /// <summary>

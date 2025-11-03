@@ -2,6 +2,7 @@ using Godot;
 using Incrememental.resources;
 using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
+using Incrememental.scripts.global;
 using Incrememental.scripts.grids.spatial;
 using System.Collections.Generic;
 
@@ -9,13 +10,11 @@ namespace Incrememental.scripts.unit_manager;
 
 /// <summary>
 /// Manages all units in the game with efficient MultiMesh rendering.
+/// Unit lifecycle events are now broadcast via EventBusNew for better decoupling.
 /// </summary>
 [GlobalClass]
 public partial class UnitManagerNew : Node
 {
-    [Signal]
-    public delegate void UnitDiedEventHandler(Variant unit, Node building);
-
     [Export] public Godot.Collections.Array<UnitTypeConfigNew> UnitTypeConfigs { get; set; } = new();
     [Export] public NavigationRegion3D NavigationRegion { get; set; }
     [Export] public SpatialGridManagerNew GridManager { get; set; }
@@ -95,10 +94,7 @@ public partial class UnitManagerNew : Node
     /// </summary>
     public void DestroyUnit(int index)
     {
-        _lifecycleSystem.DestroyUnit(index, (unit, building) => 
-        {
-            EmitSignal(SignalName.UnitDied, unit, building);
-        });
+        _lifecycleSystem.DestroyUnit(index);
     }
     
     /// <summary>
