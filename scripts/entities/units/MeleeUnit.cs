@@ -6,13 +6,13 @@ namespace Incrememental.scripts.entities.units;
 /// <summary>
 /// Melee combat unit that pursues and attacks enemies.
 /// </summary>
-public partial class MeleeUnitNew : UnitNew
+public partial class MeleeUnit : Unit
 {
     public BehaviorState BehaviorState { get; set; } = BehaviorState.Attacking;
     public IEntity TargetEntity { get; set; }
     public float AttackCooldown { get; set; } = 0.0f;
 
-    public MeleeUnitNew()
+    public MeleeUnit()
     {
         PathRecalcInterval = 0.5f;
     }

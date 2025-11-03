@@ -6,9 +6,9 @@ namespace Incrememental.resources;
 /// Catalog entry linking building data with its scene.
 /// </summary>
 [GlobalClass]
-public partial class BuildingCatalogEntryNew : Resource
+public partial class BuildingCatalogEntry : Resource
 {
-    [Export] public BuildingDataNew BuildingData { get; set; }
+    [Export] public BuildingData BuildingData { get; set; }
     [Export] public PackedScene Scene { get; set; }
     [Export] public PackedScene PreviewScene { get; set; }
 }

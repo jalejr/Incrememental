@@ -8,7 +8,7 @@ namespace Incrememental.scripts.entities.buildings;
 /// Applies different materials to indicate valid/invalid placement positions.
 /// </summary>
 [GlobalClass]
-public partial class PreviewBuildingNew : Node3D
+public partial class PreviewBuilding : Node3D
 {
     [Export] public StandardMaterial3D ValidMaterial { get; set; }
     [Export] public StandardMaterial3D InvalidMaterial { get; set; }

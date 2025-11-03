@@ -7,7 +7,7 @@ namespace Incrememental.scripts.camera.rts;
 /// RTS-style camera controller with pan, zoom, and rotation.
 /// </summary>
 [GlobalClass]
-public partial class RtsCameraNew : Node3D
+public partial class RtsCamera : Node3D
 {
     // Constants
     private const float CameraPanMargin = 5.0f;

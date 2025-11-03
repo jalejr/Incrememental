@@ -5,14 +5,14 @@ using System.Collections.Generic;
 namespace Incrememental.scripts.grids.spatial;
 
 /// <summary>
-/// Handles execution of spatial queries. Separated from SpatialGridManagerNew for better organization.
+/// Handles execution of spatial queries. Separated from SpatialGridManager for better organization.
 /// Contains the core query algorithm: ring-based search with type filtering and early exit optimization.
 /// </summary>
 internal class SpatialQueryExecutor
 {
-    private readonly SpatialGridManagerNew _gridManager;
+    private readonly SpatialGridManager _gridManager;
     
-    public SpatialQueryExecutor(SpatialGridManagerNew gridManager)
+    public SpatialQueryExecutor(SpatialGridManager gridManager)
     {
         _gridManager = gridManager;
     }

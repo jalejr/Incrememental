@@ -7,7 +7,7 @@ namespace Incrememental.resources;
 /// Configuration data for spawner buildings.
 /// </summary>
 [GlobalClass]
-public partial class SpawnerDataNew : Resource
+public partial class SpawnerData : Resource
 {
     [Export] public UnitType UnitType { get; set; } = UnitType.Base;
     [Export] public int MaxUnits { get; set; } = 10;

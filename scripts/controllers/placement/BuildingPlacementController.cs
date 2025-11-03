@@ -10,16 +10,16 @@ namespace Incrememental.scripts.controllers.placement;
 /// Optimized C# port of BuildingPlacementController.
 /// </summary>
 [GlobalClass]
-public partial class BuildingPlacementControllerNew : Node
+public partial class BuildingPlacementController : Node
 {
-    [Export] public PlacementGridNew PlacementGrid { get; set; }
-    [Export] public PlacementGridVisualizerNew GridVisualizer { get; set; }
+    [Export] public PlacementGrid PlacementGrid { get; set; }
+    [Export] public PlacementGridVisualizer GridVisualizer { get; set; }
     [Export] public Camera3D Camera { get; set; }
     
     // TODO: Remove - testing only
-    [Export] public BuildingCatalogEntryNew TestCatalogEntry { get; set; }
+    [Export] public BuildingCatalogEntry TestCatalogEntry { get; set; }
 
-    private BuildingCatalogEntryNew _selectedCatalogEntry;
+    private BuildingCatalogEntry _selectedCatalogEntry;
     private Vector3 _previewPosition;
     private bool _isPlacing = false;
     private bool _previewValid = false;
@@ -51,7 +51,7 @@ public partial class BuildingPlacementControllerNew : Node
     /// <summary>
     /// Starts the placement mode for a building.
     /// </summary>
-    public void StartPlacement(BuildingCatalogEntryNew catalogEntry)
+    public void StartPlacement(BuildingCatalogEntry catalogEntry)
     {
         _isPlacing = true;
         _selectedCatalogEntry = catalogEntry;

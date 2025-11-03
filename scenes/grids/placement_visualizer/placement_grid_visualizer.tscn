@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://dglrm60njnkoq"]
 
-[ext_resource type="Script" uid="uid://byudq6tlmvu37" path="res://scripts/grids/placement_visualizer/PlacementGridVisualizerNew.cs" id="1_fqghh"]
+[ext_resource type="Script" uid="uid://byudq6tlmvu37" path="res://scripts/grids/placement_visualizer/PlacementGridVisualizer.cs" id="1_fqghh"]
 
 [node name="PlacementGridVisualizer" type="Node3D"]
 script = ExtResource("1_fqghh")

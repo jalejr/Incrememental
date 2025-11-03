@@ -14,9 +14,9 @@ namespace Incrememental.scripts.unit_manager;
 internal class UnitLifecycleSystem
 {
     private readonly Rid _navMap;
-    private readonly SpatialGridManagerNew _gridManager;
+    private readonly SpatialGridManager _gridManager;
     private readonly Dictionary<UnitType, UnitTypeRuntimeData> _unitTypesRuntime;
-    private readonly List<UnitNew> _allUnits;
+    private readonly List<Unit> _allUnits;
     private readonly List<int> _freeIndices;
     
     private int _aliveCountForAll = 0;
@@ -25,9 +25,9 @@ internal class UnitLifecycleSystem
 
     public UnitLifecycleSystem(
         Rid navMap,
-        SpatialGridManagerNew gridManager,
+        SpatialGridManager gridManager,
         Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime,
-        List<UnitNew> allUnits,
+        List<Unit> allUnits,
         List<int> freeIndices)
     {
         _navMap = navMap;
@@ -40,7 +40,7 @@ internal class UnitLifecycleSystem
     /// <summary>
     /// Spawns a new unit of the specified type.
     /// </summary>
-    public UnitNew SpawnUnit(
+    public Unit SpawnUnit(
         UnitType unitType,
         Team teamId,
         Vector3 position,
@@ -155,13 +155,13 @@ internal class UnitLifecycleSystem
         runtime.MultiMesh.VisibleInstanceCount = runtime.AliveCount;
 
         // Notify
-        EventBusNew.Instance.OnUnitDied(unit, building);
+        EventBus.Instance.OnUnitDied(unit, building);
     }
 
     /// <summary>
     /// Calculates final stats with buffs applied.
     /// </summary>
-    private UnitStatsNew CalculateStatsWithBuffs(UnitStatsNew baseStats, Dictionary<Variant, float> buffs)
+    private UnitStats CalculateStatsWithBuffs(UnitStats baseStats, Dictionary<Variant, float> buffs)
     {
         var finalStats = baseStats.DuplicateStats();
         
@@ -181,7 +181,7 @@ internal class UnitLifecycleSystem
     /// <summary>
     /// Assigns an index for a new unit, reusing free slots when available.
     /// </summary>
-    private int AssignUnitIndex(UnitNew unit)
+    private int AssignUnitIndex(Unit unit)
     {
         int index;
         if (_freeIndices.Count > 0)

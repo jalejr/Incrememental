@@ -9,10 +9,10 @@ namespace Incrememental.scripts.unit_manager;
 /// </summary>
 internal class UnitLogicSystem
 {
-    private readonly UnitManagerNew _manager;
+    private readonly UnitManager _manager;
     private int _updateIndex = 0;
 
-    public UnitLogicSystem(UnitManagerNew manager)
+    public UnitLogicSystem(UnitManager manager)
     {
         _manager = manager;
     }
@@ -21,8 +21,8 @@ internal class UnitLogicSystem
     /// Updates unit logic with compensated delta for performance.
     /// Only updates a subset of units per frame based on MaxUnitsUpdatedPerFrame.
     /// </summary>
-    public void Update(float delta, List<UnitNew> allUnits, int aliveCount, int maxUnitsPerFrame, 
-        Dictionary<UnitNew, int> damageQueue, List<UnitNew> destroyQueue, Mutex damageQueueMutex, Mutex destroyQueueMutex)
+    public void Update(float delta, List<Unit> allUnits, int aliveCount, int maxUnitsPerFrame, 
+        Dictionary<Unit, int> damageQueue, List<Unit> destroyQueue, Mutex damageQueueMutex, Mutex destroyQueueMutex)
     {
         if (aliveCount == 0)
             return;

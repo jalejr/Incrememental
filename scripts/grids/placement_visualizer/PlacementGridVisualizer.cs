@@ -9,9 +9,9 @@ namespace Incrememental.scripts.grids.placement;
 /// Optimized C# port of PlacementGridVisualizer.
 /// </summary>
 [GlobalClass]
-public partial class PlacementGridVisualizerNew : Node3D
+public partial class PlacementGridVisualizer : Node3D
 {
-    [Export] public PlacementGridNew PlacementGrid { get; set; }
+    [Export] public PlacementGrid PlacementGrid { get; set; }
     [Export] public Color UnlockedCellColor { get; set; } = new(0.2f, 0.8f, 0.2f, 0.3f);
     [Export] public Color OccupiedCellColor { get; set; } = new(0.5f, 0.5f, 0.5f, 0.4f);
     [Export] public Color ValidPlacementColor { get; set; } = new(0.2f, 1.0f, 0.2f, 0.5f);
@@ -25,7 +25,7 @@ public partial class PlacementGridVisualizerNew : Node3D
     {
         if (PlacementGrid == null)
         {
-            GD.PushError("PlacementGridVisualizerNew needs PlacementGrid assigned!");
+            GD.PushError("PlacementGridVisualizer needs PlacementGrid assigned!");
             return;
         }
 
@@ -182,8 +182,8 @@ public partial class PlacementGridVisualizerNew : Node3D
     private void ConnectSignals()
     {
         // Listen to EventBus - single source of truth
-        EventBusNew.Instance.BuildingPlaced += OnBuildingPlaced;
-        EventBusNew.Instance.BuildingSold += OnBuildingRemoved;
+        EventBus.Instance.BuildingPlaced += OnBuildingPlaced;
+        EventBus.Instance.BuildingSold += OnBuildingRemoved;
     }
 
     private void OnBuildingPlaced(Node3D building, Vector2I gridPos)

@@ -6,7 +6,7 @@ namespace Incrememental.resources;
 /// Represents a buff that modifies entity stats.
 /// </summary>
 [GlobalClass]
-public partial class BuffNew : Resource
+public partial class Buff : Resource
 {
     [Export] public BuffType Type { get; set; } = BuffType.AttackDamage;
     [Export] public float Value { get; set; } = 0.1f;

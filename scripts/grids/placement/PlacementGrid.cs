@@ -9,26 +9,26 @@ namespace Incrememental.scripts.grids.placement;
 /// Optimized C# port of BuildingGridManager.
 /// </summary>
 [GlobalClass]
-public partial class PlacementGridNew : GridBaseNew
+public partial class PlacementGrid : GridBase
 {
     [Export] public Vector2 GridWorldSize { get; set; } = new(512.0f, 512.0f);
 
     // Native C# arrays for performance
     private int[][] _unlockedCells;  // Reference count per cell
-    private PlacementGridDataNew[][] _occupiedCells;  // Building data per cell (nullable)
+    private PlacementGridData[][] _occupiedCells;  // Building data per cell (nullable)
     private Vector2I _gridSize = Vector2I.Zero;
     
     // Native C# collections
-    private List<PlacementGridDataNew> _buildings = new();
-    private Dictionary<Node3D, PlacementGridDataNew> _buildingToPlacementData = new();
+    private List<PlacementGridData> _buildings = new();
+    private Dictionary<Node3D, PlacementGridData> _buildingToPlacementData = new();
 
     public override void _Ready()
     {
         InitializeGrids();
-        GD.Print($"PlacementGridNew initialized - Cell size: {GridCellSize}, Grid size: {_gridSize}");
+        GD.Print($"PlacementGrid initialized - Cell size: {GridCellSize}, Grid size: {_gridSize}");
         
         // Connect to EventBus
-        EventBusNew.Instance.BuildingRemoved += OnBuildingRemoved;
+        EventBus.Instance.BuildingRemoved += OnBuildingRemoved;
         
         // TODO: Have the unlock happen through level start event
         UnlockStartingArea(new Vector3(256, 0, 256), 5);
@@ -88,13 +88,13 @@ public partial class PlacementGridNew : GridBaseNew
     /// <summary>
     /// Places a building on the grid.
     /// </summary>
-    public PlacementGridDataNew PlaceBuilding(Node3D buildingNode, Vector2I gridPos, 
+    public PlacementGridData PlaceBuilding(Node3D buildingNode, Vector2I gridPos, 
         Vector2I buildingSize, int unlockRadius)
     {
         if (!CanPlaceBuilding(gridPos, buildingSize))
             return null;
         
-        var buildingData = new PlacementGridDataNew
+        var buildingData = new PlacementGridData
         {
             BuildingNode = buildingNode,
             GridPosition = gridPos,
@@ -117,7 +117,7 @@ public partial class PlacementGridNew : GridBaseNew
         UnlockAreaAroundBuilding(buildingData);
         
         // Emit event using C# event
-        EventBusNew.Instance.OnBuildingPlaced(buildingNode, gridPos);
+        EventBus.Instance.OnBuildingPlaced(buildingNode, gridPos);
         
         return buildingData;
     }
@@ -149,7 +149,7 @@ public partial class PlacementGridNew : GridBaseNew
     /// <summary>
     /// Gets the building data at a specific cell.
     /// </summary>
-    public PlacementGridDataNew GetBuildingAtCell(Vector2I cell)
+    public PlacementGridData GetBuildingAtCell(Vector2I cell)
     {
         if (!IsCellInBounds(cell))
             return null;
@@ -200,12 +200,12 @@ public partial class PlacementGridNew : GridBaseNew
         
         // Initialize native C# jagged arrays for performance
         _unlockedCells = new int[_gridSize.X][];
-        _occupiedCells = new PlacementGridDataNew[_gridSize.X][];
+        _occupiedCells = new PlacementGridData[_gridSize.X][];
         
         for (int x = 0; x < _gridSize.X; x++)
         {
             _unlockedCells[x] = new int[_gridSize.Y];
-            _occupiedCells[x] = new PlacementGridDataNew[_gridSize.Y];
+            _occupiedCells[x] = new PlacementGridData[_gridSize.Y];
             
             for (int y = 0; y < _gridSize.Y; y++)
             {
@@ -221,12 +221,12 @@ public partial class PlacementGridNew : GridBaseNew
                cell.Y >= 0 && cell.Y < _gridSize.Y;
     }
 
-    private CellsForAreaEnumerator GetBuildingOccupiedCells(PlacementGridDataNew buildingData)
+    private CellsForAreaEnumerator GetBuildingOccupiedCells(PlacementGridData buildingData)
     {
         return GetCellsForArea(buildingData.GridPosition, buildingData.GridSize);
     }
 
-    private void UnlockAreaAroundBuilding(PlacementGridDataNew buildingData)
+    private void UnlockAreaAroundBuilding(PlacementGridData buildingData)
     {
         var cellsToUnlock = GetUnlockCellsAroundBuilding(buildingData);
         foreach (var cell in cellsToUnlock)
@@ -249,7 +249,7 @@ public partial class PlacementGridNew : GridBaseNew
         }
     }
 
-    private void LockCellsAroundBuilding(PlacementGridDataNew buildingData)
+    private void LockCellsAroundBuilding(PlacementGridData buildingData)
     {
         var cellsToLock = GetUnlockCellsAroundBuilding(buildingData);
         foreach (var cell in cellsToLock)
@@ -266,7 +266,7 @@ public partial class PlacementGridNew : GridBaseNew
         }
     }
 
-    private CellsForAreaEnumerator GetUnlockCellsAroundBuilding(PlacementGridDataNew buildingData)
+    private CellsForAreaEnumerator GetUnlockCellsAroundBuilding(PlacementGridData buildingData)
     {
         var unlockMin = buildingData.GridPosition - new Vector2I(buildingData.UnlockRadius, buildingData.UnlockRadius);
         var unlockMax = buildingData.GridPosition + buildingData.GridSize + new Vector2I(buildingData.UnlockRadius, buildingData.UnlockRadius);

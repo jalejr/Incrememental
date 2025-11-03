@@ -7,7 +7,7 @@ namespace Incrememental.scripts.levels;
 /// Uses C# events instead of Godot signals to avoid marshalling overhead.
 /// </summary>
 [GlobalClass]
-public partial class LevelNew : Node
+public partial class Level : Node
 {
     // C# event instead of Godot signal
     public event System.Action<int> MoneyUpdated;

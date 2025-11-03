@@ -38,7 +38,7 @@ public class SpatialQuery
     private int? _limit = null;
     
     // Reference to grid manager
-    private SpatialGridManagerNew _gridManager;
+    private SpatialGridManager _gridManager;
     
     // Parameterless constructor for object pooling
     internal SpatialQuery()
@@ -46,7 +46,7 @@ public class SpatialQuery
     }
     
     // Reset method for pooling - called when getting from pool
-    internal void Reset(SpatialGridManagerNew gridManager)
+    internal void Reset(SpatialGridManager gridManager)
     {
         _gridManager = gridManager;
         _position = Vector3.Zero;
@@ -265,7 +265,7 @@ public class SpatialQuery
     
     #region Internal Access (for GridManager)
     
-    // These properties are internal so only SpatialGridManagerNew can read them
+    // These properties are internal so only SpatialGridManager can read them
     internal Vector3 Position => _position;
     internal float Radius => _radius;
     internal HashSet<EntityType> TypeFilter => _typeFilter;

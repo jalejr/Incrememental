@@ -10,7 +10,7 @@ namespace Incrememental.scripts.entities.units;
 /// <summary>
 /// Base class for all units in the game.
 /// </summary>
-public partial class UnitNew : RefCounted, ICombatEntity
+public partial class Unit : RefCounted, ICombatEntity
 {
     // IEntity implementation - direct properties (no delegation!)
     public EntityType Type => EntityType.Unit;
@@ -28,7 +28,7 @@ public partial class UnitNew : RefCounted, ICombatEntity
     public UnitType UnitType { get; set; }
     public Vector3 VisualPosition { get; set; }
     public Vector3 Velocity { get; set; }
-    public UnitStatsNew Stats { get; set; }
+    public UnitStats Stats { get; set; }
 
     // Spawning/Death state
     public float SpawnTimer { get; set; } = 0.0f;
@@ -111,7 +111,7 @@ public partial class UnitNew : RefCounted, ICombatEntity
         var transform = new Transform3D(Basis.Identity, Position);
         
         // Call global NumberParticles autoload
-        NumberParticlesNew.Instance?.EmitParticle(
+        NumberParticles.Instance?.EmitParticle(
             transform,
             Vector3.Zero,
             Colors.White,

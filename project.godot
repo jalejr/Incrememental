@@ -17,8 +17,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-EventBusNew="*res://scripts/global/EventBusNew.cs"
-NumberParticlesNew="*res://scripts/global/NumberParticlesNew.cs"
+EventBus="*res://scripts/global/EventBus.cs"
+NumberParticles="*res://scripts/global/NumberParticles.cs"
 
 [display]
 

@@ -8,7 +8,7 @@ namespace Incrememental.scripts.grids.spatial;
 /// Spatial partitioning grid for efficient entity queries.
 /// </summary>
 [GlobalClass]
-public partial class SpatialGridManagerNew : GridBaseNew
+public partial class SpatialGridManager : GridBase
 {
     [Export] public Vector2 GridWorldSize { get; set; } = new(512.0f, 512.0f);
 
@@ -33,7 +33,7 @@ public partial class SpatialGridManagerNew : GridBaseNew
     {
         InitializeGrids();
         _queryExecutor = new SpatialQueryExecutor(this);
-        GD.Print($"SpatialGridManagerNew initialized - Grid size: {_gridSize.X}x{_gridSize.Y}");
+        GD.Print($"SpatialGridManager initialized - Grid size: {_gridSize.X}x{_gridSize.Y}");
     }
 
     /// <summary>

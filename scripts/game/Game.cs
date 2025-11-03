@@ -7,7 +7,7 @@ namespace Incrememental.scripts.game;
 /// Main game controller managing input, mouse modes, and application lifecycle.
 /// </summary>
 [GlobalClass]
-public partial class GameNew : Node
+public partial class Game : Node
 {
     // Cached string to avoid allocations during runtime
     private const string FpsLabelPrefix = "FPS: ";

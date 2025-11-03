@@ -11,13 +11,13 @@ namespace Incrememental.scripts.entities.buildings;
 /// Building that spawns units at regular intervals.
 /// </summary>
 [GlobalClass]
-public partial class SpawnerBuildingNew : BuildingNew
+public partial class SpawnerBuilding : Building
 {
-    [Export] public SpawnerDataNew SpawnerData { get; set; }
+    [Export] public SpawnerData SpawnerData { get; set; }
     [Export] public Godot.Collections.Array<Node3D> SpawnPoints { get; set; } = new();
 
-    private UnitManagerNew _unitManager;
-    private List<UnitNew> _spawnedUnits = new();  // C# List for performance
+    private UnitManager _unitManager;
+    private List<Unit> _spawnedUnits = new();  // C# List for performance
     private Timer _spawnTimer;
     private int _nextSpawnPointIndex = 0;
 
@@ -25,8 +25,8 @@ public partial class SpawnerBuildingNew : BuildingNew
     {
         base._Ready();
 
-        // Get UnitManagerNew from parent (C# node)
-        _unitManager = GetNode<UnitManagerNew>("../UnitManager");
+        // Get UnitManager from parent (C# node)
+        _unitManager = GetNode<UnitManager>("../UnitManager");
         if (_unitManager == null)
         {
             GD.PushWarning($"No unit manager assigned to building: {Name}");
@@ -34,7 +34,7 @@ public partial class SpawnerBuildingNew : BuildingNew
         }
 
         // Subscribe to global unit death events via EventBus
-        EventBusNew.Instance.UnitDied += OnUnitDiedFromEventBus;
+        EventBus.Instance.UnitDied += OnUnitDiedFromEventBus;
 
         // Create and configure spawn timer
         _spawnTimer = new Timer();
@@ -97,7 +97,7 @@ public partial class SpawnerBuildingNew : BuildingNew
             buffsVariant[Variant.From((int)kvp.Key)] = kvp.Value;
         }
 
-        // Call C# UnitManagerNew.SpawnUnit method
+        // Call C# UnitManager.SpawnUnit method
         var unit = _unitManager.SpawnUnit(
             SpawnerData.UnitType,
             TeamId,
@@ -131,7 +131,7 @@ public partial class SpawnerBuildingNew : BuildingNew
         return spawnPoint.GlobalPosition;
     }
 
-    private void OnUnitDiedFromEventBus(UnitNew unit, Node building)
+    private void OnUnitDiedFromEventBus(Unit unit, Node building)
     {
         // Check if this building is the one that spawned the unit
         if (building != this)
@@ -150,7 +150,7 @@ public partial class SpawnerBuildingNew : BuildingNew
     /// <summary>
     /// Called when a unit is spawned. Override for custom behavior.
     /// </summary>
-    protected virtual void OnUnitSpawned(UnitNew unit, Vector3 position)
+    protected virtual void OnUnitSpawned(Unit unit, Vector3 position)
     {
         // Override in derived classes for custom logic
     }
@@ -158,7 +158,7 @@ public partial class SpawnerBuildingNew : BuildingNew
     /// <summary>
     /// Called when a unit dies. Override for custom behavior.
     /// </summary>
-    protected virtual void OnUnitDied(UnitNew unit)
+    protected virtual void OnUnitDied(Unit unit)
     {
         // Override in derived classes for custom logic
     }

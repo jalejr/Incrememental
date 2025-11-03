@@ -1,8 +1,8 @@
 [gd_scene load_steps=11 format=3 uid="uid://c7bfkc5utn8jc"]
 
-[ext_resource type="Script" uid="uid://s3utr0ivkwiy" path="res://scripts/unit_manager/UnitManagerNew.cs" id="1_ynf0h"]
-[ext_resource type="Script" uid="uid://b05ybkebntd0h" path="res://resources/UnitTypeConfigNew.cs" id="2_elx1o"]
-[ext_resource type="Script" uid="uid://cmviaggwuipny" path="res://resources/UnitStatsNew.cs" id="3_mhavh"]
+[ext_resource type="Script" uid="uid://s3utr0ivkwiy" path="res://scripts/unit_manager/UnitManager.cs" id="1_ynf0h"]
+[ext_resource type="Script" uid="uid://b05ybkebntd0h" path="res://resources/UnitTypeConfig.cs" id="2_elx1o"]
+[ext_resource type="Script" uid="uid://cmviaggwuipny" path="res://resources/UnitStats.cs" id="3_mhavh"]
 [ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="4_5skne"]
 
 [sub_resource type="Resource" id="Resource_xnabo"]

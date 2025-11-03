@@ -5,7 +5,7 @@ namespace Incrememental.scripts.grids.placement;
 /// <summary>
 /// Data representing a placed building on the placement grid.
 /// </summary>
-public class PlacementGridDataNew
+public class PlacementGridData
 {
     public Node3D BuildingNode { get; set; }
     public Vector2I GridPosition { get; set; }

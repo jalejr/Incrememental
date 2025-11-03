@@ -7,10 +7,10 @@ namespace Incrememental.resources;
 /// Configuration for a specific unit type.
 /// </summary>
 [GlobalClass]
-public partial class UnitTypeConfigNew : Resource
+public partial class UnitTypeConfig : Resource
 {
     [Export] public UnitType UnitType { get; set; }
-    [Export] public UnitStatsNew DefaultStats { get; set; }
+    [Export] public UnitStats DefaultStats { get; set; }
     [Export] public Texture2D Icon { get; set; }
     [Export] public Mesh Mesh { get; set; }
     [Export] public int MaxCount { get; set; }
@@ -19,15 +19,15 @@ public partial class UnitTypeConfigNew : Resource
     /// Creates a new instance of the unit for this configuration.
     /// Uses a factory pattern to determine which unit class to instantiate.
     /// </summary>
-    public UnitNew CreateUnit()
+    public Unit CreateUnit()
     {
         // Factory pattern - customize this based on your unit types
         return UnitType switch
         {
-            UnitType.Soldier => new MeleeUnitNew(),
-            UnitType.Demon => new MeleeUnitNew(),
-            UnitType.Troll => new MeleeUnitNew(),
-            _ => new UnitNew() // Base unit for others
+            UnitType.Soldier => new MeleeUnit(),
+            UnitType.Demon => new MeleeUnit(),
+            UnitType.Troll => new MeleeUnit(),
+            _ => new Unit() // Base unit for others
         };
     }
 }

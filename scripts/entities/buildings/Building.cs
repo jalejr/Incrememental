@@ -10,13 +10,13 @@ namespace Incrememental.scripts.entities.buildings;
 /// Uses C# events instead of Godot signals to avoid marshalling overhead.
 /// </summary>
 [GlobalClass]
-public partial class BuildingNew : Node3D, ICombatEntity
+public partial class Building : Node3D, ICombatEntity
 {
     // C# event instead of Godot signal
     public event System.Action<float, float> HealthChanged;
 
     // Export variables
-    [Export] public BuildingDataNew BuildingData { get; set; }
+    [Export] public BuildingData BuildingData { get; set; }
 
     // IEntity implementation - direct properties (no delegation!)
     public EntityType Type => EntityType.Building;
@@ -38,8 +38,8 @@ public partial class BuildingNew : Node3D, ICombatEntity
     public float MaxHealth { get; set; }
 
     // Building-specific data
-    public List<BuffNew> AdjacentAuraBuffs { get; set; } = new();
-    public Dictionary<BuildingNew, List<BuffNew>> ActiveBuffs { get; set; } = new();
+    public List<Buff> AdjacentAuraBuffs { get; set; } = new();
+    public Dictionary<Building, List<Buff>> ActiveBuffs { get; set; } = new();
     public Dictionary<BuffType, float> CachedBuffsCalculated { get; set; } = new();
     public bool IsDying = false;
 
@@ -52,7 +52,7 @@ public partial class BuildingNew : Node3D, ICombatEntity
     /// <summary>
     /// Sets the building data configuration.
     /// </summary>
-    public void SetData(BuildingDataNew data)
+    public void SetData(BuildingData data)
     {
         BuildingData = data;
     }
@@ -85,7 +85,7 @@ public partial class BuildingNew : Node3D, ICombatEntity
     /// <summary>
     /// Adds adjacency buffs from another building.
     /// </summary>
-    public void AddAdjacencyBuffs(BuildingNew sourceBuilding, List<BuffNew> adjacencyBuffs)
+    public void AddAdjacencyBuffs(Building sourceBuilding, List<Buff> adjacencyBuffs)
     {
         ActiveBuffs[sourceBuilding] = adjacencyBuffs;
         UpdateActiveBuffs();
@@ -94,7 +94,7 @@ public partial class BuildingNew : Node3D, ICombatEntity
     /// <summary>
     /// Removes adjacency buffs from a source building.
     /// </summary>
-    public void RemoveAdjacencyBuffs(BuildingNew sourceBuilding)
+    public void RemoveAdjacencyBuffs(Building sourceBuilding)
     {
         ActiveBuffs.Remove(sourceBuilding);
         UpdateActiveBuffs();
@@ -120,9 +120,9 @@ public partial class BuildingNew : Node3D, ICombatEntity
         }
     }
 
-    private List<BuildingNew> FindNearbyBuildings(int cellRadius)
+    private List<Building> FindNearbyBuildings(int cellRadius)
     {
-        var foundBuildings = new List<BuildingNew>();
+        var foundBuildings = new List<Building>();
         // TODO: Logic here - probably need to rework placement grid
         return foundBuildings;
     }
@@ -151,7 +151,7 @@ public partial class BuildingNew : Node3D, ICombatEntity
     private void Destroy()
     {
         // TODO: Other necessary cleanup
-        EventBusNew.Instance.OnBuildingRemoved(this);
+        EventBus.Instance.OnBuildingRemoved(this);
         QueueFree();
     }
 

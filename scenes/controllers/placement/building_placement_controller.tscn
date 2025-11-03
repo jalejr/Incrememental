@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cll5aue32ry52"]
 
-[ext_resource type="Script" uid="uid://cqe2vncmnluna" path="res://scripts/controllers/placement/BuildingPlacementControllerNew.cs" id="1_baj01"]
+[ext_resource type="Script" uid="uid://cqe2vncmnluna" path="res://scripts/controllers/placement/BuildingPlacementController.cs" id="1_baj01"]
 
 [node name="BuildingPlacementController" type="Node"]
 script = ExtResource("1_baj01")

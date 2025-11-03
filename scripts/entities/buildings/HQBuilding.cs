@@ -6,7 +6,7 @@ namespace Incrememental.scripts.entities.buildings;
 /// Headquarters building that generates income and provides research options.
 /// </summary>
 [GlobalClass]
-public partial class HQBuildingNew : BuildingNew
+public partial class HQBuilding : Building
 {
     [Export] public float IncomeRate { get; set; } = 1.0f;
     [Export] public float TimerWaitTime { get; set; } = 1.0f;

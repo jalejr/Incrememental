@@ -13,7 +13,7 @@ internal class UnitRenderSystem
     private readonly Node _parentNode;
     private readonly float _lerpSpeed;
 
-    public UnitRenderSystem(Node parentNode, Godot.Collections.Array<UnitTypeConfigNew> unitTypeConfigs,
+    public UnitRenderSystem(Node parentNode, Godot.Collections.Array<UnitTypeConfig> unitTypeConfigs,
         Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime, float lerpSpeed)
     {
         _parentNode = parentNode;
@@ -26,7 +26,7 @@ internal class UnitRenderSystem
     /// Sets up all unit type runtime data including MultiMesh instances.
     /// </summary>
     private void SetupUnitTypes(
-        Godot.Collections.Array<UnitTypeConfigNew> unitTypeConfigs, Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime)
+        Godot.Collections.Array<UnitTypeConfig> unitTypeConfigs, Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime)
     {
         if (unitTypeConfigs.Count == 0)
         {
@@ -55,7 +55,7 @@ internal class UnitRenderSystem
     /// <summary>
     /// Sets up MultiMesh for a unit type.
     /// </summary>
-    public void SetupMultiMesh(UnitTypeRuntimeData runtime, UnitTypeConfigNew config)
+    public void SetupMultiMesh(UnitTypeRuntimeData runtime, UnitTypeConfig config)
     {
         // Validate config
         if (config.MaxCount <= 0)
@@ -91,7 +91,7 @@ internal class UnitRenderSystem
     /// <summary>
     /// Updates visual transforms with lerping for smooth rendering.
     /// </summary>
-    public void UpdateVisuals(List<UnitNew> allUnits, Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime, float delta)
+    public void UpdateVisuals(List<Unit> allUnits, Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime, float delta)
     {
         // Reset visual indices
         foreach (var runtime in unitTypesRuntime.Values)

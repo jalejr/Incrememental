@@ -10,28 +10,28 @@ namespace Incrememental.scripts.unit_manager;
 
 /// <summary>
 /// Manages all units in the game with efficient MultiMesh rendering.
-/// Unit lifecycle events are now broadcast via EventBusNew for better decoupling.
+/// Unit lifecycle events are now broadcast via EventBus for better decoupling.
 /// </summary>
 [GlobalClass]
-public partial class UnitManagerNew : Node
+public partial class UnitManager : Node
 {
-    [Export] public Godot.Collections.Array<UnitTypeConfigNew> UnitTypeConfigs { get; set; } = new();
+    [Export] public Godot.Collections.Array<UnitTypeConfig> UnitTypeConfigs { get; set; } = new();
     [Export] public NavigationRegion3D NavigationRegion { get; set; }
-    [Export] public SpatialGridManagerNew GridManager { get; set; }
+    [Export] public SpatialGridManager GridManager { get; set; }
     [Export] public int MaxUnitsUpdatedPerFrame { get; set; } = 100;
     [Export] public float VisualLerpSpeed { get; set; } = 10.0f;
 
     private Rid _navMap;
 
     private Dictionary<UnitType, UnitTypeRuntimeData> _unitTypesRuntime = new();
-    private List<UnitNew> _allUnits = new();
+    private List<Unit> _allUnits = new();
     private List<int> _freeIndices = new();
 
     // Threading (not yet implemented, structure in place)
     private int _threadCount;
-    private Dictionary<UnitNew, int> _damageQueue = new();
+    private Dictionary<Unit, int> _damageQueue = new();
     private Mutex _damageQueueMutex = new();
-    private List<UnitNew> _destroyQueue = new();
+    private List<Unit> _destroyQueue = new();
     private Mutex _destroyQueueMutex = new();
 
     // Subsystems
@@ -77,7 +77,7 @@ public partial class UnitManagerNew : Node
     /// <summary>
     /// Spawns a new unit of the specified type.
     /// </summary>
-    public UnitNew SpawnUnit(
+    public Unit SpawnUnit(
         UnitType unitType,
         Team teamId,
         Vector3 position,
@@ -100,7 +100,7 @@ public partial class UnitManagerNew : Node
     /// <summary>
     /// Sets the navigation path for a unit.
     /// </summary>
-    public void SetUnitPath(UnitNew unit, Vector3 target)
+    public void SetUnitPath(Unit unit, Vector3 target)
     {
         _movementSystem.SetUnitPath(unit, target);
     }

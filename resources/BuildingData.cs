@@ -8,7 +8,7 @@ namespace Incrememental.resources;
 /// Configuration data for building types.
 /// </summary>
 [GlobalClass]
-public partial class BuildingDataNew : Resource
+public partial class BuildingData : Resource
 {
     // Identity
     [ExportGroup("Identity")]
@@ -32,7 +32,7 @@ public partial class BuildingDataNew : Resource
 
     // Adjacency Buffs
     [ExportGroup("Adjacency Buffs")]
-    [Export] public Array<BuffNew> AdjacentAuraBuffs { get; set; } = new();
+    [Export] public Array<Buff> AdjacentAuraBuffs { get; set; } = new();
 
     // Meta Progression
     [ExportGroup("Meta Progression")]

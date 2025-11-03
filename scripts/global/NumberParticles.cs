@@ -5,12 +5,12 @@ namespace Incrememental.scripts.global;
 /// <summary>
 /// Global particle emitter for number damage indicators.
 /// This should be set up as an AutoLoad singleton in Project Settings.
-/// Access via NumberParticlesNew.Instance in C# code.
+/// Access via NumberParticles.Instance in C# code.
 /// Directly instantiates the particle scene instead of wrapping an autoload.
 /// </summary>
-public partial class NumberParticlesNew : Node
+public partial class NumberParticles : Node
 {
-    public static NumberParticlesNew Instance { get; private set; }
+    public static NumberParticles Instance { get; private set; }
     
     private GpuParticles3D _particleSystem;
     
@@ -26,16 +26,16 @@ public partial class NumberParticlesNew : Node
             if (_particleSystem != null)
             {
                 AddChild(_particleSystem);
-                GD.Print("NumberParticlesNew: Particle system loaded and instantiated");
+                GD.Print("NumberParticles: Particle system loaded and instantiated");
             }
             else
             {
-                GD.PrintErr("NumberParticlesNew: Failed to instantiate particle system as GpuParticles3D");
+                GD.PrintErr("NumberParticles: Failed to instantiate particle system as GpuParticles3D");
             }
         }
         else
         {
-            GD.PrintErr("NumberParticlesNew: Failed to load particle scene");
+            GD.PrintErr("NumberParticles: Failed to load particle scene");
         }
     }
     

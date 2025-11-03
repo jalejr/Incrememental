@@ -6,7 +6,7 @@ namespace Incrememental.resources;
 /// Stats configuration for a unit type.
 /// </summary>
 [GlobalClass]
-public partial class UnitStatsNew : Resource
+public partial class UnitStats : Resource
 {
     [Export] public float Radius { get; set; } = 0.5f;
     [Export] public float MoveSpeed { get; set; } = 4.0f;
@@ -20,7 +20,7 @@ public partial class UnitStatsNew : Resource
     
     public float AttackCooldownSec { get; private set; } = 1.0f;
 
-    public UnitStatsNew()
+    public UnitStats()
     {
         RecalculateAttackCooldown();
     }
@@ -37,9 +37,9 @@ public partial class UnitStatsNew : Resource
     /// <summary>
     /// Creates a duplicate of this stats object.
     /// </summary>
-    public UnitStatsNew DuplicateStats()
+    public UnitStats DuplicateStats()
     {
-        var newStats = new UnitStatsNew
+        var newStats = new UnitStats
         {
             Radius = Radius,
             MoveSpeed = MoveSpeed,

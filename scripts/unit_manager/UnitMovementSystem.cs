@@ -11,9 +11,9 @@ namespace Incrememental.scripts.unit_manager;
 internal class UnitMovementSystem
 {
     private readonly Rid _navMap;
-    private readonly SpatialGridManagerNew _gridManager;
+    private readonly SpatialGridManager _gridManager;
 
-    public UnitMovementSystem(Rid navMap, SpatialGridManagerNew gridManager)
+    public UnitMovementSystem(Rid navMap, SpatialGridManager gridManager)
     {
         _navMap = navMap;
         _gridManager = gridManager;
@@ -22,7 +22,7 @@ internal class UnitMovementSystem
     /// <summary>
     /// Sets the navigation path for a unit.
     /// </summary>
-    public void SetUnitPath(UnitNew unit, Vector3 target)
+    public void SetUnitPath(Unit unit, Vector3 target)
     {
         var godotPath = NavigationServer3D.MapGetPath(_navMap, unit.Position, target, true);
         
@@ -50,7 +50,7 @@ internal class UnitMovementSystem
     /// <summary>
     /// Syncs unit positions and velocities with navigation server for avoidance.
     /// </summary>
-    public void UpdateNavigationSync(List<UnitNew> allUnits)
+    public void UpdateNavigationSync(List<Unit> allUnits)
     {
         foreach (var unit in allUnits)
         {
@@ -70,7 +70,7 @@ internal class UnitMovementSystem
     /// <summary>
     /// Updates unit movement along paths and updates grid positions.
     /// </summary>
-    public void UpdateMovement(List<UnitNew> allUnits, float delta)
+    public void UpdateMovement(List<Unit> allUnits, float delta)
     {
         for (int i = 0; i < allUnits.Count; i++)
         {

@@ -9,14 +9,14 @@ namespace Incrememental.resources;
 /// Optimized C# port of BuildingCatalog.
 /// </summary>
 [GlobalClass]
-public partial class BuildingCatalogNew : Resource
+public partial class BuildingCatalog : Resource
 {
-    [Export] public Godot.Collections.Dictionary<string, BuildingCatalogEntryNew> Entries { get; set; } = new();
+    [Export] public Godot.Collections.Dictionary<string, BuildingCatalogEntry> Entries { get; set; } = new();
 
     /// <summary>
     /// Gets a building catalog entry by its ID.
     /// </summary>
-    public BuildingCatalogEntryNew GetEntryById(string buildingId)
+    public BuildingCatalogEntry GetEntryById(string buildingId)
     {
         if (Entries.TryGetValue(buildingId, out var entry))
         {
@@ -31,9 +31,9 @@ public partial class BuildingCatalogNew : Resource
     /// Gets all available building entries.
     /// Returns native C# list for performance.
     /// </summary>
-    public List<BuildingCatalogEntryNew> GetAvailableEntries()
+    public List<BuildingCatalogEntry> GetAvailableEntries()
     {
-        var available = new List<BuildingCatalogEntryNew>(Entries.Count);
+        var available = new List<BuildingCatalogEntry>(Entries.Count);
         
         foreach (var entry in Entries.Values)
         {
@@ -46,9 +46,9 @@ public partial class BuildingCatalogNew : Resource
     /// <summary>
     /// Gets all unlocked building entries based on research requirements.
     /// </summary>
-    public List<BuildingCatalogEntryNew> GetUnlockedEntries()
+    public List<BuildingCatalogEntry> GetUnlockedEntries()
     {
-        var unlocked = new List<BuildingCatalogEntryNew>();
+        var unlocked = new List<BuildingCatalogEntry>();
         
         foreach (var entry in Entries.Values)
         {

@@ -6,7 +6,7 @@ namespace Incrememental.scripts.grids;
 /// Base class for grid systems with spatial cell calculations.
 /// </summary>
 [GlobalClass]
-public partial class GridBaseNew : Node
+public partial class GridBase : Node
 {
     [Export] public float GridCellSize { get; set; } = 5.0f;
 

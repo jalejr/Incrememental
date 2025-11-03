@@ -9,7 +9,7 @@ namespace Incrememental.scripts.unit_manager;
 /// </summary>
 public class UnitTypeRuntimeData
 {
-    public UnitTypeConfigNew Config { get; set; }
+    public UnitTypeConfig Config { get; set; }
     public MultiMesh MultiMesh { get; set; }
     public MultiMeshInstance3D MultiMeshInstance { get; set; }
     public int AliveCount { get; set; } = 0;
