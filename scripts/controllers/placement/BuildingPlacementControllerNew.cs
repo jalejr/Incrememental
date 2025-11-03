@@ -1,5 +1,6 @@
 using Godot;
 using Incrememental.resources;
+using Incrememental.scripts.global;
 using Incrememental.scripts.grids.placement;
 
 namespace Incrememental.scripts.controllers.placement;
@@ -26,7 +27,7 @@ public partial class BuildingPlacementControllerNew : Node
     public override void _Process(double delta)
     {
         // TODO: Remove test input when done testing
-        if (Input.IsActionJustPressed("test") && TestCatalogEntry != null)
+        if (Input.IsActionJustPressed(InputAction.Test) && TestCatalogEntry != null)
         {
             StartPlacement(TestCatalogEntry);
         }
@@ -36,12 +37,12 @@ public partial class BuildingPlacementControllerNew : Node
 
         UpdatePreview();
 
-        if (Input.IsActionJustPressed("ui_accept"))
+        if (Input.IsActionJustPressed(InputAction.UiAccept))
         {
             TryPlacingBuilding();
         }
 
-        if (Input.IsActionJustPressed("ui_cancel"))
+        if (Input.IsActionJustPressed(InputAction.UiCancel))
         {
             CancelPlacement();
         }

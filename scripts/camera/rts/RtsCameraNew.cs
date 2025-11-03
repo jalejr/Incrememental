@@ -1,4 +1,5 @@
 using Godot;
+using Incrememental.scripts.global;
 
 namespace Incrememental.scripts.camera.rts;
 
@@ -61,11 +62,11 @@ public partial class RtsCameraNew : Node3D
 
     public override void _Input(InputEvent @event)
     {
-        if (@event.IsActionPressed("camera_zoom_in") && CameraCanZoomIn())
+        if (@event.IsActionPressed(InputAction.CameraZoomIn) && CameraCanZoomIn())
         {
             _cameraZoomDirection -= new Vector3(0.0f, 0.0f, 1.0f);
         }
-        if (@event.IsActionPressed("camera_zoom_out") && CameraCanZoomOut())
+        if (@event.IsActionPressed(InputAction.CameraZoomOut) && CameraCanZoomOut())
         {
             _cameraZoomDirection += new Vector3(0.0f, 0.0f, 1.0f);
         }
@@ -97,7 +98,7 @@ public partial class RtsCameraNew : Node3D
     /// </summary>
     public void GetCameraPanKeyboardDirection()
     {
-        var inputDirection = Input.GetVector("left", "right", "forward", "backward");
+        var inputDirection = Input.GetVector(InputAction.Left, InputAction.Right, InputAction.Forward, InputAction.Backward);
         // Override or combine with mouse direction (keyboard takes priority)
         if (inputDirection != Vector2.Zero)
         {
@@ -111,9 +112,9 @@ public partial class RtsCameraNew : Node3D
     /// </summary>
     public void GetCameraRotateDirection()
     {
-        if (Input.IsActionPressed("rotate_left"))
+        if (Input.IsActionPressed(InputAction.RotateLeft))
             _cameraRotateTargetDirection.Y = -1.0f;
-        if (Input.IsActionPressed("rotate_right"))
+        if (Input.IsActionPressed(InputAction.RotateRight))
             _cameraRotateTargetDirection.Y = 1.0f;
     }
 
