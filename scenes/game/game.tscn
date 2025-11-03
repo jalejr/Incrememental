@@ -1,6 +1,6 @@
 [gd_scene load_steps=27 format=3 uid="uid://dn3qkyl5xdal6"]
 
-[ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://scripts/game/game.gd" id="1_5jirj"]
+[ext_resource type="Script" uid="uid://dmef6c1yheod1" path="res://scripts/game/GameNew.cs" id="1_vaxfo"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://scenes/camera/rts/rts_camera.tscn" id="3_ftsea"]
 [ext_resource type="PackedScene" uid="uid://b5w4dwx16567k" path="res://scenes/grids/placement/placement_grid.tscn" id="4_otnwt"]
 [ext_resource type="PackedScene" uid="uid://cll5aue32ry52" path="res://scenes/controllers/placement/building_placement_controller.tscn" id="5_3xj4h"]
@@ -76,7 +76,7 @@ TeamId = 1
 metadata/_custom_type_script = "uid://d0q44pydcatip"
 
 [node name="Main" type="Node"]
-script = ExtResource("1_5jirj")
+script = ExtResource("1_vaxfo")
 
 [node name="World" type="Node3D" parent="."]
 metadata/_edit_lock_ = true
