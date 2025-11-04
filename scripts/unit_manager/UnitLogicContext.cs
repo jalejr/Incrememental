@@ -31,12 +31,12 @@ public class UnitLogicContext
     /// </summary>
     public List<Unit> DestroyQueue { get; }
 
-    public UnitLogicContext(UnitManager manager)
+    public UnitLogicContext(UnitManager manager, int initialCapacity = 32)
     {
         _manager = manager;
         SpatialGrid = manager.GridManager;
-        DamageQueue = new Dictionary<Unit, int>();
-        DestroyQueue = new List<Unit>();
+        DamageQueue = new Dictionary<Unit, int>(initialCapacity);
+        DestroyQueue = new List<Unit>(initialCapacity);
     }
 
     /// <summary>
@@ -67,5 +67,11 @@ public class UnitLogicContext
     public void QueueDestroy(Unit unit)
     {
         DestroyQueue.Add(unit);
+    }
+
+    public void Clear()
+    {
+        DamageQueue.Clear();
+        DestroyQueue.Clear();
     }
 }

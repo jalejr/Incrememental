@@ -28,9 +28,9 @@ public partial class UnitManager : Node
 
     // Threading (not yet implemented, structure in place)
     private int _threadCount;
-    private Dictionary<Unit, int> _damageQueue = new();
+    private Dictionary<Unit, int> _damageQueue;
     private Mutex _damageQueueMutex = new();
-    private List<Unit> _destroyQueue = new();
+    private List<Unit> _destroyQueue;
     private Mutex _destroyQueueMutex = new();
 
     // Subsystems
@@ -38,6 +38,9 @@ public partial class UnitManager : Node
     private UnitLogicSystem _logicSystem;
     private UnitMovementSystem _movementSystem;
     private UnitRenderSystem _renderSystem;
+    
+    private System.Threading.ThreadLocal<UnitLogicContext> _threadLocalContext;
+    private System.Collections.Concurrent.ConcurrentBag<UnitLogicContext> _activeContexts;
 
     public override void _Ready()
     {
@@ -53,9 +56,23 @@ public partial class UnitManager : Node
         
         // Initialize subsystems
         _renderSystem = new UnitRenderSystem(this, UnitTypeConfigs, _unitTypesRuntime, VisualLerpSpeed);
-        _lifecycleSystem = new UnitLifecycleSystem(_navMap, GridManager, _unitTypesRuntime, _allUnits, _freeIndices);
-        _logicSystem = new UnitLogicSystem(this);
         _movementSystem = new UnitMovementSystem(_navMap, GridManager);
+        _lifecycleSystem = new UnitLifecycleSystem(_navMap, GridManager, _unitTypesRuntime, _allUnits, _freeIndices, _movementSystem);
+        _logicSystem = new UnitLogicSystem(this);
+        
+        // Allocating thread-local contexts and queues
+        _activeContexts = new System.Collections.Concurrent.ConcurrentBag<UnitLogicContext>();
+        
+        // Thread-local context for true thread isolation
+        _threadLocalContext = new System.Threading.ThreadLocal<UnitLogicContext>(() => 
+        {
+            var context = new UnitLogicContext(this, MaxUnitsUpdatedPerFrame);
+            _activeContexts.Add(context); // Track for merging
+            return context;
+        });
+        
+        _damageQueue = new Dictionary<Unit, int>(MaxUnitsUpdatedPerFrame);
+        _destroyQueue = new List<Unit>(MaxUnitsUpdatedPerFrame / 2);
     }
 
     public override void _Process(double delta)
@@ -151,7 +168,31 @@ public partial class UnitManager : Node
         var cpuCount = OS.GetProcessorCount();
         return Mathf.Max(1, Mathf.Min((int)(cpuCount * 0.75f), 8));
     }
-
+    
+    /// <summary>
+    /// Gets context for current thread. Each thread gets its own context.
+    /// Uses ThreadLocal for guaranteed isolation (lock-free).
+    /// </summary>
+    internal UnitLogicContext GetContextForThread()
+    {
+        var context = _threadLocalContext.Value;
+        context.Clear();
+        return context;
+    }
+    
+    /// <summary>
+    /// Gets all contexts for merging results after parallel work.
+    /// </summary>
+    internal System.Collections.Concurrent.ConcurrentBag<UnitLogicContext> GetAllContexts()
+    {
+        return _activeContexts;
+    }
+    
+    /// <summary>
+    /// Thread count for parallel operations.
+    /// </summary>
+    public int ThreadCount => _threadCount;
+    
     public override void _ExitTree()
     {
         foreach (var unit in _allUnits)

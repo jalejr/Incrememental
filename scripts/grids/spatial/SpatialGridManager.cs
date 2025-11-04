@@ -19,6 +19,7 @@ public partial class SpatialGridManager : GridBase
     private int _nextEntityId = 0;
     
     private readonly Stack<SpatialQuery> _queryPool = new();
+    private readonly object _queryPoolLock = new();
     private const int MaxPooledQueries = 20;
     
     private SpatialQueryExecutor _queryExecutor;
@@ -175,23 +176,26 @@ public partial class SpatialGridManager : GridBase
     /// <summary>
     /// Creates a new fluent query builder (from object pool for zero allocations).
     /// Example: grid.Query().At(pos).Within(10f).OfType(EntityType.Unit).Execute()
-    /// Thread-safe for queries when all Register/Unregister/Update operations are queued to main thread.
+    /// Thread-safe for concurrent queries from multiple threads.
     /// </summary>
     public SpatialQuery Query()
     {
-        // Try to get from pool
         SpatialQuery query;
         
-        if (_queryPool.Count > 0)
+        lock (_queryPoolLock)
         {
-            query = _queryPool.Pop();  // Reuse existing object! ✅
-        }
-        else
-        {
-            query = new SpatialQuery();  // Create new if pool is empty
+            // Try to get from pool
+            if (_queryPool.Count > 0)
+            {
+                query = _queryPool.Pop();  // Reuse existing object! ✅
+            }
+            else
+            {
+                query = new SpatialQuery();  // Create new if pool is empty
+            }
         }
         
-        // Reset for reuse
+        // Reset for reuse (outside lock - no contention)
         query.Reset(this);
         
         return query;
@@ -199,14 +203,18 @@ public partial class SpatialGridManager : GridBase
     
     /// <summary>
     /// Returns a query to the pool for reuse (called automatically by Execute()).
+    /// Thread-safe for concurrent returns from multiple threads.
     /// </summary>
     internal void ReturnQueryToPool(SpatialQuery query)
     {
-        if (_queryPool.Count < MaxPooledQueries)
+        lock (_queryPoolLock)
         {
-            _queryPool.Push(query);  // Store for reuse
+            if (_queryPool.Count < MaxPooledQueries)
+            {
+                _queryPool.Push(query);  // Store for reuse
+            }
+            // If pool is full, let query be garbage collected (prevents unbounded growth)
         }
-        // If pool is full, let query be garbage collected (prevents unbounded growth)
     }
     
     /// <summary>

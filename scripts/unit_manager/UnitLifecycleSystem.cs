@@ -18,6 +18,7 @@ internal class UnitLifecycleSystem
     private readonly Dictionary<UnitType, UnitTypeRuntimeData> _unitTypesRuntime;
     private readonly List<Unit> _allUnits;
     private readonly List<int> _freeIndices;
+    private readonly UnitMovementSystem _movementSystem;
     
     private int _aliveCountForAll = 0;
 
@@ -28,13 +29,15 @@ internal class UnitLifecycleSystem
         SpatialGridManager gridManager,
         Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime,
         List<Unit> allUnits,
-        List<int> freeIndices)
+        List<int> freeIndices,
+        UnitMovementSystem movementSystem)
     {
         _navMap = navMap;
         _gridManager = gridManager;
         _unitTypesRuntime = unitTypesRuntime;
         _allUnits = allUnits;
         _freeIndices = freeIndices;
+        _movementSystem = movementSystem;
     }
 
     /// <summary>
@@ -148,6 +151,8 @@ internal class UnitLifecycleSystem
         {
             NavigationServer3D.FreeRid(unit.AgentRid);
         }
+        
+        _movementSystem.CleanupUnitPath(unit);
 
         // Update MultiMesh
         var runtime = _unitTypesRuntime[unit.UnitType];

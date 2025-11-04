@@ -1,18 +1,18 @@
 [gd_scene load_steps=27 format=3 uid="uid://dn3qkyl5xdal6"]
 
-[ext_resource type="Script" uid="uid://dmef6c1yheod1" path="res://scripts/game/GameNew.cs" id="1_vaxfo"]
+[ext_resource type="Script" uid="uid://dmef6c1yheod1" path="res://scripts/game/Game.cs" id="1_vaxfo"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://scenes/camera/rts/rts_camera.tscn" id="3_ftsea"]
 [ext_resource type="PackedScene" uid="uid://b5w4dwx16567k" path="res://scenes/grids/placement/placement_grid.tscn" id="4_otnwt"]
 [ext_resource type="PackedScene" uid="uid://cll5aue32ry52" path="res://scenes/controllers/placement/building_placement_controller.tscn" id="5_3xj4h"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://scenes/entities/buildings/spawner_building.tscn" id="6_5v6r0"]
-[ext_resource type="Script" uid="uid://dsf27yj0uwb2f" path="res://resources/BuildingCatalogEntryNew.cs" id="6_ftsea"]
+[ext_resource type="Script" uid="uid://dsf27yj0uwb2f" path="res://resources/BuildingCatalogEntry.cs" id="6_ftsea"]
 [ext_resource type="PackedScene" uid="uid://dglrm60njnkoq" path="res://scenes/grids/placement_visualizer/placement_grid_visualizer.tscn" id="7_uyinl"]
-[ext_resource type="Script" uid="uid://dsf2igywk2w5s" path="res://scripts/levels/LevelNew.cs" id="8_3xj4h"]
+[ext_resource type="Script" uid="uid://dsf2igywk2w5s" path="res://scripts/levels/Level.cs" id="8_3xj4h"]
 [ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://scenes/grids/spatial/spatial_grid.tscn" id="9_pg2xm"]
 [ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://scenes/unit_manager/unit_manager.tscn" id="10_gc57s"]
-[ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/BuffNew.cs" id="11_5jirj"]
-[ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerDataNew.cs" id="11_vaxfo"]
-[ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingDataNew.cs" id="12_vaxfo"]
+[ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/Buff.cs" id="11_5jirj"]
+[ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerData.cs" id="11_vaxfo"]
+[ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingData.cs" id="12_vaxfo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -143,6 +143,7 @@ size = Vector3(512, 1, 512)
 [node name="UnitManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("NavigationRegion", "GridManager") instance=ExtResource("10_gc57s")]
 NavigationRegion = NodePath("../NavigationRegion3D")
 GridManager = NodePath("../SpatialGridManager")
+MaxUnitsUpdatedPerFrame = 1000
 
 [node name="MeshInstance3D14" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 mesh = SubResource("BoxMesh_5vw27")

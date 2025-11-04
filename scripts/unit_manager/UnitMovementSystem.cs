@@ -1,7 +1,10 @@
+using System.Buffers;
 using Godot;
 using Incrememental.scripts.entities.units;
 using Incrememental.scripts.grids.spatial;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using static System.Array;
 
 namespace Incrememental.scripts.unit_manager;
 
@@ -12,11 +15,14 @@ internal class UnitMovementSystem
 {
     private readonly Rid _navMap;
     private readonly SpatialGridManager _gridManager;
+    private readonly ArrayPool<Vector3> _pathPool;
+    private readonly List<(Unit unit, Vector3 newPosition)> _gridUpdateQueue = new();
 
     public UnitMovementSystem(Rid navMap, SpatialGridManager gridManager)
     {
         _navMap = navMap;
         _gridManager = gridManager;
+        _pathPool = ArrayPool<Vector3>.Shared;
     }
 
     /// <summary>
@@ -25,20 +31,34 @@ internal class UnitMovementSystem
     public void SetUnitPath(Unit unit, Vector3 target)
     {
         var godotPath = NavigationServer3D.MapGetPath(_navMap, unit.Position, target, true);
-        
         var pathLength = godotPath.Length;
+        
         if (pathLength > 0)
         {
-            var nativePath = new Vector3[pathLength];
+            if (unit.NavPath != null && unit.NavPath.Length > 0 && unit.NavPath != Empty<Vector3>())
+            {
+                _pathPool.Return(unit.NavPath, clearArray: false);
+            }
+
+            var nativePath = _pathPool.Rent(pathLength);
+            
             for (int i = 0; i < pathLength; i++)
             {
                 nativePath[i] = godotPath[i];
             }
+            
             unit.NavPath = nativePath;
+            unit.PathLength = pathLength;
         }
         else
         {
-            unit.NavPath = System.Array.Empty<Vector3>();
+            if (unit.NavPath != null && unit.NavPath.Length > 0 && unit.NavPath != System.Array.Empty<Vector3>())
+            {
+                _pathPool.Return(unit.NavPath, clearArray: false);
+            }
+            
+            unit.NavPath = Empty<Vector3>();
+            unit.PathLength = 0;
         }
         
         unit.PathIndex = 0;
@@ -68,20 +88,24 @@ internal class UnitMovementSystem
 
     /// <summary>
     /// Updates unit movement along paths and updates grid positions.
+    /// Uses parallel processing with deferred grid updates.
     /// </summary>
     public void UpdateMovement(List<Unit> allUnits, float delta)
     {
-        for (int i = 0; i < allUnits.Count; i++)
+        _gridUpdateQueue.Clear();
+        
+        // Parallel movement computation
+        Parallel.For(0, allUnits.Count, i =>
         {
             var unit = allUnits[i];
             if (!unit.IsAlive || unit.IsDying)
-                continue;
+                return;
 
             var safeVelocity = NavigationServer3D.AgentGetVelocity(unit.AgentRid);
             var navPath = unit.NavPath;
             var pathIndex = unit.PathIndex;
 
-            if (navPath.Length > 0 && pathIndex < navPath.Length)
+            if (navPath.Length > 0 && pathIndex < unit.PathLength)
             {
                 var target = navPath[pathIndex];
                 var currentPos = unit.Position;
@@ -92,10 +116,10 @@ internal class UnitMovementSystem
                     pathIndex++;
                     unit.PathIndex = pathIndex;
                     
-                    if (pathIndex >= navPath.Length)
+                    if (pathIndex >= unit.PathLength)
                     {
                         unit.Velocity = Vector3.Zero;
-                        continue;
+                        return;
                     }
                     else
                     {
@@ -111,16 +135,47 @@ internal class UnitMovementSystem
                 var newPos = currentPos + safeVelocity * delta;
                 unit.Position = newPos;
                 
-                // Update grid position
+                // Queue grid update instead of doing it here
                 if (unit.GridEntity != null)
                 {
-                    _gridManager.UpdateEntityPosition(unit.GridEntity, newPos);
+                    lock (_gridUpdateQueue)
+                    {
+                        _gridUpdateQueue.Add((unit, newPos));
+                    }
                 }
             }
             else
             {
                 unit.Velocity = Vector3.Zero;
             }
+        });
+        
+        // Apply grid updates on main thread (single-threaded, no contention)
+        ApplyGridUpdates();
+    }
+    
+    /// <summary>
+    /// Applies queued grid position updates on the main thread.
+    /// </summary>
+    private void ApplyGridUpdates()
+    {
+        foreach (var (unit, newPosition) in _gridUpdateQueue)
+        {
+            _gridManager.UpdateEntityPosition(unit.GridEntity, newPosition);
+        }
+    }
+    
+    /// <summary>
+    /// Cleans up a unit's path when it's destroyed.
+    /// Call this from UnitLifecycleSystem.DestroyUnit()
+    /// </summary>
+    public void CleanupUnitPath(Unit unit)
+    {
+        if (unit.NavPath != null && unit.NavPath.Length > 0 && unit.NavPath != Empty<Vector3>())
+        {
+            _pathPool.Return(unit.NavPath, clearArray: false);
+            unit.NavPath = [];
+            unit.PathLength = 0;
         }
     }
 }

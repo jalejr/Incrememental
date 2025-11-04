@@ -43,6 +43,7 @@ public partial class Unit : RefCounted, ICombatEntity
     public Rid AgentRid { get; set; }
     public Vector3[] NavPath { get; set; } = System.Array.Empty<Vector3>();
     public int PathIndex { get; set; } = 0;
+    public int PathLength { get; set; } = 0;
 
     public SpatialGridEntity GridEntity { get; set; }
     public Node SpawnBuilding { get; set; }
