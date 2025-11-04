@@ -4,6 +4,7 @@ using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
 using Incrememental.scripts.global;
 using Incrememental.scripts.grids.spatial;
+using Incrememental.scripts.debugging;
 using System.Collections.Generic;
 
 namespace Incrememental.scripts.unit_manager;
@@ -41,6 +42,10 @@ public partial class UnitManager : Node
     
     private System.Threading.ThreadLocal<UnitLogicContext> _threadLocalContext;
     private System.Collections.Concurrent.ConcurrentBag<UnitLogicContext> _activeContexts;
+    
+    // Cached arrays to avoid allocation in ProcessDamageQueue
+    private Unit[] _damageTargetsCache;
+    private int[] _damageAmountsCache;
 
     public override void _Ready()
     {
@@ -74,6 +79,10 @@ public partial class UnitManager : Node
         _damageQueue = new Dictionary<Unit, int>(MaxUnitsUpdatedPerFrame);
         _destroyQueue = new List<Unit>(MaxUnitsUpdatedPerFrame / 2);
         
+        // Pre-allocate damage processing arrays
+        _damageTargetsCache = new Unit[MaxUnitsUpdatedPerFrame];
+        _damageAmountsCache = new int[MaxUnitsUpdatedPerFrame];
+        
         // Pre-warm thread pool to create worker threads and initialize ThreadLocal contexts
         PreWarmThreadPool();
     }
@@ -104,6 +113,9 @@ public partial class UnitManager : Node
         }).Wait(); // Block until pre-warming completes
         
         GD.Print($"Thread pool pre-warmed. Active contexts: {_activeContexts.Count}");
+        
+        // Run allocation stability test after warmup
+        AllocationTracker.TestStability(this, 10.0f);
     }
 
     public override void _Process(double delta)
@@ -113,12 +125,26 @@ public partial class UnitManager : Node
 
     public override void _PhysicsProcess(double delta)
     {
+        AllocationTracker.BeginFrame();
         _logicSystem.Update((float)delta, _allUnits, _lifecycleSystem.AliveCount, MaxUnitsUpdatedPerFrame, 
             _damageQueue, _destroyQueue, _damageQueueMutex, _destroyQueueMutex);
+        AllocationTracker.EndFrame("  Logic");
+        
+        AllocationTracker.BeginFrame();
         ProcessDamageQueue();
+        AllocationTracker.EndFrame("  DamageQueue");
+        
+        AllocationTracker.BeginFrame();
         ProcessDestroyQueue();
+        AllocationTracker.EndFrame("  DestroyQueue");
+        
+        AllocationTracker.BeginFrame();
         _movementSystem.UpdateNavigationSync(_allUnits);
+        AllocationTracker.EndFrame("  NavSync");
+        
+        AllocationTracker.BeginFrame();
         _movementSystem.UpdateMovement(_allUnits, (float)delta);
+        AllocationTracker.EndFrame("  Movement");
     }
 
     /// <summary>
@@ -165,10 +191,20 @@ public partial class UnitManager : Node
         if (_damageQueue.Count == 0)
             return;
 
-        foreach (var kvp in _damageQueue)
+        // Use cached arrays to avoid allocation
+        int index = 0;
+        
+        foreach (var kvp in _damageQueue) // Dictionary requires foreach, but we minimize impact
         {
-            var target = kvp.Key;
-            var damage = kvp.Value;
+            _damageTargetsCache[index] = kvp.Key;
+            _damageAmountsCache[index] = kvp.Value;
+            index++;
+        }
+
+        for (int i = 0; i < index; i++)
+        {
+            var target = _damageTargetsCache[i];
+            var damage = _damageAmountsCache[i];
 
             target.Health -= damage;
 
@@ -176,6 +212,9 @@ public partial class UnitManager : Node
             {
                 target.StartDying();
             }
+            
+            // Clear references to avoid keeping objects alive
+            _damageTargetsCache[i] = null;
         }
 
         _damageQueue.Clear();
@@ -186,9 +225,10 @@ public partial class UnitManager : Node
         if (_destroyQueue.Count == 0)
             return;
 
-        foreach (var unit in _destroyQueue)
+        // Use for loop to avoid enumerator allocation
+        for (int i = 0; i < _destroyQueue.Count; i++)
         {
-            DestroyUnit(unit.ManagerIndex);
+            DestroyUnit(_destroyQueue[i].ManagerIndex);
         }
 
         _destroyQueue.Clear();
