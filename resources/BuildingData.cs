@@ -1,0 +1,48 @@
+using Godot;
+using Godot.Collections;
+using Incrememental.scripts.entities;
+
+namespace Incrememental.resources;
+
+/// <summary>
+/// Configuration data for building types.
+/// </summary>
+[GlobalClass]
+public partial class BuildingData : Resource
+{
+    [ExportGroup("Identity")]
+    [Export] public string BuildingId { get; set; } = "name";
+    [Export] public string DisplayName { get; set; } = "Name";
+    [Export(PropertyHint.MultilineText)] public string Description { get; set; } = "Populate with real description";
+    [Export] public Texture2D Icon { get; set; }
+
+    [ExportGroup("Placement")]
+    [Export] public Vector2I GridSize { get; set; } = new(2, 2);
+    [Export] public int UnlockRadius { get; set; } = 1;
+    [Export] public int BuffRadius { get; set; } = 1;
+    [Export] public int PlacementCost { get; set; } = 50;
+
+    [ExportGroup("Combat")]
+    [Export] public float MaxHealth { get; set; } = 100.0f;
+    [Export] public Team TeamId { get; set; }
+    [Export] public float Radius { get; set; } = 2.0f;
+
+    [ExportGroup("Adjacency Buffs")]
+    [Export] public Array<Buff> AdjacentAuraBuffs { get; set; } = new();
+
+    [ExportGroup("Meta Progression")]
+    [Export] public string RequiresResearchId { get; set; } = "";
+
+    /// <summary>
+    /// Checks if this building is unlocked based on research requirements.
+    /// </summary>
+    public bool IsUnlocked()
+    {
+        if (!string.IsNullOrEmpty(RequiresResearchId))
+        {
+            // TODO: Implement research logic
+            return false;
+        }
+        return true;
+    }
+}

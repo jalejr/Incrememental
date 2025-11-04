@@ -1,20 +1,18 @@
-[gd_scene load_steps=25 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=27 format=3 uid="uid://dn3qkyl5xdal6"]
 
-[ext_resource type="Script" uid="uid://bkbvkwgc6q28e" path="res://scripts/game/game.gd" id="1_5jirj"]
-[ext_resource type="Script" uid="uid://wlibnqq7ntfj" path="res://scripts/compositor/edge_detection_compositor.gd" id="2_vaxfo"]
+[ext_resource type="Script" uid="uid://dmef6c1yheod1" path="res://scripts/game/GameNew.cs" id="1_vaxfo"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://scenes/camera/rts/rts_camera.tscn" id="3_ftsea"]
 [ext_resource type="PackedScene" uid="uid://b5w4dwx16567k" path="res://scenes/grids/placement/placement_grid.tscn" id="4_otnwt"]
 [ext_resource type="PackedScene" uid="uid://cll5aue32ry52" path="res://scenes/controllers/placement/building_placement_controller.tscn" id="5_3xj4h"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://scenes/entities/buildings/spawner_building.tscn" id="6_5v6r0"]
+[ext_resource type="Script" uid="uid://dsf27yj0uwb2f" path="res://resources/BuildingCatalogEntryNew.cs" id="6_ftsea"]
 [ext_resource type="PackedScene" uid="uid://dglrm60njnkoq" path="res://scenes/grids/placement_visualizer/placement_grid_visualizer.tscn" id="7_uyinl"]
-[ext_resource type="Script" uid="uid://5urlldyq2fti" path="res://scripts/levels/level.gd" id="8_10c2w"]
+[ext_resource type="Script" uid="uid://dsf2igywk2w5s" path="res://scripts/levels/LevelNew.cs" id="8_3xj4h"]
 [ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://scenes/grids/spatial/spatial_grid.tscn" id="9_pg2xm"]
 [ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://scenes/unit_manager/unit_manager.tscn" id="10_gc57s"]
-[ext_resource type="Script" uid="uid://cag84r2xxki5h" path="res://resources/unit_type_config.gd" id="11_8b66f"]
-[ext_resource type="Resource" uid="uid://byu0ulg3x22fg" path="res://resources/unit_type_configs/soldier_type_config.tres" id="12_3jaai"]
-[ext_resource type="Resource" uid="uid://b6hrhrry6ssq7" path="res://resources/spawner_data/base_spawner_data.tres" id="13_ftsea"]
-[ext_resource type="Resource" uid="uid://b8sg6idyythr8" path="res://resources/unit_type_configs/demon_type_config.tres" id="13_otnwt"]
-[ext_resource type="Resource" uid="uid://b5gxi20u4ip5i" path="res://resources/building_data/base_data.tres" id="13_vaxfo"]
+[ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/BuffNew.cs" id="11_5jirj"]
+[ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerDataNew.cs" id="11_vaxfo"]
+[ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingDataNew.cs" id="12_vaxfo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -29,18 +27,16 @@ sky = SubResource("Sky_0xm2m")
 tonemap_mode = 2
 glow_enabled = true
 
-[sub_resource type="CompositorEffect" id="CompositorEffect_1bvp3"]
-resource_local_to_scene = false
-resource_name = ""
-enabled = true
-effect_callback_type = 4
-needs_motion_vectors = false
-needs_normal_roughness = true
-script = ExtResource("2_vaxfo")
-metadata/_custom_type_script = "uid://wlibnqq7ntfj"
+[sub_resource type="Resource" id="Resource_uyinl"]
+script = ExtResource("12_vaxfo")
+metadata/_custom_type_script = "uid://d0q44pydcatip"
 
-[sub_resource type="Compositor" id="Compositor_lquwl"]
-compositor_effects = Array[CompositorEffect]([SubResource("CompositorEffect_1bvp3")])
+[sub_resource type="Resource" id="Resource_5v6r0"]
+script = ExtResource("6_ftsea")
+BuildingData = SubResource("Resource_uyinl")
+Scene = ExtResource("6_5v6r0")
+PreviewScene = ExtResource("6_5v6r0")
+metadata/_custom_type_script = "uid://dsf27yj0uwb2f"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lquwl"]
 albedo_color = Color(0.41568628, 0.49019608, 0.2, 1)
@@ -55,8 +51,32 @@ agent_height = 2.0
 
 [sub_resource type="BoxMesh" id="BoxMesh_5vw27"]
 
+[sub_resource type="Resource" id="Resource_otnwt"]
+script = ExtResource("11_vaxfo")
+UnitType = 4
+MaxUnits = 50
+SpawnCooldown = 0.1
+metadata/_custom_type_script = "uid://cs11amx2m81kf"
+
+[sub_resource type="Resource" id="Resource_ftsea"]
+script = ExtResource("12_vaxfo")
+TeamId = 2
+metadata/_custom_type_script = "uid://d0q44pydcatip"
+
+[sub_resource type="Resource" id="Resource_vaxfo"]
+script = ExtResource("11_vaxfo")
+UnitType = 1
+MaxUnits = 50
+SpawnCooldown = 0.1
+metadata/_custom_type_script = "uid://cs11amx2m81kf"
+
+[sub_resource type="Resource" id="Resource_3xj4h"]
+script = ExtResource("12_vaxfo")
+TeamId = 1
+metadata/_custom_type_script = "uid://d0q44pydcatip"
+
 [node name="Main" type="Node"]
-script = ExtResource("1_5jirj")
+script = ExtResource("1_vaxfo")
 
 [node name="World" type="Node3D" parent="."]
 metadata/_edit_lock_ = true
@@ -74,12 +94,11 @@ stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="Node3D/SubViewportContainer"]
 handle_input_locally = false
-size = Vector2i(1152, 648)
+size = Vector2i(1920, 1080)
 render_target_update_mode = 4
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="Node3D/SubViewportContainer/SubViewport"]
 environment = SubResource("Environment_h2yge")
-compositor = SubResource("Compositor_lquwl")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="Node3D/SubViewportContainer/SubViewport"]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, -96.97221, 127.69307, 0)
@@ -92,18 +111,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256, 0, 256)
 
 [node name="BuildingGridManager" parent="Node3D/SubViewportContainer/SubViewport" instance=ExtResource("4_otnwt")]
 
-[node name="BuildingPlacementController" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("placement_grid", "grid_visualizer", "camera") instance=ExtResource("5_3xj4h")]
-placement_grid = NodePath("../BuildingGridManager")
-grid_visualizer = NodePath("../BuildingGridVisualizer")
-camera = NodePath("../RtsCamera/Camera3D")
-test_scene = ExtResource("6_5v6r0")
+[node name="BuildingPlacementController" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("PlacementGrid", "GridVisualizer", "Camera") instance=ExtResource("5_3xj4h")]
+PlacementGrid = NodePath("../BuildingGridManager")
+GridVisualizer = NodePath("../BuildingGridVisualizer")
+Camera = NodePath("../RtsCamera/Camera3D")
+TestCatalogEntry = SubResource("Resource_5v6r0")
 
-[node name="BuildingGridVisualizer" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("placement_grid") instance=ExtResource("7_uyinl")]
-placement_grid = NodePath("../BuildingGridManager")
+[node name="BuildingGridVisualizer" parent="Node3D/SubViewportContainer/SubViewport" node_paths=PackedStringArray("PlacementGrid") instance=ExtResource("7_uyinl")]
+PlacementGrid = NodePath("../BuildingGridManager")
 
 [node name="Level" type="Node3D" parent="Node3D/SubViewportContainer/SubViewport"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 256, 0, 256)
-script = ExtResource("8_10c2w")
+script = ExtResource("8_3xj4h")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 material_override = SubResource("StandardMaterial3D_lquwl")
@@ -121,213 +140,261 @@ size = Vector3(512, 1, 512)
 
 [node name="SpatialGridManager" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("9_pg2xm")]
 
-[node name="UnitManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("navigation_region", "grid_manager") instance=ExtResource("10_gc57s")]
-unit_type_configs = Array[ExtResource("11_8b66f")]([ExtResource("12_3jaai"), ExtResource("13_otnwt")])
-navigation_region = NodePath("../NavigationRegion3D")
-grid_manager = NodePath("../SpatialGridManager")
-max_units_updated_per_frame = 50
+[node name="UnitManager" parent="Node3D/SubViewportContainer/SubViewport/Level" node_paths=PackedStringArray("NavigationRegion", "GridManager") instance=ExtResource("10_gc57s")]
+NavigationRegion = NodePath("../NavigationRegion3D")
+GridManager = NodePath("../SpatialGridManager")
 
 [node name="MeshInstance3D14" type="MeshInstance3D" parent="Node3D/SubViewportContainer/SubViewport/Level"]
 mesh = SubResource("BoxMesh_5vw27")
 skeleton = NodePath("../..")
 
-[node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-
 [node name="UnitSpawnerBuilding2" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, 0)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding3" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, 0)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding4" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, 0)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding5" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, 0)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding6" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, 0)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding7" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, 0)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding8" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, 0)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding9" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 0)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding10" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 0)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding11" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 34.3784)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding12" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, 34.3784)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding13" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, 34.3784)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding14" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, 34.3784)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding15" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, 34.3784)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding16" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, 34.3784)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding17" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, 34.3784)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding18" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, 34.3784)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding19" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 34.3784)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding20" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 34.3784)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding21" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 70.72644)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding22" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, 70.72644)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding23" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, 70.72644)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding24" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, 70.72644)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding25" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, 70.72644)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding26" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, 70.72644)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
-
-[node name="UnitSpawnerBuilding27" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, 70.72644)
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding28" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, 70.72644)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
+
+[node name="UnitSpawnerBuilding" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding3" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063995, 0, 0)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding5" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, 0)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding7" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.02005, 0, 0)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding9" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.362305, 0, 0)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding11" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 34.378387)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding13" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063995, 0, 34.378387)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding15" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, 34.378387)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding17" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.02005, 0, 34.378387)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding19" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.362305, 0, 34.378387)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding21" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 70.72644)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding23" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063995, 0, 70.72644)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding25" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, 70.72644)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
+
+[node name="UnitSpawnerBuilding27" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.02005, 0, 70.72644)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding29" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 70.72644)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.362305, 0, 70.72644)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding30" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, 70.72644)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding31" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -32.094826)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding32" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, -32.094826)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding33" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, -32.094826)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding34" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, -32.094826)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding35" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, -32.094826)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding36" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, -32.094826)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding37" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, -32.094826)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding38" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, -32.094826)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding39" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -32.094826)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding40" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -32.094826)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding41" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -61.54534)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding42" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, -61.54534)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding43" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.063988, 0, -61.54534)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding44" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -67.109406, 0, -61.54534)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding45" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -88.76021, 0, -61.54534)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding46" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.289001, 0, -61.54534)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding47" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45.020042, 0, -61.54534)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding48" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 75.03294, 0, -61.54534)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [node name="UnitSpawnerBuilding49" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -61.54534)
+SpawnerData = SubResource("Resource_vaxfo")
+BuildingData = SubResource("Resource_3xj4h")
 
 [node name="UnitSpawnerBuilding50" parent="Node3D/SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.36231, 0, -61.54534)
-spawner_data = ExtResource("13_ftsea")
-building_data = ExtResource("13_vaxfo")
+SpawnerData = SubResource("Resource_otnwt")
+BuildingData = SubResource("Resource_ftsea")
 
 [editable path="Node3D/SubViewportContainer/SubViewport/RtsCamera"]
