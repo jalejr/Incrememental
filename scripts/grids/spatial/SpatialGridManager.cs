@@ -18,11 +18,18 @@ public partial class SpatialGridManager : GridBase
     private Dictionary<int, SpatialGridEntity> _entityIdToEntity = new();
     private int _nextEntityId = 0;
     
-    private readonly Stack<SpatialQuery> _queryPool = new();
-    private readonly object _queryPoolLock = new();
+    private readonly System.Threading.ThreadLocal<Stack<SpatialQuery>> _threadLocalQueryPool;
     private const int MaxPooledQueries = 20;
     
     private SpatialQueryExecutor _queryExecutor;
+    
+    public SpatialGridManager()
+    {
+        // Initialize thread-local query pools
+        _threadLocalQueryPool = new System.Threading.ThreadLocal<Stack<SpatialQuery>>(
+            () => new Stack<SpatialQuery>(MaxPooledQueries)
+        );
+    }
     
     internal IReadOnlyList<SpatialGridEntity> GetCellEntities(Vector2I cell) => _entityGrid[cell.X][cell.Y];
 
@@ -174,47 +181,44 @@ public partial class SpatialGridManager : GridBase
     #region Query Builder API
     
     /// <summary>
-    /// Creates a new fluent query builder (from object pool for zero allocations).
+    /// Creates a new fluent query builder (from thread-local pool for zero allocations).
     /// Example: grid.Query().At(pos).Within(10f).OfType(EntityType.Unit).Execute()
-    /// Thread-safe for concurrent queries from multiple threads.
+    /// Thread-safe for concurrent queries from multiple threads (lock-free).
     /// </summary>
     public SpatialQuery Query()
     {
+        var pool = _threadLocalQueryPool.Value;
         SpatialQuery query;
         
-        lock (_queryPoolLock)
+        // Try to get from thread-local pool (no lock needed!)
+        if (pool.Count > 0)
         {
-            // Try to get from pool
-            if (_queryPool.Count > 0)
-            {
-                query = _queryPool.Pop();  // Reuse existing object! ✅
-            }
-            else
-            {
-                query = new SpatialQuery();  // Create new if pool is empty
-            }
+            query = pool.Pop();  // Reuse existing object! ✅
+        }
+        else
+        {
+            query = new SpatialQuery();  // Create new if pool is empty
         }
         
-        // Reset for reuse (outside lock - no contention)
+        // Reset for reuse
         query.Reset(this);
         
         return query;
     }
     
     /// <summary>
-    /// Returns a query to the pool for reuse (called automatically by Execute()).
-    /// Thread-safe for concurrent returns from multiple threads.
+    /// Returns a query to the thread-local pool for reuse (called automatically by Execute()).
+    /// Thread-safe for concurrent returns from multiple threads (lock-free).
     /// </summary>
     internal void ReturnQueryToPool(SpatialQuery query)
     {
-        lock (_queryPoolLock)
+        var pool = _threadLocalQueryPool.Value;
+        
+        if (pool.Count < MaxPooledQueries)
         {
-            if (_queryPool.Count < MaxPooledQueries)
-            {
-                _queryPool.Push(query);  // Store for reuse
-            }
-            // If pool is full, let query be garbage collected (prevents unbounded growth)
+            pool.Push(query);  // Store for reuse
         }
+        // If pool is full, let query be garbage collected (prevents unbounded growth)
     }
     
     /// <summary>

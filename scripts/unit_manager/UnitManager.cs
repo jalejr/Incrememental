@@ -73,6 +73,37 @@ public partial class UnitManager : Node
         
         _damageQueue = new Dictionary<Unit, int>(MaxUnitsUpdatedPerFrame);
         _destroyQueue = new List<Unit>(MaxUnitsUpdatedPerFrame / 2);
+        
+        // Pre-warm thread pool to create worker threads and initialize ThreadLocal contexts
+        PreWarmThreadPool();
+    }
+    
+    /// <summary>
+    /// Pre-warms the thread pool by forcing worker thread creation and ThreadLocal initialization.
+    /// This prevents first-frame allocation spikes.
+    /// </summary>
+    private void PreWarmThreadPool()
+    {
+        GD.Print($"Pre-warming thread pool with {_threadCount} workers...");
+        
+        // Force thread pool to create workers by running empty parallel work
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            System.Threading.Tasks.Parallel.For(0, _threadCount * 2, new System.Threading.Tasks.ParallelOptions
+            {
+                MaxDegreeOfParallelism = _threadCount
+            }, _ =>
+            {
+                // Touch ThreadLocal to force initialization
+                var context = GetContextForThread();
+                
+                // Touch grid manager's ThreadLocal query pool
+                var query = GridManager.Query();
+                GridManager.ReturnQueryToPool(query);
+            });
+        }).Wait(); // Block until pre-warming completes
+        
+        GD.Print($"Thread pool pre-warmed. Active contexts: {_activeContexts.Count}");
     }
 
     public override void _Process(double delta)

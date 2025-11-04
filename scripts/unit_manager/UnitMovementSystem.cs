@@ -16,13 +16,23 @@ internal class UnitMovementSystem
     private readonly Rid _navMap;
     private readonly SpatialGridManager _gridManager;
     private readonly ArrayPool<Vector3> _pathPool;
-    private readonly List<(Unit unit, Vector3 newPosition)> _gridUpdateQueue = new();
+    private readonly System.Threading.ThreadLocal<List<(Unit unit, Vector3 newPosition)>> _threadLocalGridUpdates;
+    private readonly System.Collections.Concurrent.ConcurrentBag<List<(Unit, Vector3)>> _allGridUpdateBuffers;
 
     public UnitMovementSystem(Rid navMap, SpatialGridManager gridManager)
     {
         _navMap = navMap;
         _gridManager = gridManager;
         _pathPool = ArrayPool<Vector3>.Shared;
+        
+        // Thread-local grid update buffers (no locking needed)
+        _allGridUpdateBuffers = new System.Collections.Concurrent.ConcurrentBag<List<(Unit, Vector3)>>();
+        _threadLocalGridUpdates = new System.Threading.ThreadLocal<List<(Unit, Vector3)>>(() =>
+        {
+            var buffer = new List<(Unit, Vector3)>(100); // Pre-sized
+            _allGridUpdateBuffers.Add(buffer);
+            return buffer;
+        });
     }
 
     /// <summary>
@@ -88,13 +98,17 @@ internal class UnitMovementSystem
 
     /// <summary>
     /// Updates unit movement along paths and updates grid positions.
-    /// Uses parallel processing with deferred grid updates.
+    /// Uses parallel processing with thread-local grid update buffers (lock-free).
     /// </summary>
     public void UpdateMovement(List<Unit> allUnits, float delta)
     {
-        _gridUpdateQueue.Clear();
+        // Clear all thread-local buffers
+        foreach (var buffer in _allGridUpdateBuffers)
+        {
+            buffer.Clear();
+        }
         
-        // Parallel movement computation
+        // Parallel movement computation - NO LOCKS
         Parallel.For(0, allUnits.Count, i =>
         {
             var unit = allUnits[i];
@@ -135,13 +149,10 @@ internal class UnitMovementSystem
                 var newPos = currentPos + safeVelocity * delta;
                 unit.Position = newPos;
                 
-                // Queue grid update instead of doing it here
+                // Queue grid update to thread-local buffer (no lock!)
                 if (unit.GridEntity != null)
                 {
-                    lock (_gridUpdateQueue)
-                    {
-                        _gridUpdateQueue.Add((unit, newPos));
-                    }
+                    _threadLocalGridUpdates.Value.Add((unit, newPos));
                 }
             }
             else
@@ -151,17 +162,20 @@ internal class UnitMovementSystem
         });
         
         // Apply grid updates on main thread (single-threaded, no contention)
-        ApplyGridUpdates();
+        ApplyAllGridUpdates();
     }
     
     /// <summary>
-    /// Applies queued grid position updates on the main thread.
+    /// Applies all queued grid position updates from all thread buffers on the main thread.
     /// </summary>
-    private void ApplyGridUpdates()
+    private void ApplyAllGridUpdates()
     {
-        foreach (var (unit, newPosition) in _gridUpdateQueue)
+        foreach (var buffer in _allGridUpdateBuffers)
         {
-            _gridManager.UpdateEntityPosition(unit.GridEntity, newPosition);
+            foreach (var (unit, newPosition) in buffer)
+            {
+                _gridManager.UpdateEntityPosition(unit.GridEntity, newPosition);
+            }
         }
     }
     
