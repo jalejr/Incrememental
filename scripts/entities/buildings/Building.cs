@@ -6,29 +6,20 @@ using Incrememental.scripts.global;
 namespace Incrememental.scripts.entities.buildings;
 
 /// <summary>
-/// Base class for all buildings in the game.
-/// Uses C# events instead of Godot signals to avoid marshalling overhead.
+/// Base class for all buildings in the game
 /// </summary>
 [GlobalClass]
 public partial class Building : Node3D, ICombatEntity
 {
-    // C# event instead of Godot signal
     public event System.Action<float, float> HealthChanged;
-
-    // Export variables
     [Export] public BuildingData BuildingData { get; set; }
-
-    // IEntity implementation - direct properties (no delegation!)
     public EntityType Type => EntityType.Building;
-    
-    // Buildings sync Position with Godot's GlobalPosition
-    // Note: 'new' keyword explicitly hides Node3D.Position (which is Transform.Origin)
+    // Hiding Godot Position property
     public new Vector3 Position
     {
         get => GlobalPosition;
         set => GlobalPosition = value;
     }
-    
     public float Radius { get; set; }
     public Team TeamId { get; set; }
     public bool IsTargetable { get; set; } = true;
@@ -36,8 +27,6 @@ public partial class Building : Node3D, ICombatEntity
     public bool IsAlive { get; set; } = true;
     public float Health { get; set; }
     public float MaxHealth { get; set; }
-
-    // Building-specific data
     public List<Buff> AdjacentAuraBuffs { get; set; } = new();
     public Dictionary<Building, List<Buff>> ActiveBuffs { get; set; } = new();
     public Dictionary<BuffType, float> CachedBuffsCalculated { get; set; } = new();

@@ -16,12 +16,10 @@ public partial class UnitTypeConfig : Resource
     [Export] public int MaxCount { get; set; }
 
     /// <summary>
-    /// Creates a new instance of the unit for this configuration.
-    /// Uses a factory pattern to determine which unit class to instantiate.
+    /// Creates a new instance of the unit for this configuration
     /// </summary>
     public Unit CreateUnit()
     {
-        // Factory pattern - customize this based on your unit types
         return UnitType switch
         {
             UnitType.Soldier => new MeleeUnit(),

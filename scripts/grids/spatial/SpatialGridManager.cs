@@ -12,21 +12,17 @@ public partial class SpatialGridManager : GridBase
 {
     [Export] public Vector2 GridWorldSize { get; set; } = new(512.0f, 512.0f);
 
-    // Unified grid - all entities in one place
     private List<SpatialGridEntity>[][] _entityGrid;
     private Vector2I _gridSize = Vector2I.Zero;
     
     private Dictionary<int, SpatialGridEntity> _entityIdToEntity = new();
     private int _nextEntityId = 0;
     
-    // Object pooling for queries (zero allocations!)
     private readonly Stack<SpatialQuery> _queryPool = new();
-    private const int MaxPooledQueries = 20;  // Prevents unbounded growth
+    private const int MaxPooledQueries = 20;
     
-    // Query executor (separated for better organization)
     private SpatialQueryExecutor _queryExecutor;
     
-    // Internal accessors for query executor
     internal IReadOnlyList<SpatialGridEntity> GetCellEntities(Vector2I cell) => _entityGrid[cell.X][cell.Y];
 
     public override void _Ready()
@@ -69,8 +65,7 @@ public partial class SpatialGridManager : GridBase
     }
 
     /// <summary>
-    /// Updates an entity's position in the grid.
-    /// Note: This only updates grid tracking. The entity's position should already be updated by the caller.
+    /// Updates an entity's position in the grid
     /// </summary>
     public void UpdateEntityPosition(SpatialGridEntity entity, Vector3 newPosition)
     {
@@ -85,7 +80,6 @@ public partial class SpatialGridManager : GridBase
 
             AddToGrid(entity);
         }
-        // If same cell, no grid update needed (position changes within cell are fine)
     }
 
 

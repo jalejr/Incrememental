@@ -4,8 +4,7 @@ using Incrememental.scripts.entities;
 namespace Incrememental.scripts.grids.spatial;
 
 /// <summary>
-/// Represents an entity tracked in the spatial grid.
-/// Pure C# data structure - not added to scene tree.
+/// Represents an entity tracked in the spatial grid
 /// </summary>
 public class SpatialGridEntity
 {

@@ -4,8 +4,6 @@ namespace Incrememental.scripts.global;
 
 /// <summary>
 /// Centralized cache of input action StringNames.
-/// Prevents allocation overhead and provides a single source of truth for all input actions.
-/// StringName is optimized for Godot's internal lookups (actions, node paths, signals).
 /// </summary>
 public static class InputAction
 {

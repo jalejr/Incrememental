@@ -5,8 +5,7 @@ using System.Collections.Generic;
 namespace Incrememental.scripts.grids.placement;
 
 /// <summary>
-/// Visualizes the placement grid with unlocked/occupied cells and placement preview.
-/// Optimized C# port of PlacementGridVisualizer.
+/// Visualizes the placement grid with unlocked/occupied cells and placement preview
 /// </summary>
 [GlobalClass]
 public partial class PlacementGridVisualizer : Node3D

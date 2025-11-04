@@ -12,7 +12,6 @@ namespace Incrememental.scripts.entities.units;
 /// </summary>
 public partial class Unit : RefCounted, ICombatEntity
 {
-    // IEntity implementation - direct properties (no delegation!)
     public EntityType Type => EntityType.Unit;
     public Vector3 Position { get; set; }
     public float Radius { get; set; }
@@ -23,38 +22,31 @@ public partial class Unit : RefCounted, ICombatEntity
     public float Health { get; set; }
     public float MaxHealth { get; set; }
     
-    // Unit-specific data
     public int ManagerIndex { get; set; }
     public UnitType UnitType { get; set; }
     public Vector3 VisualPosition { get; set; }
     public Vector3 Velocity { get; set; }
     public UnitStats Stats { get; set; }
 
-    // Spawning/Death state
     public float SpawnTimer { get; set; } = 0.0f;
     public float SpawnProtectionTime { get; set; } = 1.5f;
     public bool IsDying { get; set; } = false;
     public float DeathTimer { get; set; } = 0.0f;
     public float DeathDuration { get; set; } = 1.5f;
 
-    // Homeless (spawner building destroyed)
     public bool IsHomeless { get; set; } = false;
 
-    // Pathfinding
     public Vector3 CachedTargetPosition { get; set; } = Vector3.Zero;
     public float PathAge { get; set; } = 0.0f;
     public float PathRecalcInterval { get; set; } = 0.5f;
 
-    // Navigation
     public Rid AgentRid { get; set; }
     public Vector3[] NavPath { get; set; } = System.Array.Empty<Vector3>();
     public int PathIndex { get; set; } = 0;
 
-    // Grid tracking - direct reference for performance
     public SpatialGridEntity GridEntity { get; set; }
     public Node SpawnBuilding { get; set; }
 
-    // Caching - direct reference for performance
     public UnitTypeRuntimeData CachedRuntime { get; set; }
     private LifecycleState LifecycleState { get; set; } = LifecycleState.Spawning;
 
@@ -110,7 +102,6 @@ public partial class Unit : RefCounted, ICombatEntity
         );
         var transform = new Transform3D(Basis.Identity, Position);
         
-        // Call global NumberParticles autoload
         NumberParticles.Instance?.EmitParticle(
             transform,
             Vector3.Zero,

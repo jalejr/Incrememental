@@ -5,20 +5,17 @@ using System.Collections.Generic;
 namespace Incrememental.scripts.grids.placement;
 
 /// <summary>
-/// Manages building placement on a grid with unlock/occupied cell tracking.
-/// Optimized C# port of BuildingGridManager.
+/// Manages building placement on a grid with unlock/occupied cell tracking
 /// </summary>
 [GlobalClass]
 public partial class PlacementGrid : GridBase
 {
     [Export] public Vector2 GridWorldSize { get; set; } = new(512.0f, 512.0f);
 
-    // Native C# arrays for performance
     private int[][] _unlockedCells;  // Reference count per cell
     private PlacementGridData[][] _occupiedCells;  // Building data per cell (nullable)
     private Vector2I _gridSize = Vector2I.Zero;
     
-    // Native C# collections
     private List<PlacementGridData> _buildings = new();
     private Dictionary<Node3D, PlacementGridData> _buildingToPlacementData = new();
 

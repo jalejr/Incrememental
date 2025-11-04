@@ -9,8 +9,7 @@ using System.Collections.Generic;
 namespace Incrememental.scripts.unit_manager;
 
 /// <summary>
-/// Manages all units in the game with efficient MultiMesh rendering.
-/// Unit lifecycle events are now broadcast via EventBus for better decoupling.
+/// Manages all units in the game with efficient MultiMesh rendering
 /// </summary>
 [GlobalClass]
 public partial class UnitManager : Node

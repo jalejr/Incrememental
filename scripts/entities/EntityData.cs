@@ -4,8 +4,6 @@ namespace Incrememental.scripts.entities;
 
 /// <summary>
 /// Immutable snapshot of entity data.
-/// Used for multithreading, serialization, and passing entity state around.
-/// This is a struct (value type) for zero allocation and safe concurrent access.
 /// </summary>
 public struct EntityData
 {

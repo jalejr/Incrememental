@@ -9,13 +9,11 @@ namespace Incrememental.scripts.camera.rts;
 [GlobalClass]
 public partial class RtsCamera : Node3D
 {
-    // Constants
     private const float CameraPanMargin = 5.0f;
     private const float ZoomBuffer = 25.0f;
     private const float SpringDeadZone = 0.5f;
     private const float SpringStrength = 55.0f;
 
-    // Exports
     [Export] public float CameraPanSpeed { get; set; } = 100.0f;
     [Export] public float CameraRotateSpeed { get; set; } = 10.0f;
     [Export] public float CameraZoomSpeed { get; set; } = 4.0f;
@@ -47,16 +45,13 @@ public partial class RtsCamera : Node3D
 
     public override void _Process(double delta)
     {
-        // Reset target directions each frame (prevents accumulation)
         _cameraPanTargetDirection = Vector3.Zero;
         _cameraRotateTargetDirection = Vector3.Zero;
         
-        // Sample input to set target directions
         GetCameraPanMouseDirection();
         GetCameraPanKeyboardDirection();
         GetCameraRotateDirection();
         
-        // Apply with lerping for smooth acceleration/deceleration
         ApplyVelocity((float)delta);
     }
 
@@ -99,7 +94,6 @@ public partial class RtsCamera : Node3D
     public void GetCameraPanKeyboardDirection()
     {
         var inputDirection = Input.GetVector(InputAction.Left, InputAction.Right, InputAction.Forward, InputAction.Backward);
-        // Override or combine with mouse direction (keyboard takes priority)
         if (inputDirection != Vector2.Zero)
         {
             _cameraPanTargetDirection.X = inputDirection.X;
@@ -156,8 +150,7 @@ public partial class RtsCamera : Node3D
         var currentZ = _camera3D.Position.Z;
         var minLimit = CameraZoomRange.X - SpringDeadZone;
         var maxLimit = CameraZoomRange.Y + SpringDeadZone;
-
-        // Spring correction for smooth bounce
+        
         var springCorrection = 0.0f;
         if (currentZ < minLimit)
         {
@@ -173,7 +166,6 @@ public partial class RtsCamera : Node3D
             _camera3D.TranslateObjectLocal(new Vector3(0, 0, springCorrection));
         }
 
-        // Hard correction to prevent going too far
         var hardCorrection = 0.0f;
         if (currentZ < CameraZoomRange.X - ZoomBuffer)
         {
@@ -196,7 +188,6 @@ public partial class RtsCamera : Node3D
         var zoomVelocity = GetCameraZoomVelocity() * delta;
         var rotateVelocity = GetCameraRotateVelocity() * delta;
 
-        // Remap pan speed based on zoom level
         var remappedPanModifier = Mathf.Remap(
             _camera3D.Position.Z,
             CameraZoomRange.X, CameraZoomRange.Y,
@@ -219,8 +210,7 @@ public partial class RtsCamera : Node3D
         }
 
         CorrectCameraZoom(delta);
-
-        // Lerp actual directions toward targets for smooth acceleration/deceleration
+        
         _cameraPanDirection = _cameraPanDirection.Lerp(_cameraPanTargetDirection, CameraPanLerpSpeed * delta);
         _cameraZoomDirection = _cameraZoomDirection.Lerp(Vector3.Zero, CameraZoomLerpSpeed * delta);
         _cameraRotateDirection = _cameraRotateDirection.Lerp(_cameraRotateTargetDirection, CameraRotateLerpSpeed * delta);

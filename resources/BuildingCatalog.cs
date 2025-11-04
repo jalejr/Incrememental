@@ -5,8 +5,7 @@ using System.Collections.Generic;
 namespace Incrememental.resources;
 
 /// <summary>
-/// Catalog of available building types for lookup and retrieval.
-/// Optimized C# port of BuildingCatalog.
+/// Catalog of available building types for lookup and retrieval
 /// </summary>
 [GlobalClass]
 public partial class BuildingCatalog : Resource
@@ -29,7 +28,6 @@ public partial class BuildingCatalog : Resource
 
     /// <summary>
     /// Gets all available building entries.
-    /// Returns native C# list for performance.
     /// </summary>
     public List<BuildingCatalogEntry> GetAvailableEntries()
     {

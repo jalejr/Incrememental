@@ -4,8 +4,7 @@ using Godot.Collections;
 namespace Incrememental.scripts.entities.buildings;
 
 /// <summary>
-/// Manages the visual appearance of building previews during placement.
-/// Applies different materials to indicate valid/invalid placement positions.
+/// Manages the visual appearance of building previews during placement
 /// </summary>
 [GlobalClass]
 public partial class PreviewBuilding : Node3D

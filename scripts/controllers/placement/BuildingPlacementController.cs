@@ -6,8 +6,7 @@ using Incrememental.scripts.grids.placement;
 namespace Incrememental.scripts.controllers.placement;
 
 /// <summary>
-/// Handles player input for building placement with visual preview.
-/// Optimized C# port of BuildingPlacementController.
+/// Handles player input for building placement with visual preview
 /// </summary>
 [GlobalClass]
 public partial class BuildingPlacementController : Node

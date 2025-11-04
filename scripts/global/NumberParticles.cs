@@ -4,9 +4,6 @@ namespace Incrememental.scripts.global;
 
 /// <summary>
 /// Global particle emitter for number damage indicators.
-/// This should be set up as an AutoLoad singleton in Project Settings.
-/// Access via NumberParticles.Instance in C# code.
-/// Directly instantiates the particle scene instead of wrapping an autoload.
 /// </summary>
 public partial class NumberParticles : Node
 {

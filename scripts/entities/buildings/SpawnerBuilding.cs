@@ -17,7 +17,7 @@ public partial class SpawnerBuilding : Building
     [Export] public Godot.Collections.Array<Node3D> SpawnPoints { get; set; } = new();
 
     private UnitManager _unitManager;
-    private List<Unit> _spawnedUnits = new();  // C# List for performance
+    private List<Unit> _spawnedUnits = new();
     private Timer _spawnTimer;
     private int _nextSpawnPointIndex = 0;
 
@@ -25,7 +25,6 @@ public partial class SpawnerBuilding : Building
     {
         base._Ready();
 
-        // Get UnitManager from parent (C# node)
         _unitManager = GetNode<UnitManager>("../UnitManager");
         if (_unitManager == null)
         {
@@ -96,8 +95,7 @@ public partial class SpawnerBuilding : Building
         {
             buffsVariant[Variant.From((int)kvp.Key)] = kvp.Value;
         }
-
-        // Call C# UnitManager.SpawnUnit method
+        
         var unit = _unitManager.SpawnUnit(
             SpawnerData.UnitType,
             TeamId,
@@ -133,7 +131,6 @@ public partial class SpawnerBuilding : Building
 
     private void OnUnitDiedFromEventBus(Unit unit, Node building)
     {
-        // Check if this building is the one that spawned the unit
         if (building != this)
             return;
         

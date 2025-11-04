@@ -9,7 +9,6 @@ namespace Incrememental.scripts.game;
 [GlobalClass]
 public partial class Game : Node
 {
-    // Cached string to avoid allocations during runtime
     private const string FpsLabelPrefix = "FPS: ";
     
     public override void _Ready()

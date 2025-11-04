@@ -26,7 +26,6 @@ internal class UnitMovementSystem
     {
         var godotPath = NavigationServer3D.MapGetPath(_navMap, unit.Position, target, true);
         
-        // Convert Godot array to native C# array to avoid bridge overhead on every access
         var pathLength = godotPath.Length;
         if (pathLength > 0)
         {
