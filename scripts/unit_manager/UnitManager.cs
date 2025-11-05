@@ -27,7 +27,6 @@ public partial class UnitManager : Node
     private List<Unit> _allUnits = new();
     private List<int> _freeIndices = new();
 
-    // Threading (not yet implemented, structure in place)
     private int _threadCount;
     private Dictionary<Unit, int> _damageQueue;
     private Mutex _damageQueueMutex = new();
@@ -61,7 +60,7 @@ public partial class UnitManager : Node
         
         // Initialize subsystems
         _renderSystem = new UnitRenderSystem(this, UnitTypeConfigs, _unitTypesRuntime, VisualLerpSpeed);
-        _movementSystem = new UnitMovementSystem(_navMap, GridManager);
+        _movementSystem = new UnitMovementSystem(this, _navMap, GridManager);
         _lifecycleSystem = new UnitLifecycleSystem(_navMap, GridManager, _unitTypesRuntime, _allUnits, _freeIndices, _movementSystem);
         _logicSystem = new UnitLogicSystem(this);
         

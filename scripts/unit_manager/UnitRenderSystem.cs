@@ -101,8 +101,9 @@ internal class UnitRenderSystem
 
         var lerpWeight = System.Math.Clamp(_lerpSpeed * delta, 0.0f, 1.0f);
         
-        foreach (var unit in allUnits)
+        for (int i = 0; i < allUnits.Count; i++)
         {
+            var unit = allUnits[i];
             if (!unit.IsAlive)
                 continue;
 

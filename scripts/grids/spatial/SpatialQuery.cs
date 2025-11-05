@@ -26,7 +26,8 @@ public class SpatialQuery
     private bool _hasRadius = false;
     
     // Optional filters (null = not applied)
-    private HashSet<EntityType> _typeFilter = null;
+    private HashSet<EntityType> _typeFilter = new HashSet<EntityType>();
+    private bool _typeFilterActive = false;
     private Team? _teamFilter = null;
     private bool? _isTargetingAllies = null;
     private bool? _mustBeAlive = null;
@@ -53,7 +54,8 @@ public class SpatialQuery
         _radius = 0f;
         _hasPosition = false;
         _hasRadius = false;
-        _typeFilter = null;
+        _typeFilter.Clear();
+        _typeFilterActive = false;
         _teamFilter = null;
         _isTargetingAllies = null;
         _mustBeAlive = null;
@@ -97,21 +99,25 @@ public class SpatialQuery
     /// </summary>
     public SpatialQuery OfType(EntityType type)
     {
-        _typeFilter ??= new HashSet<EntityType>();
         _typeFilter.Add(type);
+        _typeFilterActive = true;
         return this;
     }
     
     /// <summary>
     /// Filter by multiple entity types at once.
+    /// Should cache the array to avoid allocations.
+    /// Better to just chain OfType() calls.
     /// </summary>
-    public SpatialQuery OfTypes(params EntityType[] types)
+    public SpatialQuery OfTypes(EntityType[] types)
     {
-        _typeFilter ??= new HashSet<EntityType>();
-        foreach (var type in types)
+        for (var index = 0; index < types.Length; index++)
         {
+            var type = types[index];
             _typeFilter.Add(type);
         }
+        _typeFilterActive = true;
+        
         return this;
     }
     
@@ -120,7 +126,8 @@ public class SpatialQuery
     /// </summary>
     public SpatialQuery OfAnyType()
     {
-        _typeFilter = null;
+        _typeFilter.Clear();
+        _typeFilterActive = false;
         return this;
     }
     
@@ -268,7 +275,7 @@ public class SpatialQuery
     // These properties are internal so only SpatialGridManager can read them
     internal Vector3 Position => _position;
     internal float Radius => _radius;
-    internal HashSet<EntityType> TypeFilter => _typeFilter;
+    internal HashSet<EntityType> TypeFilter => _typeFilterActive ? _typeFilter : null;
     internal Team? TeamFilter => _teamFilter;
     internal bool? IsTargetingAllies => _isTargetingAllies;
     internal bool? MustBeAlive => _mustBeAlive;

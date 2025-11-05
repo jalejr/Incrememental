@@ -34,7 +34,7 @@ public partial class SpatialGridManager : GridBase
     /// <summary>
     /// Gets entities in a cell.
     /// </summary>
-    internal IReadOnlyList<SpatialGridEntity> GetCellEntities(GridCell cell) => _entityGrid[cell.X][cell.Y];
+    internal List<SpatialGridEntity> GetCellEntities(GridCell cell) => _entityGrid[cell.X][cell.Y];
 
     public override void _Ready()
     {

@@ -13,23 +13,66 @@ namespace Incrememental.scripts.unit_manager;
 /// </summary>
 internal class UnitMovementSystem
 {
+    private class GridUpdateBuffer
+    {
+        public GridUpdate[] Array;
+        public int Count;
+        
+        public GridUpdateBuffer(int initialCapacity = 500)
+        {
+            Array = new GridUpdate[initialCapacity];
+            Count = 0;
+        }
+
+        public void Add(GridUpdate update)
+        {
+            if (Count < Array.Length)
+            {
+                Array[Count++] = update;
+            }
+            else
+            {
+                GD.PrintErr($"GridUpdateBuffer overflow! Count: {Count}, Capacity: {Array.Length}");
+            }
+        }
+
+        public void Clear()
+        {
+            Count = 0;
+        }
+    }
+    
+    private struct GridUpdate
+    {
+        public Unit Unit;
+        public Vector3 NewPosition;
+
+        public GridUpdate(Unit unit, Vector3 newPosition)
+        {
+            Unit = unit;
+            NewPosition = newPosition;
+        }
+    }
+    
     private readonly Rid _navMap;
+    private readonly UnitManager _manager;
     private readonly SpatialGridManager _gridManager;
     private readonly ArrayPool<Vector3> _pathPool;
-    private readonly System.Threading.ThreadLocal<List<(Unit unit, Vector3 newPosition)>> _threadLocalGridUpdates;
-    private readonly System.Collections.Concurrent.ConcurrentBag<List<(Unit, Vector3)>> _allGridUpdateBuffers;
-
-    public UnitMovementSystem(Rid navMap, SpatialGridManager gridManager)
+    private readonly System.Threading.ThreadLocal<GridUpdateBuffer> _threadLocalGridUpdates;
+    private readonly System.Collections.Concurrent.ConcurrentBag<GridUpdateBuffer> _allGridUpdateBuffers;
+    
+    public UnitMovementSystem(UnitManager manager, Rid navMap, SpatialGridManager gridManager)
     {
+        _manager = manager;
         _navMap = navMap;
         _gridManager = gridManager;
         _pathPool = ArrayPool<Vector3>.Shared;
         
         // Thread-local grid update buffers (no locking needed)
-        _allGridUpdateBuffers = new System.Collections.Concurrent.ConcurrentBag<List<(Unit, Vector3)>>();
-        _threadLocalGridUpdates = new System.Threading.ThreadLocal<List<(Unit, Vector3)>>(() =>
+        _allGridUpdateBuffers = new System.Collections.Concurrent.ConcurrentBag<GridUpdateBuffer>();
+        _threadLocalGridUpdates = new System.Threading.ThreadLocal<GridUpdateBuffer>(() =>
         {
-            var buffer = new List<(Unit, Vector3)>(100); // Pre-sized
+            var buffer = new GridUpdateBuffer(100000); // Pre-sized
             _allGridUpdateBuffers.Add(buffer);
             return buffer;
         });
@@ -62,7 +105,7 @@ internal class UnitMovementSystem
         }
         else
         {
-            if (unit.NavPath != null && unit.NavPath.Length > 0 && unit.NavPath != System.Array.Empty<Vector3>())
+            if (unit.NavPath != null && unit.NavPath.Length > 0 && unit.NavPath != Empty<Vector3>())
             {
                 _pathPool.Return(unit.NavPath, clearArray: false);
             }
@@ -81,8 +124,9 @@ internal class UnitMovementSystem
     /// </summary>
     public void UpdateNavigationSync(List<Unit> allUnits)
     {
-        foreach (var unit in allUnits)
+        for (int i = 0; i < allUnits.Count; i++)
         {
+            var unit = allUnits[i];
             if (!unit.IsAlive || unit.IsDying)
                 continue;
 
@@ -102,14 +146,16 @@ internal class UnitMovementSystem
     /// </summary>
     public void UpdateMovement(List<Unit> allUnits, float delta)
     {
-        // Clear all thread-local buffers
         foreach (var buffer in _allGridUpdateBuffers)
         {
             buffer.Clear();
         }
         
         // Parallel movement computation - NO LOCKS
-        Parallel.For(0, allUnits.Count, i =>
+        Parallel.For(0, allUnits.Count, new ParallelOptions 
+        { 
+            MaxDegreeOfParallelism = _manager.ThreadCount 
+        }, i =>
         {
             var unit = allUnits[i];
             if (!unit.IsAlive || unit.IsDying)
@@ -152,7 +198,7 @@ internal class UnitMovementSystem
                 // Queue grid update to thread-local buffer (no lock!)
                 if (unit.GridEntity != null)
                 {
-                    _threadLocalGridUpdates.Value.Add((unit, newPos));
+                    _threadLocalGridUpdates.Value.Add(new GridUpdate(unit, newPos));
                 }
             }
             else
@@ -172,9 +218,13 @@ internal class UnitMovementSystem
     {
         foreach (var buffer in _allGridUpdateBuffers)
         {
-            foreach (var (unit, newPosition) in buffer)
+            var updates = buffer.Array;
+            var count = buffer.Count;
+        
+            for (int j = 0; j < count; j++)
             {
-                _gridManager.UpdateEntityPosition(unit.GridEntity, newPosition);
+                var update = updates[j];
+                _gridManager.UpdateEntityPosition(update.Unit.GridEntity, update.NewPosition);
             }
         }
     }
