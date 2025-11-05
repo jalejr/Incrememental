@@ -1,5 +1,6 @@
 using Godot;
 using Incrememental.scripts.global;
+using Incrememental.scripts.grids;
 using System.Collections.Generic;
 
 namespace Incrememental.scripts.grids.placement;
@@ -18,7 +19,7 @@ public partial class PlacementGridVisualizer : Node3D
 
     private MultiMeshInstance3D _cellMesh;
     private List<MeshInstance3D> _previewMeshes = new();
-    private Vector2I _currentPreviewSize = Vector2I.Zero;
+    private GridCell _currentPreviewSize = new GridCell(0, 0);
 
     public override void _Ready()
     {
@@ -36,7 +37,7 @@ public partial class PlacementGridVisualizer : Node3D
     /// <summary>
     /// Shows a placement preview at the given world position.
     /// </summary>
-    public void ShowPlacementPreview(Vector3 worldPos, Vector2I buildingSize, bool isValid)
+    public void ShowPlacementPreview(Vector3 worldPos, GridCell buildingSize, bool isValid)
     {
         if (buildingSize != _currentPreviewSize)
         {
@@ -47,12 +48,11 @@ public partial class PlacementGridVisualizer : Node3D
         var gridPos = PlacementGrid.WorldToGrid(worldPos);
         var color = isValid ? ValidPlacementColor : InvalidPlacementColor;
 
-        // Get cells to preview (needs array for indexing)
-        var cells = PlacementGrid.GetCellsForAreaArray(gridPos, buildingSize);
-
-        for (int i = 0; i < cells.Length; i++)
+        // Iterate through cells to preview
+        int i = 0;
+        foreach (var cell in PlacementGrid.GetCellsForArea(gridPos, buildingSize))
         {
-            var cellWorldPos = PlacementGrid.GridToWorld(cells[i], true);
+            var cellWorldPos = PlacementGrid.GridToWorld(cell, true);
             cellWorldPos.Y = 0.02f;
 
             _previewMeshes[i].GlobalPosition = cellWorldPos;
@@ -63,6 +63,7 @@ public partial class PlacementGridVisualizer : Node3D
             {
                 mat.AlbedoColor = color;
             }
+            i++;
         }
     }
 
@@ -77,7 +78,7 @@ public partial class PlacementGridVisualizer : Node3D
         }
     }
 
-    private void CreatePreviewMeshes(Vector2I buildingSize)
+    private void CreatePreviewMeshes(GridCell buildingSize)
     {
         // Clean up existing preview meshes
         foreach (var mesh in _previewMeshes)
@@ -185,7 +186,7 @@ public partial class PlacementGridVisualizer : Node3D
         EventBus.Instance.BuildingSold += OnBuildingRemoved;
     }
 
-    private void OnBuildingPlaced(Node3D building, Vector2I gridPos)
+    private void OnBuildingPlaced(Node3D building, GridCell gridPos)
     {
         UpdateAllCells();
     }

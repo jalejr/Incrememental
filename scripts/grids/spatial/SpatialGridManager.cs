@@ -31,7 +31,10 @@ public partial class SpatialGridManager : GridBase
         );
     }
     
-    internal IReadOnlyList<SpatialGridEntity> GetCellEntities(Vector2I cell) => _entityGrid[cell.X][cell.Y];
+    /// <summary>
+    /// Gets entities in a cell.
+    /// </summary>
+    internal IReadOnlyList<SpatialGridEntity> GetCellEntities(GridCell cell) => _entityGrid[cell.X][cell.Y];
 
     public override void _Ready()
     {
@@ -149,7 +152,10 @@ public partial class SpatialGridManager : GridBase
         }
     }
 
-    internal bool IsCellInBounds(Vector2I gridPos)
+    /// <summary>
+    /// Checks if GridCell is within bounds.
+    /// </summary>
+    internal bool IsCellInBounds(GridCell gridPos)
     {
         return gridPos.X >= 0 && gridPos.X < _gridSize.X &&
                gridPos.Y >= 0 && gridPos.Y < _gridSize.Y;

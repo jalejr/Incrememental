@@ -1,6 +1,7 @@
 using Godot;
 using Incrememental.resources;
 using Incrememental.scripts.global;
+using Incrememental.scripts.grids;
 using Incrememental.scripts.grids.placement;
 
 namespace Incrememental.scripts.controllers.placement;
@@ -54,7 +55,8 @@ public partial class BuildingPlacementController : Node
     {
         _isPlacing = true;
         _selectedCatalogEntry = catalogEntry;
-        GridVisualizer?.ShowPlacementPreview(Vector3.Zero, catalogEntry.BuildingData.GridSize, false);
+        var gridSize = GridCell.FromVector2I(catalogEntry.BuildingData.GridSize);
+        GridVisualizer?.ShowPlacementPreview(Vector3.Zero, gridSize, false);
     }
 
     /// <summary>
@@ -83,8 +85,9 @@ public partial class BuildingPlacementController : Node
         {
             _previewPosition = intersection.Value;
             var gridPos = PlacementGrid.WorldToGrid(_previewPosition);
-            _previewValid = PlacementGrid.CanPlaceBuilding(gridPos, _selectedCatalogEntry.BuildingData.GridSize);
-            GridVisualizer?.ShowPlacementPreview(_previewPosition, _selectedCatalogEntry.BuildingData.GridSize, _previewValid);
+            var gridSize = GridCell.FromVector2I(_selectedCatalogEntry.BuildingData.GridSize);
+            _previewValid = PlacementGrid.CanPlaceBuilding(gridPos, gridSize);
+            GridVisualizer?.ShowPlacementPreview(_previewPosition, gridSize, _previewValid);
         }
     }
 
@@ -104,9 +107,10 @@ public partial class BuildingPlacementController : Node
         //     return;
 
         var gridPos = PlacementGrid.WorldToGrid(_previewPosition);
+        var gridSize = GridCell.FromVector2I(_selectedCatalogEntry.BuildingData.GridSize);
         var worldPos = PlacementGrid.GetPlacementPreviewPosition(
             _previewPosition,
-            _selectedCatalogEntry.BuildingData.GridSize
+            gridSize
         );
 
         var building = _selectedCatalogEntry.Scene.Instantiate<Node3D>();
@@ -116,7 +120,7 @@ public partial class BuildingPlacementController : Node
         var buildingData = PlacementGrid.PlaceBuilding(
             building,
             gridPos,
-            _selectedCatalogEntry.BuildingData.GridSize,
+            gridSize,
             _selectedCatalogEntry.BuildingData.UnlockRadius
         );
 

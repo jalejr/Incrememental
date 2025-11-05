@@ -1,4 +1,5 @@
 using Godot;
+using Incrememental.scripts.grids;
 
 namespace Incrememental.scripts.global;
 
@@ -8,7 +9,7 @@ namespace Incrememental.scripts.global;
 public partial class EventBus : Node
 {
     public static EventBus Instance { get; private set; }
-    public event System.Action<Node3D, Vector2I> BuildingPlaced;
+    public event System.Action<Node3D, GridCell> BuildingPlaced;
     public event System.Action<Node3D> BuildingRemoved;
     public event System.Action<Node3D> BuildingUpgraded;
     public event System.Action<Node3D> BuildingSold;
@@ -18,7 +19,7 @@ public partial class EventBus : Node
     {
         Instance = this;
     }
-    public void OnBuildingPlaced(Node3D building, Vector2I gridPos) => BuildingPlaced?.Invoke(building, gridPos);
+    public void OnBuildingPlaced(Node3D building, GridCell gridPos) => BuildingPlaced?.Invoke(building, gridPos);
     public void OnBuildingRemoved(Node3D building) => BuildingRemoved?.Invoke(building);
     public void OnBuildingUpgraded(Node3D building) => BuildingUpgraded?.Invoke(building);
     public void OnBuildingSold(Node3D building) => BuildingSold?.Invoke(building);

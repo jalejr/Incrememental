@@ -1,5 +1,6 @@
 using Godot;
 using Incrememental.scripts.global;
+using Incrememental.scripts.grids;
 using System.Collections.Generic;
 
 namespace Incrememental.scripts.grids.placement;
@@ -43,7 +44,7 @@ public partial class PlacementGrid : GridBase
     /// <summary>
     /// Checks if a cell is unlocked for building placement.
     /// </summary>
-    public bool IsCellUnlocked(Vector2I cell)
+    public bool IsCellUnlocked(GridCell cell)
     {
         if (!IsCellInBounds(cell))
             return false;
@@ -53,7 +54,7 @@ public partial class PlacementGrid : GridBase
     /// <summary>
     /// Checks if a cell is occupied by a building.
     /// </summary>
-    public bool IsCellOccupied(Vector2I cell)
+    public bool IsCellOccupied(GridCell cell)
     {
         if (!IsCellInBounds(cell))
             return false;
@@ -63,7 +64,7 @@ public partial class PlacementGrid : GridBase
     /// <summary>
     /// Checks if a building of the given size can be placed at the position.
     /// </summary>
-    public bool CanPlaceBuilding(Vector2I gridPos, Vector2I buildingSize)
+    public bool CanPlaceBuilding(GridCell gridPos, GridCell buildingSize)
     {
         var cellsToCheck = GetCellsForArea(gridPos, buildingSize);
         
@@ -85,8 +86,8 @@ public partial class PlacementGrid : GridBase
     /// <summary>
     /// Places a building on the grid.
     /// </summary>
-    public PlacementGridData PlaceBuilding(Node3D buildingNode, Vector2I gridPos, 
-        Vector2I buildingSize, int unlockRadius)
+    public PlacementGridData PlaceBuilding(Node3D buildingNode, GridCell gridPos, 
+        GridCell buildingSize, int unlockRadius)
     {
         if (!CanPlaceBuilding(gridPos, buildingSize))
             return null;
@@ -146,7 +147,7 @@ public partial class PlacementGrid : GridBase
     /// <summary>
     /// Gets the building data at a specific cell.
     /// </summary>
-    public PlacementGridData GetBuildingAtCell(Vector2I cell)
+    public PlacementGridData GetBuildingAtCell(GridCell cell)
     {
         if (!IsCellInBounds(cell))
             return null;
@@ -157,9 +158,9 @@ public partial class PlacementGrid : GridBase
     /// Gets all unlocked cells.
     /// Returns native C# list for performance.
     /// </summary>
-    public List<Vector2I> GetUnlockedCells()
+    public List<GridCell> GetUnlockedCells()
     {
-        var cells = new List<Vector2I>();
+        var cells = new List<GridCell>();
         
         for (int x = 0; x < _gridSize.X; x++)
         {
@@ -167,7 +168,7 @@ public partial class PlacementGrid : GridBase
             {
                 if (_unlockedCells[x][y] > 0)
                 {
-                    cells.Add(new Vector2I(x, y));
+                    cells.Add(new GridCell(x, y));
                 }
             }
         }
@@ -178,7 +179,7 @@ public partial class PlacementGrid : GridBase
     /// <summary>
     /// Gets the snapped world position for placement preview.
     /// </summary>
-    public Vector3 GetPlacementPreviewPosition(Vector3 worldPos, Vector2I buildingSize)
+    public Vector3 GetPlacementPreviewPosition(Vector3 worldPos, GridCell buildingSize)
     {
         var gridPos = WorldToGrid(worldPos);
         var corner = GridToWorld(gridPos, false);
@@ -212,7 +213,7 @@ public partial class PlacementGrid : GridBase
         }
     }
 
-    private bool IsCellInBounds(Vector2I cell)
+    private bool IsCellInBounds(GridCell cell)
     {
         return cell.X >= 0 && cell.X < _gridSize.X &&
                cell.Y >= 0 && cell.Y < _gridSize.Y;
@@ -234,7 +235,7 @@ public partial class PlacementGrid : GridBase
         }
     }
 
-    private void UnlockCellsAround(Vector2I center, int radius)
+    private void UnlockCellsAround(GridCell center, int radius)
     {
         var cellsToUnlock = GetCellsInRadius(center, radius);
         
@@ -265,8 +266,8 @@ public partial class PlacementGrid : GridBase
 
     private CellsForAreaEnumerator GetUnlockCellsAroundBuilding(PlacementGridData buildingData)
     {
-        var unlockMin = buildingData.GridPosition - new Vector2I(buildingData.UnlockRadius, buildingData.UnlockRadius);
-        var unlockMax = buildingData.GridPosition + buildingData.GridSize + new Vector2I(buildingData.UnlockRadius, buildingData.UnlockRadius);
+        var unlockMin = buildingData.GridPosition - new GridCell(buildingData.UnlockRadius, buildingData.UnlockRadius);
+        var unlockMax = buildingData.GridPosition + buildingData.GridSize + new GridCell(buildingData.UnlockRadius, buildingData.UnlockRadius);
         var unlockSize = unlockMax - unlockMin;
         
         return GetCellsForArea(unlockMin, unlockSize);

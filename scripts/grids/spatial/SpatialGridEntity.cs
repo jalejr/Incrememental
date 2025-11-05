@@ -1,5 +1,6 @@
 using Godot;
 using Incrememental.scripts.entities;
+using Incrememental.scripts.grids;
 
 namespace Incrememental.scripts.grids.spatial;
 
@@ -10,6 +11,6 @@ public class SpatialGridEntity
 {
     public int EntityId { get; set; }
     public IEntity Entity { get; set; }
-    public Vector2I GridCell { get; set; }
-    public Vector2I[] OccupiedCells { get; set; } = System.Array.Empty<Vector2I>();
+    public GridCell GridCell { get; set; }
+    public GridCell[] OccupiedCells { get; set; } = System.Array.Empty<GridCell>();
 }

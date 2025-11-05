@@ -1,5 +1,7 @@
 using Godot;
 using Incrememental.scripts.entities;
+using Incrememental.scripts.grids;
+using System.Threading;
 using System.Collections.Generic;
 
 namespace Incrememental.scripts.grids.spatial;
@@ -11,27 +13,43 @@ namespace Incrememental.scripts.grids.spatial;
 internal class SpatialQueryExecutor
 {
     private readonly SpatialGridManager _gridManager;
+    private readonly ThreadLocal<List<IEntity>> _resultListPool;
+    private readonly ThreadLocal<HashSet<int>> _seenEntitiesPool;
     
     public SpatialQueryExecutor(SpatialGridManager gridManager)
     {
         _gridManager = gridManager;
+        
+        _resultListPool = new ThreadLocal<List<IEntity>>(
+            () => new List<IEntity>(50) // Pre-sized for typical queries
+        );
+        _seenEntitiesPool = new ThreadLocal<HashSet<int>>(
+            () => new HashSet<int>(100) // Pre-sized
+        );
     }
     
     /// <summary>
-    /// Executes a spatial query built by SpatialQuery
+    /// Executes a spatial query built by SpatialQuery.
+    /// Uses GridCell for zero-allocation ring iteration and thread-local pooled collections.
     /// </summary>
     public List<IEntity> Execute(SpatialQuery query)
     {
-        var results = new List<IEntity>();
-        var seenEntities = new HashSet<int>();
+        
+        // Get pooled collections from thread-local storage
+        var results = _resultListPool.Value;
+        var seenEntities = _seenEntitiesPool.Value;
+        
+        results.Clear();
+        seenEntities.Clear();
+        
+        // Convert to GridCell once
         var centerCell = _gridManager.WorldToGrid(query.Position);
         var maxCellRadius = Mathf.CeilToInt(query.Radius / _gridManager.GridCellSize) + 1;
 
+        // Ring iteration with GridCell enumerator - ZERO allocations
         for (int ring = 0; ring <= maxCellRadius; ring++)
         {
-            var cellsInRing = _gridManager.GetCellsInRing(centerCell, ring);
-            
-            foreach (var cell in cellsInRing)
+            foreach (var cell in _gridManager.GetCellsInRing(centerCell, ring))
             {
                 if (!_gridManager.IsCellInBounds(cell))
                     continue;
