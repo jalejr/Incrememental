@@ -242,12 +242,11 @@ public partial class UnitManager : Node
     /// <summary>
     /// Gets context for current thread. Each thread gets its own context.
     /// Uses ThreadLocal for guaranteed isolation (lock-free).
+    /// Context is cleared after merging in UnitLogicSystem.
     /// </summary>
     internal UnitLogicContext GetContextForThread()
     {
-        var context = _threadLocalContext.Value;
-        context.Clear();
-        return context;
+        return _threadLocalContext.Value;
     }
     
     /// <summary>

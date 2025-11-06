@@ -91,6 +91,9 @@ internal class UnitLogicSystem
             
             // Merge destroy queue
             destroyQueue.AddRange(context.DestroyQueue);
+            
+            // Clear context after merging to prevent stale data in next frame
+            context.Clear();
         }
     }
 }
