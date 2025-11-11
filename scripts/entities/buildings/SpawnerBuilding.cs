@@ -32,9 +32,6 @@ public partial class SpawnerBuilding : Building
             return;
         }
 
-        // Subscribe to global unit death events via EventBus
-        EventBus.Instance.UnitDied += OnUnitDiedFromEventBus;
-
         // Create and configure spawn timer
         _spawnTimer = new Timer();
         _spawnTimer.WaitTime = SpawnerData.SpawnCooldown;
@@ -106,8 +103,12 @@ public partial class SpawnerBuilding : Building
 
         if (unit != null)
         {
-            _spawnedUnits.Add(unit);
-            OnUnitSpawned(unit, spawnPos);
+            // Register direct callbacks for owner notification
+            unit.OnSpawn = HandleUnitSpawn;
+            unit.OnDeath = HandleUnitDeath;
+            
+            // Invoke spawn callback immediately (synchronous event)
+            unit.OnSpawn?.Invoke(unit);
         }
     }
 
@@ -129,11 +130,14 @@ public partial class SpawnerBuilding : Building
         return spawnPoint.GlobalPosition;
     }
 
-    private void OnUnitDiedFromEventBus(Unit unit, Node building)
+    private void HandleUnitSpawn(Unit unit)
     {
-        if (building != this)
-            return;
-        
+        _spawnedUnits.Add(unit);
+        OnUnitSpawned(unit, unit.Position);
+    }
+
+    private void HandleUnitDeath(Unit unit)
+    {
         //TODO alter to be stable List to avoid GC
         _spawnedUnits.Remove(unit);
         OnUnitDied(unit);

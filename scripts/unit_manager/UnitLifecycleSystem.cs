@@ -118,6 +118,9 @@ internal class UnitLifecycleSystem
         runtime.MultiMesh.SetInstanceTransform(instanceIdx, transform);
         runtime.MultiMesh.SetInstanceCustomData(instanceIdx, unit.GetCustomVisualData());
 
+        // Notify global systems via EventBus
+        EventBus.EmitUnitSpawned(unit, building);
+
         return unit;
     }
 
@@ -159,8 +162,14 @@ internal class UnitLifecycleSystem
         runtime.AliveCount--;
         runtime.MultiMesh.VisibleInstanceCount = runtime.AliveCount;
 
-        // Notify
-        EventBus.Instance.OnUnitDied(unit, building);
+        // Notify owner via direct callback
+        unit.OnDeath?.Invoke(unit);
+        
+        unit.OnDeath = null;
+        unit.OnSpawn = null;
+            
+        // Notify global systems via EventBus
+        EventBus.EmitUnitDied(unit, building);
     }
 
     /// <summary>

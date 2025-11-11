@@ -49,6 +49,10 @@ public partial class Unit : RefCounted, ICombatEntity
     public Node SpawnBuilding { get; set; }
 
     public UnitTypeRuntimeData CachedRuntime { get; set; }
+    
+    // Lifecycle callbacks - direct notification to owner
+    public System.Action<Unit> OnSpawn { get; set; }
+    public System.Action<Unit> OnDeath { get; set; }
     private LifecycleState LifecycleState { get; set; } = LifecycleState.Spawning;
 
     /// <summary>

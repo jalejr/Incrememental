@@ -140,7 +140,7 @@ public partial class Building : Node3D, ICombatEntity
     private void Destroy()
     {
         // TODO: Other necessary cleanup
-        EventBus.Instance.OnBuildingRemoved(this);
+        EventBus.EmitBuildingRemoved(this);
         QueueFree();
     }
 
