@@ -16,7 +16,6 @@ public partial class SpawnerBuilding : Building
     [Export] public SpawnerData SpawnerData { get; set; }
     [Export] public Godot.Collections.Array<Node3D> SpawnPoints { get; set; } = new();
 
-    private UnitManager _unitManager;
     private List<Unit> _spawnedUnits = new();
     private Timer _spawnTimer;
     private int _nextSpawnPointIndex = 0;
@@ -24,13 +23,6 @@ public partial class SpawnerBuilding : Building
     public override void _Ready()
     {
         base._Ready();
-
-        _unitManager = GetNode<UnitManager>("../UnitManager");
-        if (_unitManager == null)
-        {
-            GD.PushWarning($"No unit manager assigned to building: {Name}");
-            return;
-        }
 
         // Create and configure spawn timer
         _spawnTimer = new Timer();
@@ -67,7 +59,7 @@ public partial class SpawnerBuilding : Building
         {
             if (unit != null && unit.IsAlive)
             {
-                _unitManager.DestroyUnit(unit.ManagerIndex);
+                GameSystems.UnitManager?.DestroyUnit(unit.ManagerIndex);
             }
         }
 
@@ -93,7 +85,7 @@ public partial class SpawnerBuilding : Building
             buffsVariant[Variant.From((int)kvp.Key)] = kvp.Value;
         }
         
-        var unit = _unitManager.SpawnUnit(
+        var unit = GameSystems.UnitManager?.SpawnUnit(
             SpawnerData.UnitType,
             TeamId,
             spawnPos,
