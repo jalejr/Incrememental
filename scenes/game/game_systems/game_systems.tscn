@@ -1,26 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://75bimm2dibwg"]
+[gd_scene load_steps=6 format=3 uid="uid://75bimm2dibwg"]
 
 [ext_resource type="Script" uid="uid://dxm6o4k6w6bik" path="res://scripts/global/GameSystems.cs" id="1_nas6i"]
 [ext_resource type="PackedScene" uid="uid://b5w4dwx16567k" path="res://scenes/grids/placement/placement_grid.tscn" id="2_uolps"]
-[ext_resource type="PackedScene" uid="uid://cll5aue32ry52" path="res://scenes/controllers/placement/building_placement_controller.tscn" id="3_558kw"]
-[ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/Buff.cs" id="4_jjq5x"]
-[ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingData.cs" id="5_jhiua"]
-[ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://scenes/entities/buildings/spawner_building.tscn" id="6_l78fd"]
-[ext_resource type="Script" uid="uid://dsf27yj0uwb2f" path="res://resources/BuildingCatalogEntry.cs" id="7_cp1dd"]
 [ext_resource type="PackedScene" uid="uid://dglrm60njnkoq" path="res://scenes/grids/placement_visualizer/placement_grid_visualizer.tscn" id="8_s5hi3"]
 [ext_resource type="PackedScene" uid="uid://dnk5c7577fdlf" path="res://scenes/grids/spatial/spatial_grid.tscn" id="9_nnc8l"]
 [ext_resource type="PackedScene" uid="uid://c7bfkc5utn8jc" path="res://scenes/unit_manager/unit_manager.tscn" id="10_134sp"]
-
-[sub_resource type="Resource" id="Resource_uyinl"]
-script = ExtResource("5_jhiua")
-metadata/_custom_type_script = "uid://d0q44pydcatip"
-
-[sub_resource type="Resource" id="Resource_5v6r0"]
-script = ExtResource("7_cp1dd")
-BuildingData = SubResource("Resource_uyinl")
-Scene = ExtResource("6_l78fd")
-PreviewScene = ExtResource("6_l78fd")
-metadata/_custom_type_script = "uid://dsf27yj0uwb2f"
 
 [node name="GameSystems" type="Node"]
 script = ExtResource("1_nas6i")
@@ -28,20 +12,14 @@ script = ExtResource("1_nas6i")
 [node name="PlacementGrid" parent="." instance=ExtResource("2_uolps")]
 unique_name_in_owner = true
 
-[node name="BuildingPlacementController" parent="." node_paths=PackedStringArray("PlacementGrid", "GridVisualizer", "Camera") instance=ExtResource("3_558kw")]
-PlacementGrid = NodePath("../PlacementGrid")
-GridVisualizer = NodePath("../BuildingGridVisualizer")
-Camera = NodePath("")
-TestCatalogEntry = SubResource("Resource_5v6r0")
-
-[node name="BuildingGridVisualizer" parent="." node_paths=PackedStringArray("PlacementGrid") instance=ExtResource("8_s5hi3")]
+[node name="GridVisualizer" parent="." node_paths=PackedStringArray("PlacementGrid") instance=ExtResource("8_s5hi3")]
+unique_name_in_owner = true
 PlacementGrid = NodePath("../PlacementGrid")
 
 [node name="SpatialGrid" parent="." instance=ExtResource("9_nnc8l")]
 unique_name_in_owner = true
 
-[node name="UnitManager" parent="." node_paths=PackedStringArray("NavigationRegion", "GridManager") instance=ExtResource("10_134sp")]
+[node name="UnitManager" parent="." node_paths=PackedStringArray("GridManager") instance=ExtResource("10_134sp")]
 unique_name_in_owner = true
-NavigationRegion = NodePath("")
 GridManager = NodePath("../SpatialGrid")
 MaxUnitsUpdatedPerFrame = 1000

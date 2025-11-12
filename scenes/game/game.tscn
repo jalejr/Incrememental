@@ -1,13 +1,27 @@
-[gd_scene load_steps=20 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=24 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://dmef6c1yheod1" path="res://scripts/game/Game.cs" id="1_vaxfo"]
 [ext_resource type="PackedScene" uid="uid://75bimm2dibwg" path="res://scenes/game/game_systems/game_systems.tscn" id="2_87uf6"]
+[ext_resource type="PackedScene" uid="uid://cll5aue32ry52" path="res://scenes/controllers/placement/building_placement_controller.tscn" id="3_4j704"]
 [ext_resource type="PackedScene" uid="uid://csssssdgdx5ml" path="res://scenes/camera/rts/rts_camera.tscn" id="3_ftsea"]
 [ext_resource type="PackedScene" uid="uid://5k3hagwi4mhh" path="res://scenes/entities/buildings/spawner_building.tscn" id="6_5v6r0"]
+[ext_resource type="Script" uid="uid://dsf27yj0uwb2f" path="res://resources/BuildingCatalogEntry.cs" id="7_kp23o"]
 [ext_resource type="Script" uid="uid://dsf2igywk2w5s" path="res://scripts/levels/Level.cs" id="8_3xj4h"]
 [ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/Buff.cs" id="11_5jirj"]
 [ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerData.cs" id="11_vaxfo"]
 [ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingData.cs" id="12_vaxfo"]
+
+[sub_resource type="Resource" id="Resource_5jirj"]
+script = ExtResource("12_vaxfo")
+UnlockRadius = 3
+BuffRadius = 3
+metadata/_custom_type_script = "uid://d0q44pydcatip"
+
+[sub_resource type="Resource" id="Resource_5v6r0"]
+script = ExtResource("7_kp23o")
+BuildingData = SubResource("Resource_5jirj")
+Scene = ExtResource("6_5v6r0")
+metadata/_custom_type_script = "uid://dsf27yj0uwb2f"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -64,11 +78,12 @@ script = ExtResource("1_vaxfo")
 
 [node name="GameSystems" parent="." instance=ExtResource("2_87uf6")]
 
-[node name="BuildingPlacementController" parent="GameSystems" index="1" node_paths=PackedStringArray("Camera")]
-Camera = NodePath("../../SubViewportContainer/SubViewport/RtsCamera/Camera3D")
-
-[node name="UnitManager" parent="GameSystems" index="4" node_paths=PackedStringArray("NavigationRegion")]
+[node name="UnitManager" parent="GameSystems" index="3" node_paths=PackedStringArray("NavigationRegion")]
 NavigationRegion = NodePath("../../SubViewportContainer/SubViewport/Level/NavigationRegion3D")
+
+[node name="BuildingPlacementController" parent="." node_paths=PackedStringArray("Camera") instance=ExtResource("3_4j704")]
+Camera = NodePath("../SubViewportContainer/SubViewport/RtsCamera/Camera3D")
+TestCatalogEntry = SubResource("Resource_5v6r0")
 
 [node name="SubViewportContainer" type="SubViewportContainer" parent="."]
 texture_filter = 1

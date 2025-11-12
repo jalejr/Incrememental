@@ -12,8 +12,6 @@ namespace Incrememental.scripts.controllers.placement;
 [GlobalClass]
 public partial class BuildingPlacementController : Node
 {
-    [Export] public PlacementGrid PlacementGrid { get; set; }
-    [Export] public PlacementGridVisualizer GridVisualizer { get; set; }
     [Export] public Camera3D Camera { get; set; }
     
     // TODO: Remove - testing only
@@ -56,7 +54,7 @@ public partial class BuildingPlacementController : Node
         _isPlacing = true;
         _selectedCatalogEntry = catalogEntry;
         var gridSize = GridCell.FromVector2I(catalogEntry.BuildingData.GridSize);
-        GridVisualizer?.ShowPlacementPreview(Vector3.Zero, gridSize, false);
+        GameSystems.GridVisualizer?.ShowPlacementPreview(Vector3.Zero, gridSize, false);
     }
 
     /// <summary>
@@ -66,7 +64,7 @@ public partial class BuildingPlacementController : Node
     {
         _isPlacing = false;
         _selectedCatalogEntry = null;
-        GridVisualizer?.HidePlacementPreview();
+        GameSystems.GridVisualizer?.HidePlacementPreview();
     }
 
     private void UpdatePreview()
@@ -84,10 +82,10 @@ public partial class BuildingPlacementController : Node
         if (intersection.HasValue)
         {
             _previewPosition = intersection.Value;
-            var gridPos = PlacementGrid.WorldToGrid(_previewPosition);
+            var gridPos = GameSystems.PlacementGrid.WorldToGrid(_previewPosition);
             var gridSize = GridCell.FromVector2I(_selectedCatalogEntry.BuildingData.GridSize);
-            _previewValid = PlacementGrid.CanPlaceBuilding(gridPos, gridSize);
-            GridVisualizer?.ShowPlacementPreview(_previewPosition, gridSize, _previewValid);
+            _previewValid = GameSystems.PlacementGrid.CanPlaceBuilding(gridPos, gridSize);
+            GameSystems.GridVisualizer?.ShowPlacementPreview(_previewPosition, gridSize, _previewValid);
         }
     }
 
@@ -106,9 +104,9 @@ public partial class BuildingPlacementController : Node
         // if (!RunEconomyManager.SpendCurrency(_selectedCatalogEntry.BuildingData.PlacementCost))
         //     return;
 
-        var gridPos = PlacementGrid.WorldToGrid(_previewPosition);
+        var gridPos = GameSystems.PlacementGrid.WorldToGrid(_previewPosition);
         var gridSize = GridCell.FromVector2I(_selectedCatalogEntry.BuildingData.GridSize);
-        var worldPos = PlacementGrid.GetPlacementPreviewPosition(
+        var worldPos = GameSystems.PlacementGrid.GetPlacementPreviewPosition(
             _previewPosition,
             gridSize
         );
@@ -117,7 +115,7 @@ public partial class BuildingPlacementController : Node
         GetParent().AddChild(building);
         building.GlobalPosition = worldPos;
 
-        var buildingData = PlacementGrid.PlaceBuilding(
+        var buildingData = GameSystems.PlacementGrid.PlaceBuilding(
             building,
             gridPos,
             gridSize,

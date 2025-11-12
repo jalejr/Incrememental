@@ -17,11 +17,13 @@ public partial class GameSystems : Node
     private PlacementGrid _placementGrid;
     private UnitManager _unitManager;
     private SpatialGridManager _spatialGrid;
+    private PlacementGridVisualizer _gridVisualizer;
     
     // Static properties (public) - clean API without .Instance
     public static PlacementGrid PlacementGrid => _instance?._placementGrid;
     public static UnitManager UnitManager => _instance?._unitManager;
     public static SpatialGridManager SpatialGrid => _instance?._spatialGrid;
+    public static PlacementGridVisualizer GridVisualizer => _instance?._gridVisualizer;
     
     public override void _Ready()
     {
@@ -32,6 +34,7 @@ public partial class GameSystems : Node
         _placementGrid = GetNodeOrNull<PlacementGrid>("%PlacementGrid");
         _unitManager = GetNodeOrNull<UnitManager>("%UnitManager");
         _spatialGrid = GetNodeOrNull<SpatialGridManager>("%SpatialGrid");
+        _gridVisualizer = GetNodeOrNull<PlacementGridVisualizer>("%GridVisualizer");
         
         // Warn if systems are missing
         if (_placementGrid == null)
@@ -40,8 +43,10 @@ public partial class GameSystems : Node
             GD.PushWarning("UnitManager not found - ensure it has Unique Name enabled in the editor");
         if (_spatialGrid == null)
             GD.PushWarning("SpatialGridManager not found - ensure it has Unique Name enabled in the editor");
+        if (_gridVisualizer == null)
+            GD.PushWarning("GridVisuaalizer not found - ensure it has Unique Name enabled in the editor");
         
-        GD.Print($"GameSystems initialized - PlacementGrid: {_placementGrid != null}, UnitManager: {_unitManager != null}, SpatialGrid: {_spatialGrid != null}");
+        GD.Print($"GameSystems initialized - PlacementGrid: {_placementGrid != null}, UnitManager: {_unitManager != null}, SpatialGrid: {_spatialGrid != null}, GridVisualizer: {_gridVisualizer != null}");
     }
     
     public override void _ExitTree()
