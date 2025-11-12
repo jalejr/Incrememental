@@ -77,19 +77,12 @@ public partial class SpawnerBuilding : Building
             GD.PushWarning($"No valid spawn position for building: {Name}");
             return;
         }
-
-        // Convert buffs dictionary to Variant-keyed dictionary
-        var buffsVariant = new Dictionary<Variant, float>();
-        foreach (var kvp in CachedBuffsCalculated)
-        {
-            buffsVariant[Variant.From((int)kvp.Key)] = kvp.Value;
-        }
         
         var unit = GameSystems.UnitManager?.SpawnUnit(
             SpawnerData.UnitType,
             TeamId,
             spawnPos,
-            buffsVariant,
+            new Dictionary<BuffType, float>(),
             this
         );
 

@@ -2,6 +2,7 @@ using Godot;
 using Incrememental.resources;
 using System.Collections.Generic;
 using Incrememental.scripts.global;
+using Incrememental.scripts.grids;
 
 namespace Incrememental.scripts.entities.buildings;
 
@@ -32,10 +33,29 @@ public partial class Building : Node3D, ICombatEntity
     public Dictionary<BuffType, float> CachedBuffsCalculated { get; set; } = new();
     public bool IsDying = false;
 
+
     public override void _Ready()
     {
         Initialize();
-        Placed();
+    }
+
+    public void Initialize()
+    {
+        // Initialize IEntity properties directly
+        Radius = BuildingData.Radius;
+        MaxHealth = BuildingData.MaxHealth;
+        Health = BuildingData.MaxHealth;
+        TeamId = BuildingData.TeamId;
+        IsAlive = true;
+        IsAttackable = true;
+        IsTargetable = true;
+
+        // Convert Godot.Collections.Array to List<T>
+        AdjacentAuraBuffs.Clear();
+        foreach (var buff in BuildingData.AdjacentAuraBuffs)
+        {
+            AdjacentAuraBuffs.Add(buff);
+        }
     }
 
     /// <summary>
@@ -90,34 +110,31 @@ public partial class Building : Node3D, ICombatEntity
     }
 
     // Private methods
-    private void Initialize()
-    {
-        // Initialize IEntity properties directly
-        Radius = BuildingData.Radius;
-        MaxHealth = BuildingData.MaxHealth;
-        Health = BuildingData.MaxHealth;
-        TeamId = BuildingData.TeamId;
-        IsAlive = true;
-        IsAttackable = true;
-        IsTargetable = true;
-
-        // Convert Godot.Collections.Array to List<T>
-        AdjacentAuraBuffs.Clear();
-        foreach (var buff in BuildingData.AdjacentAuraBuffs)
-        {
-            AdjacentAuraBuffs.Add(buff);
-        }
-    }
-
     private List<Building> FindNearbyBuildings(int cellRadius)
     {
         var foundBuildings = new List<Building>();
-        // TODO: Logic here - probably need to rework placement grid
+        
         return foundBuildings;
     }
 
-    private void Placed()
+    public void Placed()
     {
+        var gridSize = GridCell.FromVector2I(BuildingData.GridSize);
+        var cellSize = GameSystems.PlacementGrid.GridCellSize;
+        var bottomLeftPos = Position - new Vector3(
+            gridSize.X * cellSize * 0.5f,
+            0,
+            gridSize.Y * cellSize * 0.5f
+        );
+        var gridPos = GameSystems.PlacementGrid.WorldToGrid(bottomLeftPos);
+        
+        GameSystems.PlacementGrid.PlaceBuilding(
+            this,
+            gridPos,
+            gridSize,
+            BuildingData.UnlockRadius
+        );
+        
         var nearbyBuildings = FindNearbyBuildings(BuildingData.BuffRadius);
         foreach (var building in nearbyBuildings)
         {

@@ -12,6 +12,8 @@ metadata/_custom_type_script = "uid://cs11amx2m81kf"
 
 [sub_resource type="Resource" id="Resource_icyva"]
 script = ExtResource("4_66cot")
+UnlockRadius = 3
+BuffRadius = 3
 TeamId = 1
 metadata/_custom_type_script = "uid://d0q44pydcatip"
 

@@ -1,8 +1,8 @@
 using Godot;
 using Incrememental.resources;
+using Incrememental.scripts.entities.buildings;
 using Incrememental.scripts.global;
 using Incrememental.scripts.grids;
-using Incrememental.scripts.grids.placement;
 
 namespace Incrememental.scripts.controllers.placement;
 
@@ -103,36 +103,17 @@ public partial class BuildingPlacementController : Node
         //
         // if (!RunEconomyManager.SpendCurrency(_selectedCatalogEntry.BuildingData.PlacementCost))
         //     return;
-
-        var gridPos = GameSystems.PlacementGrid.WorldToGrid(_previewPosition);
+        
         var gridSize = GridCell.FromVector2I(_selectedCatalogEntry.BuildingData.GridSize);
         var worldPos = GameSystems.PlacementGrid.GetPlacementPreviewPosition(
             _previewPosition,
             gridSize
         );
 
-        var building = _selectedCatalogEntry.Scene.Instantiate<Node3D>();
+        var building = _selectedCatalogEntry.Scene.Instantiate<Building>();
         GetParent().AddChild(building);
-        building.GlobalPosition = worldPos;
-
-        var buildingData = GameSystems.PlacementGrid.PlaceBuilding(
-            building,
-            gridPos,
-            gridSize,
-            _selectedCatalogEntry.BuildingData.UnlockRadius
-        );
-
-        if (buildingData == null)
-        {
-            // Placement failed - clean up
-            // TODO: Refund currency
-            // RunEconomyManager.AddCurrency(_selectedCatalogEntry.BuildingData.PlacementCost);
-            building.QueueFree();
-            GD.Print("Building placement failed!");
-        }
-        else
-        {
-            GD.Print($"Building placed successfully at {gridPos}");
-        }
+        building.Position = worldPos;
+        building.SetData(_selectedCatalogEntry.BuildingData);
+        building.Placed();
     }
 }
