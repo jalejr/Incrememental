@@ -153,7 +153,7 @@ public partial class UnitManager : Node
         UnitType unitType,
         Team teamId,
         Vector3 position,
-        Dictionary<Variant, float> buffs = null,
+        Dictionary<BuffType, float> buffs = null,
         Node building = null,
         bool targetable = true,
         bool attackable = true)

@@ -47,7 +47,7 @@ internal class UnitLifecycleSystem
         UnitType unitType,
         Team teamId,
         Vector3 position,
-        Dictionary<Variant, float> buffs = null,
+        Dictionary<BuffType, float> buffs = null,
         Node building = null,
         bool targetable = true,
         bool attackable = true)
@@ -175,20 +175,34 @@ internal class UnitLifecycleSystem
     /// <summary>
     /// Calculates final stats with buffs applied.
     /// </summary>
-    private UnitStats CalculateStatsWithBuffs(UnitStats baseStats, Dictionary<Variant, float> buffs)
+    private UnitStats CalculateStatsWithBuffs(UnitStats baseStats, Dictionary<BuffType, float> buffs)
     {
         var finalStats = baseStats.DuplicateStats();
+
+        if (buffs == null) return finalStats;
         
-        // TODO: Implement buff system
-        // Example:
-        // if (buffs != null)
-        // {
-        //     foreach (var buff in buffs)
-        //     {
-        //         ApplyBuff(finalStats, buff.Key, buff.Value);
-        //     }
-        // }
-        
+        foreach (var (buffType, buffValue) in buffs)
+        {
+            switch (buffType)
+            {
+                case BuffType.AttackDamage:
+                    finalStats.AttackDamage += buffValue;
+                    break;
+                case BuffType.AttackSpeed:
+                    finalStats.SetAttackSpeed(finalStats.AttacksPerSecond + buffValue);
+                    break;
+                case BuffType.MovementSpeed:
+                    finalStats.MoveSpeed += buffValue;
+                    break;
+                case BuffType.MaxHealth:
+                    finalStats.MaxHealth += buffValue;
+                    break;
+                case BuffType.Armor:
+                    finalStats.Armor += buffValue;
+                    break;
+            }
+        }
+
         return finalStats;
     }
 

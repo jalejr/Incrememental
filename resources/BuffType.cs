@@ -8,7 +8,6 @@ public enum BuffType
     AttackDamage,
     AttackSpeed,
     MovementSpeed,
-    HealthRegen,
     MaxHealth,
-    Range
+    Armor
 }
