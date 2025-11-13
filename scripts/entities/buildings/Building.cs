@@ -110,11 +110,21 @@ public partial class Building : Node3D, ICombatEntity
     }
 
     // Private methods
-    private List<Building> FindNearbyBuildings(int cellRadius)
+    private List<Building> FindNearbyBuildingsForBuffs(int cellRadius)
     {
-        var foundBuildings = new List<Building>();
+        var buildingNodes = GameSystems.PlacementGrid.GetBuildingsInRadius(this, cellRadius);
+        // TODO should look into cleaning Node3D and use an interface
+        var buildings = new List<Building>();
         
-        return foundBuildings;
+        foreach (var node in buildingNodes)
+        {
+            if (node is Building building)
+            {
+                buildings.Add(building);
+            }
+        }
+        
+        return buildings;
     }
 
     public void Placed()
@@ -135,7 +145,7 @@ public partial class Building : Node3D, ICombatEntity
             BuildingData.UnlockRadius
         );
         
-        var nearbyBuildings = FindNearbyBuildings(BuildingData.BuffRadius);
+        var nearbyBuildings = FindNearbyBuildingsForBuffs(BuildingData.BuffRadius);
         foreach (var building in nearbyBuildings)
         {
             building.AddAdjacencyBuffs(this, AdjacentAuraBuffs);
@@ -144,7 +154,7 @@ public partial class Building : Node3D, ICombatEntity
 
     private void Killed()
     {
-        var nearbyBuildings = FindNearbyBuildings(BuildingData.BuffRadius);
+        var nearbyBuildings = FindNearbyBuildingsForBuffs(BuildingData.BuffRadius);
         foreach (var building in nearbyBuildings)
         {
             building.RemoveAdjacencyBuffs(this);

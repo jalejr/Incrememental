@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=25 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://dmef6c1yheod1" path="res://scripts/game/Game.cs" id="1_vaxfo"]
 [ext_resource type="PackedScene" uid="uid://75bimm2dibwg" path="res://scenes/game/game_systems/game_systems.tscn" id="2_87uf6"]
@@ -11,11 +11,16 @@
 [ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerData.cs" id="11_vaxfo"]
 [ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingData.cs" id="12_vaxfo"]
 
+[sub_resource type="Resource" id="Resource_4j704"]
+script = ExtResource("11_5jirj")
+metadata/_custom_type_script = "uid://cwp83natj6m4f"
+
 [sub_resource type="Resource" id="Resource_5jirj"]
 script = ExtResource("12_vaxfo")
-GridSize = Vector2i(5, 3)
+GridSize = Vector2i(1, 1)
 UnlockRadius = 3
 BuffRadius = 3
+AdjacentAuraBuffs = Array[ExtResource("11_5jirj")]([SubResource("Resource_4j704")])
 metadata/_custom_type_script = "uid://d0q44pydcatip"
 
 [sub_resource type="Resource" id="Resource_5v6r0"]

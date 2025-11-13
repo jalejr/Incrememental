@@ -191,6 +191,33 @@ public partial class PlacementGrid : GridBase
         );
     }
 
+    /// <summary>
+    /// Gets all buildings within a certain radius (in cells) of the given building.
+    /// Returns unique buildings only (no duplicates even if they occupy multiple cells).
+    /// </summary>
+    public List<Node3D> GetBuildingsInRadius(Node3D sourceBuilding, int cellRadius)
+    {
+        if (!_buildingToPlacementData.TryGetValue(sourceBuilding, out var sourceBuildingData))
+            return new List<Node3D>();
+        
+        var foundBuildings = new HashSet<Node3D>();
+        var cellsToCheck = GetCellsAroundBuilding(sourceBuildingData.GridPosition, sourceBuildingData.GridSize, cellRadius);
+        
+        foreach (var cell in cellsToCheck)
+        {
+            if (!IsCellInBounds(cell))
+                continue;
+            
+            var buildingData = _occupiedCells[cell.X][cell.Y];
+            if (buildingData != null && buildingData.BuildingNode != sourceBuilding)
+            {
+                foundBuildings.Add(buildingData.BuildingNode);
+            }
+        }
+        
+        return new List<Node3D>(foundBuildings);
+    }
+
     private void InitializeGrids()
     {
         _gridSize.X = Mathf.CeilToInt(GridWorldSize.X / GridCellSize);
@@ -226,7 +253,7 @@ public partial class PlacementGrid : GridBase
 
     private void UnlockAreaAroundBuilding(PlacementGridData buildingData)
     {
-        var cellsToUnlock = GetUnlockCellsAroundBuilding(buildingData);
+        var cellsToUnlock = GetCellsAroundBuilding(buildingData.GridPosition, buildingData.GridSize, buildingData.UnlockRadius);
         foreach (var cell in cellsToUnlock)
         {
             if (!IsCellInBounds(cell))
@@ -249,7 +276,7 @@ public partial class PlacementGrid : GridBase
 
     private void LockCellsAroundBuilding(PlacementGridData buildingData)
     {
-        var cellsToLock = GetUnlockCellsAroundBuilding(buildingData);
+        var cellsToLock = GetCellsAroundBuilding(buildingData.GridPosition, buildingData.GridSize, buildingData.UnlockRadius);
         foreach (var cell in cellsToLock)
         {
             if (!IsCellInBounds(cell))
@@ -264,13 +291,16 @@ public partial class PlacementGrid : GridBase
         }
     }
 
-    private CellsForAreaEnumerator GetUnlockCellsAroundBuilding(PlacementGridData buildingData)
+    /// <summary>
+    /// Gets all cells in a rectangular area around a building.
+    /// </summary>
+    private CellsForAreaEnumerator GetCellsAroundBuilding(GridCell gridPosition, GridCell buildingSize, int radius)
     {
-        var unlockMin = buildingData.GridPosition - new GridCell(buildingData.UnlockRadius, buildingData.UnlockRadius);
-        var unlockMax = buildingData.GridPosition + buildingData.GridSize + new GridCell(buildingData.UnlockRadius, buildingData.UnlockRadius);
-        var unlockSize = unlockMax - unlockMin;
+        var areaMin = gridPosition - new GridCell(radius, radius);
+        var areaMax = gridPosition + buildingSize + new GridCell(radius, radius);
+        var areaSize = areaMax - areaMin;
         
-        return GetCellsForArea(unlockMin, unlockSize);
+        return GetCellsForArea(areaMin, areaSize);
     }
 
     private void OnBuildingRemoved(Node3D building)
