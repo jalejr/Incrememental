@@ -149,6 +149,7 @@ public partial class Building : Node3D, ICombatEntity
         foreach (var building in nearbyBuildings)
         {
             building.AddAdjacencyBuffs(this, AdjacentAuraBuffs);
+            AddAdjacencyBuffs(building, building.AdjacentAuraBuffs);
         }
     }
 
@@ -173,7 +174,23 @@ public partial class Building : Node3D, ICombatEntity
 
     private void UpdateActiveBuffs()
     {
-        // TODO: Calculate buff changes
-        // TODO: Update UI through signals
+        // TODO could be made better by doing this on add and remove instead of all at once
+        // this would avoid clearing and simplify the math
+        CachedBuffsCalculated.Clear();
+        
+        // Aggregate all buffs from all sources
+        foreach (var (sourceBuilding, buffList) in ActiveBuffs)
+        {
+            foreach (var buff in buffList)
+            {
+                if (!CachedBuffsCalculated.ContainsKey(buff.Type))
+                {
+                    CachedBuffsCalculated[buff.Type] = 0f;
+                }
+                CachedBuffsCalculated[buff.Type] += buff.Value;
+            }
+        }
+        
+        // GD.Print($"Building {Name} has {CachedBuffsCalculated} active buffs");
     }
 }

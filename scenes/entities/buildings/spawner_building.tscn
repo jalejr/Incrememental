@@ -8,6 +8,8 @@
 [sub_resource type="Resource" id="Resource_1v2oa"]
 script = ExtResource("2_03amo")
 UnitType = 1
+MaxUnits = 500
+SpawnCooldown = 1.0
 metadata/_custom_type_script = "uid://cs11amx2m81kf"
 
 [sub_resource type="Resource" id="Resource_icyva"]

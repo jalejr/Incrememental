@@ -82,7 +82,7 @@ public partial class SpawnerBuilding : Building
             SpawnerData.UnitType,
             TeamId,
             spawnPos,
-            new Dictionary<BuffType, float>(),
+            CachedBuffsCalculated,
             this
         );
 

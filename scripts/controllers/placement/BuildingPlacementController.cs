@@ -111,9 +111,9 @@ public partial class BuildingPlacementController : Node
         );
 
         var building = _selectedCatalogEntry.Scene.Instantiate<Building>();
+        building.SetData(_selectedCatalogEntry.BuildingData);
         GetParent().AddChild(building);
         building.Position = worldPos;
-        building.SetData(_selectedCatalogEntry.BuildingData);
         building.Placed();
     }
 }

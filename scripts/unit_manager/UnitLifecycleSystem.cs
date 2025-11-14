@@ -186,19 +186,19 @@ internal class UnitLifecycleSystem
             switch (buffType)
             {
                 case BuffType.AttackDamage:
-                    finalStats.AttackDamage += buffValue;
+                    finalStats.AttackDamage *= 1 + buffValue;
                     break;
                 case BuffType.AttackSpeed:
-                    finalStats.SetAttackSpeed(finalStats.AttacksPerSecond + buffValue);
+                    finalStats.SetAttackSpeed(finalStats.AttacksPerSecond * (1 + buffValue));
                     break;
                 case BuffType.MovementSpeed:
-                    finalStats.MoveSpeed += buffValue;
+                    finalStats.MoveSpeed *= 1 + buffValue;
                     break;
                 case BuffType.MaxHealth:
-                    finalStats.MaxHealth += buffValue;
+                    finalStats.MaxHealth *= 1 + buffValue;
                     break;
                 case BuffType.Armor:
-                    finalStats.Armor += buffValue;
+                    finalStats.Armor *= 1 + buffValue;
                     break;
             }
         }
