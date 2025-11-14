@@ -2,7 +2,6 @@ using Godot;
 using Incrememental.resources;
 using Incrememental.scripts.entities;
 using Incrememental.scripts.entities.units;
-using Incrememental.scripts.grids.spatial;
 using System.Collections.Generic;
 using global::Incrememental.scripts.global;
 
@@ -14,7 +13,6 @@ namespace Incrememental.scripts.unit_manager;
 internal class UnitLifecycleSystem
 {
     private readonly Rid _navMap;
-    private readonly SpatialGridManager _gridManager;
     private readonly Dictionary<UnitType, UnitTypeRuntimeData> _unitTypesRuntime;
     private readonly List<Unit> _allUnits;
     private readonly List<int> _freeIndices;
@@ -26,14 +24,12 @@ internal class UnitLifecycleSystem
 
     public UnitLifecycleSystem(
         Rid navMap,
-        SpatialGridManager gridManager,
         Dictionary<UnitType, UnitTypeRuntimeData> unitTypesRuntime,
         List<Unit> allUnits,
         List<int> freeIndices,
         UnitMovementSystem movementSystem)
     {
         _navMap = navMap;
-        _gridManager = gridManager;
         _unitTypesRuntime = unitTypesRuntime;
         _allUnits = allUnits;
         _freeIndices = freeIndices;
@@ -94,10 +90,6 @@ internal class UnitLifecycleSystem
         int index = AssignUnitIndex(unit);
         unit.ManagerIndex = index;
 
-        // Register with spatial grid
-        var gridEntity = _gridManager.RegisterEntity(unit);
-        unit.GridEntity = gridEntity;
-
         // Update MultiMesh
         _aliveCountForAll++;
         runtime.AliveCount++;
@@ -143,12 +135,6 @@ internal class UnitLifecycleSystem
 
         _freeIndices.Add(index);
         
-        // Unregister from spatial grid
-        if (unit.GridEntity != null)
-        {
-            _gridManager.UnregisterEntity(unit.GridEntity);
-        }
-
         // Free navigation agent
         if (unit.AgentRid.IsValid)
         {

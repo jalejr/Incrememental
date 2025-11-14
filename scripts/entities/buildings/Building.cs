@@ -15,11 +15,19 @@ public partial class Building : Node3D, ICombatEntity
     public event System.Action<float, float> HealthChanged;
     [Export] public BuildingData BuildingData { get; set; }
     public EntityType Type => EntityType.Building;
+    
+    // Cached position for thread-safe access from parallel queries
+    private Vector3 _cachedPosition;
+    
     // Hiding Godot Position property
     public new Vector3 Position
     {
-        get => GlobalPosition;
-        set => GlobalPosition = value;
+        get => _cachedPosition; // Return cached value (thread-safe)
+        set
+        {
+            GlobalPosition = value;
+            _cachedPosition = value; // Update cache
+        }
     }
     public float Radius { get; set; }
     public Team TeamId { get; set; }
@@ -41,6 +49,9 @@ public partial class Building : Node3D, ICombatEntity
 
     public void Initialize()
     {
+        // Cache initial position for thread-safe access
+        _cachedPosition = GlobalPosition;
+        
         // Initialize IEntity properties directly
         Radius = BuildingData.Radius;
         MaxHealth = BuildingData.MaxHealth;

@@ -17,6 +17,43 @@ public partial class MeleeUnit : Unit
         PathRecalcInterval = 0.5f;
     }
 
+    /// <summary>
+    /// Safely checks if an entity is valid and alive.
+    /// Handles disposed Godot objects (Buildings).
+    /// </summary>
+    private bool IsEntityValid(IEntity entity)
+    {
+        if (entity == null || !entity.IsAlive)
+            return false;
+
+        // Buildings are Godot Node3D objects that can be disposed
+        if (entity is GodotObject godotObj && !GodotObject.IsInstanceValid(godotObj))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Safely gets entity position, returns null if entity is invalid/disposed.
+    /// </summary>
+    private Vector3? TryGetEntityPosition(IEntity entity)
+    {
+        if (!IsEntityValid(entity))
+            return null;
+
+        try
+        {
+            return entity.Position;
+        }
+        catch (System.ObjectDisposedException)
+        {
+            // Entity was freed between validity check and position access
+            return null;
+        }
+    }
+
     protected override void UpdateActiveState(float delta, UnitLogicContext context)
     {
         switch (BehaviorState)
@@ -65,20 +102,29 @@ public partial class MeleeUnit : Unit
         var currentPos = Position;
 
         // Check if current target is still valid and in range
-        if (TargetEntity != null && TargetEntity.IsAlive)
+        if (IsEntityValid(TargetEntity))
         {
-            var currentDistance = currentPos.DistanceTo(TargetEntity.Position);
-
-            if (currentDistance <= attackRange)
+            var tryGetEntityPosition = TryGetEntityPosition(TargetEntity);
+            if (tryGetEntityPosition.HasValue)
             {
-                NavPath = System.Array.Empty<Vector3>();
+                var currentDistance = currentPos.DistanceTo(tryGetEntityPosition.Value);
 
-                if (AttackCooldown <= 0 && TargetEntity is ICombatEntity combatTarget)
+                if (currentDistance <= attackRange)
                 {
-                    combatTarget.TakeDamage(attackDamage, currentPos, context);
-                    AttackCooldown = attackCooldownSec;
+                    NavPath = System.Array.Empty<Vector3>();
+
+                    if (AttackCooldown <= 0 && TargetEntity is ICombatEntity combatTarget)
+                    {
+                        combatTarget.TakeDamage(attackDamage, currentPos, context);
+                        AttackCooldown = attackCooldownSec;
+                    }
+                    return;
                 }
-                return;
+            }
+            else
+            {
+                // Target was freed/disposed, clear it
+                TargetEntity = null;
             }
         }
 
@@ -110,7 +156,7 @@ public partial class MeleeUnit : Unit
         }
 
         // No target in range, find distant target
-        if (TargetEntity == null || !TargetEntity.IsAlive)
+        if (!IsEntityValid(TargetEntity))
         {
             var distantEnemies = context.SpatialGrid.Query()
                 .At(currentPos)
@@ -131,26 +177,34 @@ public partial class MeleeUnit : Unit
         }
 
         // Still no target, clear path and wait
-        if (TargetEntity == null || !TargetEntity.IsAlive)
+        if (!IsEntityValid(TargetEntity))
         {
             NavPath = System.Array.Empty<Vector3>();
             return;
         }
 
         // Have target, update pathfinding
-        var targetPos = TargetEntity.Position;
-
-        if (NeedsPathRecalc(targetPos))
+        var targetPos = TryGetEntityPosition(TargetEntity);
+        if (!targetPos.HasValue)
         {
-            context.SetPath(this, targetPos);
-            MarkPathRecalculated(targetPos);
+            // Target was freed, clear it
+            TargetEntity = null;
+            NavPath = System.Array.Empty<Vector3>();
+            return;
+        }
+        var targetPosition = targetPos.Value;
+
+        if (NeedsPathRecalc(targetPosition))
+        {
+            context.SetPath(this, targetPosition);
+            MarkPathRecalculated(targetPosition);
         }
         else if (NavPath.Length == 0 || PathIndex >= NavPath.Length)
         {
             if (PathAge > PathRecalcInterval)
             {
-                context.SetPath(this, targetPos);
-                MarkPathRecalculated(targetPos);
+                context.SetPath(this, targetPosition);
+                MarkPathRecalculated(targetPosition);
             }
         }
     }

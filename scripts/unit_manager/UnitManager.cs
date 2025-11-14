@@ -61,7 +61,7 @@ public partial class UnitManager : Node
         // Initialize subsystems
         _renderSystem = new UnitRenderSystem(this, UnitTypeConfigs, _unitTypesRuntime, VisualLerpSpeed);
         _movementSystem = new UnitMovementSystem(this, _navMap, GridManager);
-        _lifecycleSystem = new UnitLifecycleSystem(_navMap, GridManager, _unitTypesRuntime, _allUnits, _freeIndices, _movementSystem);
+        _lifecycleSystem = new UnitLifecycleSystem(_navMap, _unitTypesRuntime, _allUnits, _freeIndices, _movementSystem);
         _logicSystem = new UnitLogicSystem(this);
         
         // Allocating thread-local contexts and queues
@@ -268,10 +268,6 @@ public partial class UnitManager : Node
         {
             if (unit.IsAlive)
             {
-                if (unit.GridEntity != null)
-                {
-                    GridManager.UnregisterEntity(unit.GridEntity);
-                }
                 if (unit.AgentRid.IsValid)
                 {
                     NavigationServer3D.FreeRid(unit.AgentRid);

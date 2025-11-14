@@ -1,6 +1,9 @@
 using Godot;
 using Incrememental.scripts.entities;
 using System.Collections.Generic;
+using Incrememental.scripts.entities.buildings;
+using Incrememental.scripts.entities.units;
+using Incrememental.scripts.global;
 
 namespace Incrememental.scripts.grids.spatial;
 
@@ -16,6 +19,7 @@ public partial class SpatialGridManager : GridBase
     private Vector2I _gridSize = Vector2I.Zero;
     
     private Dictionary<int, SpatialGridEntity> _entityIdToEntity = new();
+    private Dictionary<IEntity, SpatialGridEntity> _entityToGridEntity = new();
     private int _nextEntityId = 0;
     
     private readonly System.Threading.ThreadLocal<Stack<SpatialQuery>> _threadLocalQueryPool;
@@ -40,39 +44,28 @@ public partial class SpatialGridManager : GridBase
     {
         InitializeGrids();
         _queryExecutor = new SpatialQueryExecutor(this);
+        
+        // Subscribe to all entity lifecycle events
+        EventBus.BuildingPlaced += OnBuildingPlaced;
+        EventBus.BuildingRemoved += OnBuildingRemoved;
+        EventBus.UnitSpawned += OnUnitSpawned;
+        EventBus.UnitDied += OnUnitDied;
+        
         GD.Print($"SpatialGridManager initialized - Grid size: {_gridSize.X}x{_gridSize.Y}");
     }
 
     /// <summary>
-    /// Registers an entity in the spatial grid.
-    /// </summary>
-    public SpatialGridEntity RegisterEntity(IEntity entity)
-    {
-        var gridEntity = new SpatialGridEntity
-        {
-            Entity = entity,
-            EntityId = _nextEntityId++
-        };
-
-        gridEntity.GridCell = WorldToGrid(entity.Position);
-        gridEntity.OccupiedCells = GetPotentiallyOccupiedCells(gridEntity.GridCell, entity.Radius);
-
-        AddToGrid(gridEntity);
-        _entityIdToEntity[gridEntity.EntityId] = gridEntity;
-
-        return gridEntity;
-    }
-
-    /// <summary>
     /// Unregisters an entity from the spatial grid by its grid entity.
+    /// Used by UnitMovementSystem for position updates (performance-critical path).
     /// </summary>
-    public void UnregisterEntity(SpatialGridEntity entity)
+    public void UnregisterEntity(SpatialGridEntity gridEntity)
     {
-        if (entity == null)
+        if (gridEntity == null)
             return;
 
-        RemoveFromGrid(entity);
-        _entityIdToEntity.Remove(entity.EntityId);
+        RemoveFromGrid(gridEntity);
+        _entityIdToEntity.Remove(gridEntity.EntityId);
+        _entityToGridEntity.Remove(gridEntity.Entity);
     }
 
     /// <summary>
@@ -238,4 +231,70 @@ public partial class SpatialGridManager : GridBase
     
     #endregion
     
+    /// <summary>
+    /// Registers an entity in the spatial grid (called on main thread via CallDeferred).
+    /// PUBLIC for Godot reflection - do not call directly!
+    /// </summary>
+    public void RegisterEntityDeferred(IEntity entity)
+    {
+        var gridEntity = new SpatialGridEntity
+        {
+            Entity = entity,
+            EntityId = _nextEntityId++
+        };
+
+        gridEntity.GridCell = WorldToGrid(entity.Position);
+        gridEntity.OccupiedCells = GetPotentiallyOccupiedCells(gridEntity.GridCell, entity.Radius);
+
+        AddToGrid(gridEntity);
+        _entityIdToEntity[gridEntity.EntityId] = gridEntity;
+        _entityToGridEntity[entity] = gridEntity;
+        
+        // If it's a unit, set GridEntity for performance-critical position updates
+        if (entity is Unit unit)
+        {
+            unit.GridEntity = gridEntity;
+        }
+    }
+    
+    /// <summary>
+    /// Unregisters an entity from the spatial grid (called on main thread via CallDeferred).
+    /// PUBLIC for Godot reflection - do not call directly!
+    /// </summary>
+    public void UnregisterEntityDeferred(IEntity entity)
+    {
+        if (entity == null)
+            return;
+            
+        if (_entityToGridEntity.TryGetValue(entity, out var gridEntity))
+        {
+            RemoveFromGrid(gridEntity);
+            _entityIdToEntity.Remove(gridEntity.EntityId);
+            _entityToGridEntity.Remove(gridEntity.Entity);
+        }
+    }
+    
+    private void OnBuildingPlaced(Building building, GridCell gridPos)
+    {
+        // Defer to main thread using Godot's built-in mechanism
+        Callable.From(() => RegisterEntityDeferred(building)).CallDeferred();
+    }
+
+    private void OnBuildingRemoved(Building building)
+    {
+        // Defer to main thread using Godot's built-in mechanism
+        Callable.From(() => UnregisterEntityDeferred(building)).CallDeferred();
+    }
+    
+    private void OnUnitSpawned(Unit unit, Node building)
+    {
+        // Defer to main thread using Godot's built-in mechanism
+        Callable.From(() => RegisterEntityDeferred(unit)).CallDeferred();
+    }
+    
+    private void OnUnitDied(Unit unit, Node building)
+    {
+        // Defer to main thread using Godot's built-in mechanism
+        Callable.From(() => UnregisterEntityDeferred(unit)).CallDeferred();
+    }
 }
