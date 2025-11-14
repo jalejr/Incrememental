@@ -183,6 +183,7 @@ public partial class PlacementGridVisualizer : Node3D
     {
         // Listen to EventBus - single source of truth
         EventBus.BuildingPlaced += OnBuildingPlaced;
+        EventBus.BuildingRemoved += OnBuildingRemoved;
         EventBus.BuildingSold += OnBuildingRemoved;
     }
 
