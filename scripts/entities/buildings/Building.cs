@@ -138,12 +138,7 @@ public partial class Building : Node3D, ICombatEntity
         );
         var gridPos = GameSystems.PlacementGrid.WorldToGrid(bottomLeftPos);
         
-        GameSystems.PlacementGrid.PlaceBuilding(
-            this,
-            gridPos,
-            gridSize,
-            BuildingData.UnlockRadius
-        );
+        EventBus.EmitBuildingPlaced(this, gridPos);
         
         var nearbyBuildings = FindNearbyBuildingsForBuffs(BuildingData.BuffRadius);
         foreach (var building in nearbyBuildings)

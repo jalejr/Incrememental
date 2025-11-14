@@ -2,6 +2,7 @@ using Godot;
 using Incrememental.scripts.global;
 using Incrememental.scripts.grids;
 using System.Collections.Generic;
+using Incrememental.scripts.entities.buildings;
 
 namespace Incrememental.scripts.grids.placement;
 
@@ -26,6 +27,7 @@ public partial class PlacementGrid : GridBase
         GD.Print($"PlacementGrid initialized - Cell size: {GridCellSize}, Grid size: {_gridSize}");
         
         // Connect to EventBus
+        EventBus.BuildingPlaced += OnBuildingPlaced;
         EventBus.BuildingRemoved += OnBuildingRemoved;
         
         // TODO: Have the unlock happen through level start event
@@ -113,9 +115,6 @@ public partial class PlacementGrid : GridBase
         _buildingToPlacementData[buildingNode] = buildingData;
         
         UnlockAreaAroundBuilding(buildingData);
-        
-        // Emit event using C# event
-        EventBus.EmitBuildingPlaced(buildingNode, gridPos);
         
         return buildingData;
     }
@@ -301,6 +300,11 @@ public partial class PlacementGrid : GridBase
         var areaSize = areaMax - areaMin;
         
         return GetCellsForArea(areaMin, areaSize);
+    }
+    
+    private void OnBuildingPlaced(Building building, GridCell gridPos)
+    {
+        PlaceBuilding(building, gridPos, GridCell.FromVector2I(building.BuildingData.GridSize), building.BuildingData.UnlockRadius);
     }
 
     private void OnBuildingRemoved(Node3D building)
