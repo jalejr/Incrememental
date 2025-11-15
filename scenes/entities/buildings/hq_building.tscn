@@ -1,14 +1,23 @@
-[gd_scene load_steps=3 format=3 uid="uid://dg2a6idoo52to"]
+[gd_scene load_steps=6 format=3 uid="uid://dg2a6idoo52to"]
 
-[ext_resource type="Script" uid="uid://qhvplbmdai8s" path="res://scripts/entities/buildings/hq_building.gd" id="1_s5j25"]
+[ext_resource type="Script" uid="uid://bm7k2ipy641hn" path="res://scripts/entities/buildings/HQBuilding.cs" id="1_txrpt"]
+[ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/Buff.cs" id="2_3btqc"]
+[ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingData.cs" id="3_y272n"]
+
+[sub_resource type="Resource" id="Resource_1d4xb"]
+script = ExtResource("3_y272n")
+UnlockRadius = 5
+BuffRadius = 5
+TeamId = 1
+metadata/_custom_type_script = "uid://d0q44pydcatip"
 
 [sub_resource type="TorusMesh" id="TorusMesh_u38mg"]
 
 [node name="HqBuilding" type="Node3D"]
-script = ExtResource("1_s5j25")
+script = ExtResource("1_txrpt")
+BuildingData = SubResource("Resource_1d4xb")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("TorusMesh_u38mg")
 
 [node name="Timer" type="Timer" parent="."]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://dn3qkyl5xdal6"]
+[gd_scene load_steps=20 format=3 uid="uid://dn3qkyl5xdal6"]
 
 [ext_resource type="Script" uid="uid://dmef6c1yheod1" path="res://scripts/game/Game.cs" id="1_vaxfo"]
 [ext_resource type="PackedScene" uid="uid://75bimm2dibwg" path="res://scenes/game/game_systems/game_systems.tscn" id="2_87uf6"]
@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://dsf27yj0uwb2f" path="res://resources/BuildingCatalogEntry.cs" id="7_kp23o"]
 [ext_resource type="Script" uid="uid://dsf2igywk2w5s" path="res://scripts/levels/Level.cs" id="8_3xj4h"]
 [ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/Buff.cs" id="11_5jirj"]
-[ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerData.cs" id="11_vaxfo"]
+[ext_resource type="PackedScene" uid="uid://dg2a6idoo52to" path="res://scenes/entities/buildings/hq_building.tscn" id="11_kp23o"]
 [ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingData.cs" id="12_vaxfo"]
 
 [sub_resource type="Resource" id="Resource_4j704"]
@@ -17,7 +17,6 @@ metadata/_custom_type_script = "uid://cwp83natj6m4f"
 
 [sub_resource type="Resource" id="Resource_5jirj"]
 script = ExtResource("12_vaxfo")
-GridSize = Vector2i(1, 1)
 UnlockRadius = 3
 BuffRadius = 3
 TeamId = 1
@@ -53,22 +52,6 @@ size = Vector2(512, 512)
 vertices = PackedVector3Array(-255.5, 0.39999998, -255.5, -255.5, 0.39999998, 255.5, 255.5, 0.39999998, 255.5, 255.5, 0.39999998, -255.5)
 polygons = [PackedInt32Array(3, 2, 0), PackedInt32Array(0, 2, 1)]
 agent_height = 2.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_5vw27"]
-
-[sub_resource type="Resource" id="Resource_otnwt"]
-script = ExtResource("11_vaxfo")
-UnitType = 4
-MaxUnits = 50
-SpawnCooldown = 2.0
-metadata/_custom_type_script = "uid://cs11amx2m81kf"
-
-[sub_resource type="Resource" id="Resource_ftsea"]
-script = ExtResource("12_vaxfo")
-UnlockRadius = 2
-BuffRadius = 2
-TeamId = 2
-metadata/_custom_type_script = "uid://d0q44pydcatip"
 
 [node name="Main" type="Node"]
 script = ExtResource("1_vaxfo")
@@ -126,14 +109,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, 0)
 use_collision = true
 size = Vector3(512, 1, 512)
 
-[node name="MeshInstance3D14" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/Level"]
-mesh = SubResource("BoxMesh_5vw27")
-skeleton = NodePath("../..")
-
-[node name="UnitSpawnerBuilding2" parent="SubViewportContainer/SubViewport/Level" instance=ExtResource("6_5v6r0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20.173542, 0, 0)
-SpawnerData = SubResource("Resource_otnwt")
-BuildingData = SubResource("Resource_ftsea")
+[node name="HqBuilding" parent="SubViewportContainer/SubViewport/Level" instance=ExtResource("11_kp23o")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 1.5)
 
 [editable path="GameSystems"]
 [editable path="SubViewportContainer/SubViewport/RtsCamera"]

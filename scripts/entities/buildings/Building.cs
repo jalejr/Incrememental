@@ -142,12 +142,20 @@ public partial class Building : Node3D, ICombatEntity
     {
         var gridSize = GridCell.FromVector2I(BuildingData.GridSize);
         var cellSize = GameSystems.PlacementGrid.GridCellSize;
+        
         var bottomLeftPos = Position - new Vector3(
             gridSize.X * cellSize * 0.5f,
             0,
             gridSize.Y * cellSize * 0.5f
         );
+        
         var gridPos = GameSystems.PlacementGrid.WorldToGrid(bottomLeftPos);
+        var gridAlignedCenter = GameSystems.PlacementGrid.GridToWorld(gridPos, false) + new Vector3(
+            gridSize.X * cellSize * 0.5f,
+            0,
+            gridSize.Y * cellSize * 0.5f
+        );
+        Position = gridAlignedCenter;
         
         EventBus.EmitBuildingPlaced(this, gridPos);
         

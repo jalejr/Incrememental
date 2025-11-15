@@ -29,9 +29,6 @@ public partial class PlacementGrid : GridBase
         // Connect to EventBus
         EventBus.BuildingPlaced += OnBuildingPlaced;
         EventBus.BuildingRemoved += OnBuildingRemoved;
-        
-        // TODO: Have the unlock happen through level start event
-        UnlockStartingArea(new Vector3(256, 0, 256), 5);
     }
 
     /// <summary>

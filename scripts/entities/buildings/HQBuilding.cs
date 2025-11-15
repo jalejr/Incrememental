@@ -1,3 +1,4 @@
+using global::Incrememental.scripts.global;
 using Godot;
 
 namespace Incrememental.scripts.entities.buildings;
@@ -24,6 +25,8 @@ public partial class HQBuilding : Building
             _timer.Timeout += OnTimerTimeout;
             _timer.Start();
         }
+        GameSystems.PlacementGrid.UnlockStartingArea(Position, 3);
+        Placed();
     }
 
     /// <summary>
