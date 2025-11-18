@@ -1,28 +1,20 @@
-[gd_resource type="Resource" script_class="UnitTypeConfig" load_steps=8 format=3 uid="uid://b8sg6idyythr8"]
+[gd_resource type="Resource" script_class="UnitTypeConfig" load_steps=6 format=3 uid="uid://b8sg6idyythr8"]
 
-[ext_resource type="Script" uid="uid://bf6loflu5s4vn" path="res://resources/unit_stats.gd" id="1_7usdj"]
+[ext_resource type="Resource" uid="uid://b5a7rtqeba2kt" path="res://resources/unit_stats/demon_stats.tres" id="1_kpafl"]
+[ext_resource type="Script" uid="uid://b05ybkebntd0h" path="res://resources/UnitTypeConfig.cs" id="1_y34ae"]
 [ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="2_ky0fl"]
-[ext_resource type="Script" uid="uid://cag84r2xxki5h" path="res://resources/unit_type_config.gd" id="3_88dc2"]
-[ext_resource type="Script" uid="uid://co2semae870og" path="res://scripts/entities/units/melee_unit.gd" id="4_5c8aq"]
 
-[sub_resource type="Resource" id="Resource_jx7yj"]
-script = ExtResource("1_7usdj")
-attack_damage = 25.0
-attack_range = 2.0
-metadata/_custom_type_script = "uid://bf6loflu5s4vn"
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_208vs"]
+albedo_color = Color(0.70838237, 0.1714051, 9.62615e-08, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kg8yg"]
-albedo_color = Color(0.6901961, 0, 0.08235294, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_vldbm"]
-material = SubResource("StandardMaterial3D_kg8yg")
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_7usdj"]
+material = SubResource("StandardMaterial3D_208vs")
 
 [resource]
-script = ExtResource("3_88dc2")
-unit_type = 4
-default_stats = SubResource("Resource_jx7yj")
-icon = ExtResource("2_ky0fl")
-mesh = SubResource("CapsuleMesh_vldbm")
-unit_script = ExtResource("4_5c8aq")
-max_count = 10000
-metadata/_custom_type_script = "uid://cag84r2xxki5h"
+script = ExtResource("1_y34ae")
+UnitType = 4
+DefaultStats = ExtResource("1_kpafl")
+Icon = ExtResource("2_ky0fl")
+Mesh = SubResource("CapsuleMesh_7usdj")
+MaxCount = 10000
+metadata/_custom_type_script = "uid://b05ybkebntd0h"

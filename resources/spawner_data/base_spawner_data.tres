@@ -1,10 +1,7 @@
 [gd_resource type="Resource" script_class="SpawnerData" load_steps=2 format=3 uid="uid://b6hrhrry6ssq7"]
 
-[ext_resource type="Script" uid="uid://caeg7fu6jnkh3" path="res://resources/spawner_data.gd" id="1_ccqtr"]
+[ext_resource type="Script" uid="uid://cs11amx2m81kf" path="res://resources/SpawnerData.cs" id="1_ccqtr"]
 
 [resource]
 script = ExtResource("1_ccqtr")
-unit_type = 4
-max_units = 25
-spawn_cooldown = 0.1
-metadata/_custom_type_script = "uid://caeg7fu6jnkh3"
+metadata/_custom_type_script = "uid://cs11amx2m81kf"

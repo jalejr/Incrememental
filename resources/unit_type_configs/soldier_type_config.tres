@@ -1,27 +1,19 @@
-[gd_resource type="Resource" script_class="UnitTypeConfig" load_steps=8 format=3 uid="uid://byu0ulg3x22fg"]
+[gd_resource type="Resource" script_class="UnitTypeConfig" load_steps=6 format=3 uid="uid://byu0ulg3x22fg"]
 
-[ext_resource type="Script" uid="uid://cag84r2xxki5h" path="res://resources/unit_type_config.gd" id="1_8ctb7"]
-[ext_resource type="Script" uid="uid://bf6loflu5s4vn" path="res://resources/unit_stats.gd" id="1_v84r3"]
-[ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="2_dj2dd"]
-[ext_resource type="Script" uid="uid://co2semae870og" path="res://scripts/entities/units/melee_unit.gd" id="4_v84r3"]
+[ext_resource type="Script" uid="uid://b05ybkebntd0h" path="res://resources/UnitTypeConfig.cs" id="1_8ctb7"]
+[ext_resource type="Resource" uid="uid://c674dmuyguld7" path="res://resources/unit_stats/soldier_stats.tres" id="1_yo82f"]
+[ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="2_gjuth"]
 
-[sub_resource type="Resource" id="Resource_jx7yj"]
-script = ExtResource("1_v84r3")
-attack_damage = 25.0
-metadata/_custom_type_script = "uid://bf6loflu5s4vn"
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_v84r3"]
+albedo_color = Color(9.62615e-08, 0.63785475, 0.6381846, 1)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kg8yg"]
-albedo_color = Color(0, 1, 1, 1)
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_vldbm"]
-material = SubResource("StandardMaterial3D_kg8yg")
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_dj2dd"]
+material = SubResource("StandardMaterial3D_v84r3")
 
 [resource]
 script = ExtResource("1_8ctb7")
-unit_type = 1
-default_stats = SubResource("Resource_jx7yj")
-icon = ExtResource("2_dj2dd")
-mesh = SubResource("CapsuleMesh_vldbm")
-unit_script = ExtResource("4_v84r3")
-max_count = 10000
-metadata/_custom_type_script = "uid://cag84r2xxki5h"
+UnitType = 1
+DefaultStats = ExtResource("1_yo82f")
+Icon = ExtResource("2_gjuth")
+Mesh = SubResource("CapsuleMesh_dj2dd")
+metadata/_custom_type_script = "uid://b05ybkebntd0h"

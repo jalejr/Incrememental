@@ -1,18 +1,10 @@
-[gd_resource type="Resource" script_class="BuildingData" load_steps=4 format=3 uid="uid://b58vhm4fhaf7x"]
+[gd_resource type="Resource" script_class="BuildingData" load_steps=3 format=3 uid="uid://b58vhm4fhaf7x"]
 
-[ext_resource type="Script" uid="uid://bhibjol1mnqh7" path="res://resources/buff.gd" id="1_vveqk"]
-[ext_resource type="Texture2D" uid="uid://div5m76l6l1dv" path="res://icon.svg" id="2_8fll6"]
-[ext_resource type="Script" uid="uid://b4lhb37v3ri8b" path="res://resources/building_data.gd" id="2_i0itd"]
+[ext_resource type="Script" uid="uid://cwp83natj6m4f" path="res://resources/Buff.cs" id="1_vveqk"]
+[ext_resource type="Script" uid="uid://d0q44pydcatip" path="res://resources/BuildingData.cs" id="2_i0itd"]
 
 [resource]
 script = ExtResource("2_i0itd")
-building_id = "hq"
-display_name = "HQ"
-description = "Base of operation"
-icon = ExtResource("2_8fll6")
-grid_size = Vector2i(3, 3)
-unlock_radius = 5
-buff_radius = 5
-placement_cost = 10000
-max_health = 1000.0
-metadata/_custom_type_script = "uid://b4lhb37v3ri8b"
+UnlockRadius = 5
+BuffRadius = 5
+metadata/_custom_type_script = "uid://d0q44pydcatip"
